@@ -75,11 +75,37 @@ app.post('/invoices/generate', async (req, res) => {
         const dueDateFormatted = dueDate.toISOString().split('T')[0];
         
         // Create prompt for OpenAI
-        let prompt = `You are an AI that extracts invoice information from voice/text input. Extract the following in JSON format:
+        let prompt = `You are a STRICT extractor that creates line items from invoices. Use ONLY facts explicitly present in the inputs.
+
+CRITICAL BILLING CONTEXT:
+- Understand WHEN the pricing applies (immediate/today vs. future/ongoing)
+- ONLY include pricing that applies to the CURRENT billing period
+- If pricing is discussed for future work, ongoing retainers, or later phases, DO NOT include it in this invoice
+- Look for temporal indicators: "now", "today", "this month", "upfront", "deposit" vs. "monthly", "ongoing", "per month", "future"
+
+CRITICAL STRUCTURE:
+1. If there's a main package/service with a total price that applies NOW, create it as a line_item
+2. ONLY create sub-line_items if the transcription EXPLICITLY breaks down the pricing for individual deliverables
+3. DO NOT infer or distribute pricing across deliverables unless explicitly stated
+4. DO NOT include recurring/monthly fees unless this invoice represents that billing period
+
+Each line_item must have:
+- description: specific deliverable or package name
+- quantity: how many (default to 1 if not specified)
+- unit: what's being counted ("package", "episodes", "hours", "posts", "sessions")
+- unit_price: price per unit (ONLY if explicitly stated)
+- line_total: total for this line item
+- is_header: true for main package (if sub-items exist), false/null otherwise
+
+CRITICAL: Only break down costs if the transcription explicitly mentions individual prices for deliverables.
+If only a total package price is mentioned, create a single line_item for the entire package.
+Amounts must be numbers only (no currency symbols, no commas).
+
+Generate a properly structured invoice in JSON format with the following structure:
 {
-  "invoiceNumber": "string (generate if not mentioned, format: INV-YYYY-001)",
-  "date": "YYYY-MM-DD (use ${todayFormatted} if not specified)",
-  "dueDate": "YYYY-MM-DD (use ${dueDateFormatted} if not specified, which is 30 days from today)",
+  "invoiceNumber": "INV-[generate unique number]",
+  "date": "${todayFormatted}",
+  "dueDate": "${dueDateFormatted}",
   "from": {
     "name": "sender company/person",
     "address": "sender address",
@@ -94,12 +120,15 @@ app.post('/invoices/generate', async (req, res) => {
   },
   "items": [
     {
-      "description": "service/product description",
-      "quantity": number,
-      "rate": number,
-      "amount": number (quantity * rate)
+      "description": "Main Package Name or Service",
+      "quantity": 1,
+      "rate": [price],
+      "amount": [price],
+      "is_header": true
     }
   ],
+  "subtotal": [sum of all amounts],
+  "total": [subtotal + any fees/taxes if mentioned],
   "notes": "any additional notes or payment terms"
 }
 
