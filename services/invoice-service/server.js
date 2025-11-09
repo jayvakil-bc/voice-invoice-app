@@ -101,50 +101,35 @@ CRITICAL: Only break down costs if the transcription explicitly mentions individ
 If only a total package price is mentioned, create a single line_item for the entire package.
 Amounts must be numbers only (no currency symbols, no commas).
 
+TRANSCRIPTION:
+${transcript}
+
 Generate a properly structured invoice in JSON format with the following structure:
 {
-  "invoiceNumber": "INV-[generate unique number]",
-  "date": "${todayFormatted}",
-  "dueDate": "${dueDateFormatted}",
-  "from": {
-    "name": "sender company/person",
-    "address": "sender address",
-    "phone": "sender phone",
-    "email": "sender email"
-  },
-  "to": {
-    "name": "client name",
-    "address": "client address",
-    "phone": "client phone (if mentioned)",
-    "email": "client email (if mentioned)"
-  },
-  "items": [
+  "invoice_number": "INV-[generate unique number]",
+  "date": "[current date]",
+  "line_items": [
     {
-      "description": "Main Package Name or Service",
+      "description": "Main Package Name",
       "quantity": 1,
-      "rate": [price],
-      "amount": [price],
+      "unit": "package",
+      "unit_price": [total price],
+      "line_total": [total price],
       "is_header": true
+    },
+    {
+      "description": "Specific Deliverable 1",
+      "quantity": [number],
+      "unit": "[unit type]",
+      "unit_price": [price per unit],
+      "line_total": [quantity * unit_price],
+      "is_header": false
     }
   ],
-  "subtotal": [sum of all amounts],
-  "total": [subtotal + any fees/taxes if mentioned],
-  "notes": "any additional notes or payment terms"
+  "subtotal": [sum of all line_totals],
+  "total": [subtotal + any fees/taxes if mentioned]
 }
-
-IMPORTANT: If no date is mentioned in the input, use ${todayFormatted} as the invoice date. If no due date is mentioned, use ${dueDateFormatted}.
-
 `;
-
-        if (businessContext && Object.keys(businessContext).length > 0) {
-            prompt += `\nUse this business information when extracting "from" details:\n`;
-            if (businessContext.companyName) prompt += `Company: ${businessContext.companyName}\n`;
-            if (businessContext.address) prompt += `Address: ${businessContext.address}\n`;
-            if (businessContext.phone) prompt += `Phone: ${businessContext.phone}\n`;
-            if (businessContext.email) prompt += `Email: ${businessContext.email}\n`;
-        }
-
-        prompt += `\nInput: ${transcript}`;
 
         const completion = await openai.chat.completions.create({
             model: 'gpt-4o',
