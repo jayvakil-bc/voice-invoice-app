@@ -67,12 +67,19 @@ app.post('/invoices/generate', async (req, res) => {
         
         console.log('[Invoice Service] Generating invoice for user:', userId);
         
+        // Get today's date and due date (30 days from now)
+        const today = new Date();
+        const todayFormatted = today.toISOString().split('T')[0]; // YYYY-MM-DD
+        const dueDate = new Date(today);
+        dueDate.setDate(dueDate.getDate() + 30);
+        const dueDateFormatted = dueDate.toISOString().split('T')[0];
+        
         // Create prompt for OpenAI
         let prompt = `You are an AI that extracts invoice information from voice/text input. Extract the following in JSON format:
 {
   "invoiceNumber": "string (generate if not mentioned, format: INV-YYYY-001)",
-  "date": "YYYY-MM-DD (today's date)",
-  "dueDate": "YYYY-MM-DD (30 days from today if not mentioned)",
+  "date": "YYYY-MM-DD (use ${todayFormatted} if not specified)",
+  "dueDate": "YYYY-MM-DD (use ${dueDateFormatted} if not specified, which is 30 days from today)",
   "from": {
     "name": "sender company/person",
     "address": "sender address",
@@ -96,6 +103,8 @@ app.post('/invoices/generate', async (req, res) => {
   "notes": "any additional notes or payment terms"
 }
 
+IMPORTANT: If no date is mentioned in the input, use ${todayFormatted} as the invoice date. If no due date is mentioned, use ${dueDateFormatted}.
+
 `;
 
         if (businessContext && Object.keys(businessContext).length > 0) {
@@ -115,6 +124,14 @@ app.post('/invoices/generate', async (req, res) => {
         });
 
         const invoiceData = JSON.parse(completion.choices[0].message.content);
+        
+        // Ensure date and dueDate are set (fallback if GPT doesn't provide them)
+        if (!invoiceData.date || invoiceData.date === '' || invoiceData.date === 'YYYY-MM-DD') {
+            invoiceData.date = todayFormatted;
+        }
+        if (!invoiceData.dueDate || invoiceData.dueDate === '' || invoiceData.dueDate === 'YYYY-MM-DD') {
+            invoiceData.dueDate = dueDateFormatted;
+        }
         
         // Validate and normalize items data
         if (invoiceData.items && Array.isArray(invoiceData.items)) {

@@ -7,9 +7,6 @@ export NVM_DIR="$HOME/.nvm"
 echo "🚀 Starting Microservices Architecture"
 echo "======================================"
 
-# Copy environment variables
-cp .env.microservices .env 2>/dev/null || true
-
 # Install dependencies for all services
 echo ""
 echo "📦 Installing dependencies..."

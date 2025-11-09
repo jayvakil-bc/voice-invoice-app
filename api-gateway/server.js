@@ -57,9 +57,6 @@ if (process.env.MONGODB_URI) {
     console.warn('[Gateway] No MongoDB URI - sessions won\'t be shared');
 }
 
-// Serve static files
-app.use(express.static(path.join(__dirname, '..', 'public'), { index: false }));
-
 console.log('[API Gateway] Starting on port', PORT);
 console.log('[API Gateway] Services:');
 console.log('  - Auth:', AUTH_SERVICE);
@@ -88,7 +85,7 @@ app.get('/api/health', async (req, res) => {
     }
 });
 
-// ===== PAGE ROUTES (must be before proxy middleware) =====
+// ===== PAGE ROUTES =====
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, '..', 'public', 'login.html'));
 });
@@ -104,6 +101,9 @@ app.get('/create', (req, res) => {
 app.get('/settings', (req, res) => {
     res.sendFile(path.join(__dirname, '..', 'public', 'settings.html'));
 });
+
+// Serve static files (JS, CSS, etc.) - AFTER page routes
+app.use(express.static(path.join(__dirname, '..', 'public')));
 
 // Proxy all /auth/* routes to the auth-service so OAuth happens on a single public domain
 app.use('/auth', createProxyMiddleware({
