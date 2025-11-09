@@ -39,6 +39,9 @@ app.use(cors({ origin: clientURL, credentials: true }));
 app.use(express.json());
 
 // Session (shared with auth service) - only if MongoDB is configured
+// NOTE: Session is managed by auth-service, gateway just proxies the cookies
+// Commenting out to avoid interference with proxied session cookies
+/*
 if (process.env.MONGODB_URI) {
     app.use(session({
         name: 'connect.sid',
@@ -56,6 +59,8 @@ if (process.env.MONGODB_URI) {
 } else {
     console.warn('[Gateway] No MongoDB URI - sessions won\'t be shared');
 }
+*/
+console.log('[Gateway] Session management delegated to auth-service via proxy');
 
 console.log('[API Gateway] Starting on port', PORT);
 console.log('[API Gateway] Services:');
