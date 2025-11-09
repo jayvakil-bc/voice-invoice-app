@@ -111,7 +111,22 @@ app.use('/auth', createProxyMiddleware({
     changeOrigin: true,
     xfwd: true,
     cookieDomainRewrite: "",
-    pathRewrite: { '^/auth': '/auth' }
+    cookiePathRewrite: "/",
+    preserveHeaderKeyCase: true,
+    pathRewrite: { '^/auth': '/auth' },
+    onProxyReq: (proxyReq, req) => {
+        // Forward cookies from the original request
+        if (req.headers.cookie) {
+            proxyReq.setHeader('cookie', req.headers.cookie);
+        }
+    },
+    onProxyRes: (proxyRes, req, res) => {
+        // Forward set-cookie headers back to client
+        const setCookie = proxyRes.headers['set-cookie'];
+        if (setCookie) {
+            proxyRes.headers['set-cookie'] = setCookie;
+        }
+    }
 }));
 
 // ===== USER SERVICE ROUTES =====
