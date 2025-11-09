@@ -1,15 +1,16 @@
 {
   "name": "voice-invoice-generator",
   "version": "1.0.0",
-  "description": "Voice-to-invoice web application",
+  "description": "Voice-to-invoice microservices application",
   "main": "api-gateway/server.js",
   "engines": {
     "node": ">=18.x"
   },
   "scripts": {
-  "start": "./start-services.sh",
-  "dev": "./start-services.sh",
-    "test": "jest"
+    "start": "./start-services.sh",
+    "stop": "./stop-services.sh",
+    "docker": "docker-compose up",
+    "docker:down": "docker-compose down"
   },
   "keywords": [
     "invoice",

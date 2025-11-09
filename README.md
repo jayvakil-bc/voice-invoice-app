@@ -1,88 +1,91 @@
-# My Project
-
-## Overview
-This project is designed to provide a simple application with a clear entry point and corresponding unit tests. The main logic is contained in `src/index.js`, while `tests/index.test.js` ensures that the functionality works as expected.
-
-## Project Structure
 # Voice Invoice Generator
 
-A modern web application that converts speech to professional PDF invoices.
+A microservices-based web application that converts speech to professional PDF invoices using AI.
 
 ## Features
 
 - 🎤 Voice-to-text invoice generation
-- 📄 Professional PDF output
-- 📱 Fully responsive design
-- ⚡ Real-time speech recognition
-- 🤖 AI-powered data extraction
+- 📄 Professional PDF invoices
+- � Google OAuth authentication
+- 💼 Business context memory (frequent clients, common services)
+- 📊 Invoice history and management
+- ⚡ Real-time invoice generation with OpenAI GPT-4
 
-## Setup
+## Architecture
 
-1. Install dependencies:
+Microservices:
+- **API Gateway** (Port 3000) - Frontend + routing
+- **Auth Service** (Port 3001) - Google OAuth
+- **User Service** (Port 3002) - Business context & preferences
+- **Invoice Service** (Port 3003) - AI generation & PDF creation
+
+## Quick Start
+
+### Prerequisites
+- Node.js 18+
+- MongoDB Atlas account (or local MongoDB)
+- Google OAuth credentials
+- OpenAI API key
+
+### Setup
+
+1. **Clone and install:**
 ```bash
+git clone https://github.com/jayvakil-bc/voice-invoice-app.git
+cd voice-invoice-app
 npm install
 ```
 
-2. Create a `.env` file and add your OpenAI API key:
-```
-OPENAI_API_KEY=your_key_here
+2. **Configure environment:**
+Create `.env` file:
+```env
+MONGODB_URI=your_mongodb_uri
+GOOGLE_CLIENT_ID=your_google_client_id
+GOOGLE_CLIENT_SECRET=your_google_client_secret
+OPENAI_API_KEY=your_openai_key
+SESSION_SECRET=your_random_secret
+CLIENT_URL=http://localhost:3000
+NODE_ENV=development
 ```
 
-3. Run the server:
+3. **Start services:**
 ```bash
 npm start
 ```
 
-4. Open http://localhost:3000 in your browser
+4. **Open app:**
+Visit `http://localhost:3000`
 
-## Usage
+### Stop Services
+```bash
+npm run stop
+```
 
-1. Click the microphone button
-2. Speak your invoice details (e.g., "Invoice from John's Design Studio to ABC Corp for website design, 10 hours at $100 per hour")
-3. Click again to stop recording
-4. Your PDF invoice will be automatically generated and downloaded
+## Docker Deployment
 
-## Requirements
+```bash
+docker-compose up -d
+```
 
-- Node.js 14+
-- OpenAI API key
-- Modern browser with speech recognition support (Chrome/Edge)
+## Project Structure
 
-## Getting Your OpenAI API Key
+```
+├── api-gateway/          # Main gateway service
+├── services/
+│   ├── auth-service/     # OAuth authentication
+│   ├── user-service/     # User data & business context
+│   └── invoice-service/  # Invoice generation & PDFs
+├── public/               # Frontend files
+├── nginx/                # Nginx configs (optional)
+└── docker-compose.yml    # Container orchestration
+```
 
-1. Go to https://platform.openai.com/api-keys
-2. Sign up or log in
-3. Click "Create new secret key"
-4. Copy the key and paste it in your `.env` file
+## Getting API Keys
+
+**OpenAI:** https://platform.openai.com/api-keys  
+**Google OAuth:** https://console.cloud.google.com/apis/credentials  
+**MongoDB Atlas:** https://www.mongodb.com/cloud/atlas
 
 ## License
-This project is licensed under the ISC License.
 
-## Getting Started
-To get started with this project, clone the repository and install the necessary dependencies.
-
-```bash
-git clone <repository-url>
-cd my-project
-npm install
-```
-
-## Running the Application
-To run the application, use the following command:
-
-```bash
-node src/index.js
-```
-
-## Running Tests
-To run the unit tests, use the following command:
-
-```bash
-npm test
-```
-
-## Contributing
-Contributions are welcome! Please submit a pull request or open an issue for any enhancements or bug fixes.
-
-## License
-This project is licensed under the MIT License.
+ISC
