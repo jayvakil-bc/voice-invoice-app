@@ -12,6 +12,7 @@ services:
       - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
       - SESSION_SECRET=${SESSION_SECRET}
       - CLIENT_URL=${CLIENT_URL:-http://localhost:3000}
+      - AUTH_PUBLIC_URL=${AUTH_PUBLIC_URL:-http://localhost:3000}
       - AUTH_SERVICE_PORT=3001
     volumes:
       - ./services/auth-service:/app
@@ -60,6 +61,8 @@ services:
     environment:
       - NODE_ENV=${NODE_ENV:-development}
       - PORT=3000
+      - MONGODB_URI=${MONGODB_URI}
+      - SESSION_SECRET=${SESSION_SECRET}
       - CLIENT_URL=${CLIENT_URL:-http://localhost:3000}
       - AUTH_SERVICE_URL=http://auth-service:3001
       - USER_SERVICE_URL=http://user-service:3002
