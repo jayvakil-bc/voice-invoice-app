@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Invoice - Voice Invoice Generator</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Navigation Header -->
+    <nav class="nav-header">
+        <div class="nav-content">
+            <h2 class="nav-logo">🎤 Voice Invoice</h2>
+            <div class="nav-links">
+                <a href="/dashboard" class="nav-link">← Back to Dashboard</a>
+                <button onclick="logout()" class="nav-link logout-link">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h1>🎤 Create New Invoice</h1>
+        <p class="subtitle">Press the mic and describe your invoice, or type it directly below</p>
+        
+        <!-- Guidelines Section -->
+        <div class="guidelines">
+            <button id="toggleGuide" class="guide-toggle">📋 Speaking Guidelines</button>
+            <div id="guideContent" class="guide-content hidden">
+                <h3>What to include in your recording:</h3>
+                <ul>
+                    <li><strong>Your Details:</strong> Your name/company, email, phone (optional)</li>
+                    <li><strong>Client Details:</strong> Client name, company, email</li>
+                    <li><strong>Service/Product:</strong> What you're billing for</li>
+                    <li><strong>Amount:</strong> Price, quantity, rate per unit</li>
+                    <li><strong>Due Date:</strong> When payment is due (e.g., "due in 30 days", "NET 15")</li>
+                    <li><strong>Notes:</strong> Payment terms, future installments (optional)</li>
+                </ul>
+                <div class="example">
+                    <strong>Example:</strong> "Invoice from ABC Design Studio, email contact@abc.com, phone 555-1234, to John Smith at XYZ Corporation, email john@xyz.com, for website development services, 20 hours at 150 dollars per hour, total 3000 dollars, due in 30 days"
+                </div>
+            </div>
+        </div>
+        
+        <button id="micBtn" class="mic-button">
+            <span class="mic-icon">🎤</span>
+        </button>
+        
+        <p id="status" class="status">Press to speak</p>
+        
+        <div class="input-option">
+            <p class="or-divider"><span>OR TYPE/EDIT BELOW</span></p>
+            <textarea 
+                id="textInput" 
+                class="text-input" 
+                placeholder="Type, paste, or speak to fill this box...&#10;&#10;Example: Invoice from ABC Design Studio, email contact@abc.com, to John Smith at XYZ Corp, email john@xyz.com, for website development, 20 hours at $150/hour, due in 30 days"
+                rows="8"
+            ></textarea>
+            <div class="button-group">
+                <button id="generateBtn" class="generate-button">Generate Invoice</button>
+                <button id="clearBtn" class="clear-button">Clear</button>
+            </div>
+        </div>
+        
+        <div id="loading" class="loading hidden">
+            <div class="spinner"></div>
+            <p>Generating your invoice...</p>
+        </div>
+    </div>
+
+    <script>
+        function logout() {
+            window.location.href = '/auth/logout';
+        }
+    </script>
+    <script src="app.js"></script>
+</body>
+</html>

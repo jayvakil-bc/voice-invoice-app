@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Voice Invoice Generator</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="dashboard-styles.css">
+</head>
+<body>
+    <div class="dashboard-header">
+        <div class="header-left">
+            <h2>🎤 Voice Invoice Generator</h2>
+        </div>
+        <div class="header-right">
+            <div class="user-info">
+                <img id="userAvatar" class="user-avatar" src="" alt="User">
+                <span id="userName" class="user-name"></span>
+            </div>
+            <a href="/settings" style="text-decoration: none;">
+                <button class="logout-btn" style="margin-right: 0.5rem;">⚙️ Settings</button>
+            </a>
+            <button class="logout-btn" onclick="logout()">Logout</button>
+        </div>
+    </div>
+    
+    <div class="dashboard-content">
+        <div class="actions">
+            <a href="/create" class="create-btn">+ Create New Invoice</a>
+        </div>
+        
+        <div class="invoices-section">
+            <div class="section-header">
+                <h2>Your Invoices</h2>
+                <p class="invoice-count">Total: <span id="invoiceCount">0</span></p>
+            </div>
+            <div id="invoicesList"></div>
+        </div>
+    </div>
+    
+    <!-- Edit Invoice Modal -->
+    <div id="editModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Edit Invoice</h2>
+                <button onclick="closeEditModal()" class="close-btn">✕</button>
+            </div>
+            <div class="modal-body">
+                <textarea id="editTranscript" rows="10" class="edit-textarea"></textarea>
+                <p class="modal-note">Edit the invoice description above, then regenerate the PDF</p>
+            </div>
+            <div class="modal-footer">
+                <button onclick="closeEditModal()" class="btn-secondary">Cancel</button>
+                <button onclick="saveAndRegenerate()" class="btn-primary">Regenerate Invoice</button>
+            </div>
+        </div>
+    </div>
+    
+    <script src="dashboard.js"></script>
+</body>
+</html>

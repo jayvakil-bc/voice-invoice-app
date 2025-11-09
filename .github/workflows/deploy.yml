@@ -1,0 +1,100 @@
+name: Deploy to AWS EC2 (Docker Compose)
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+env:
+  AWS_REGION: ${{ secrets.AWS_REGION }}
+  ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }} # e.g., 123456789012.dkr.ecr.us-east-1.amazonaws.com
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and push api-gateway image
+        run: |
+          IMAGE_TAG=${GITHUB_SHA}
+          docker build -t $ECR_REGISTRY/api-gateway:$IMAGE_TAG ./api-gateway
+          docker tag $ECR_REGISTRY/api-gateway:$IMAGE_TAG $ECR_REGISTRY/api-gateway:latest
+          docker push $ECR_REGISTRY/api-gateway:$IMAGE_TAG
+          docker push $ECR_REGISTRY/api-gateway:latest
+
+      - name: Build and push auth-service image
+        run: |
+          IMAGE_TAG=${GITHUB_SHA}
+          docker build -t $ECR_REGISTRY/auth-service:$IMAGE_TAG ./services/auth-service
+          docker tag $ECR_REGISTRY/auth-service:$IMAGE_TAG $ECR_REGISTRY/auth-service:latest
+          docker push $ECR_REGISTRY/auth-service:$IMAGE_TAG
+          docker push $ECR_REGISTRY/auth-service:latest
+
+      - name: Build and push user-service image
+        run: |
+          IMAGE_TAG=${GITHUB_SHA}
+          docker build -t $ECR_REGISTRY/user-service:$IMAGE_TAG ./services/user-service
+          docker tag $ECR_REGISTRY/user-service:$IMAGE_TAG $ECR_REGISTRY/user-service:latest
+          docker push $ECR_REGISTRY/user-service:$IMAGE_TAG
+          docker push $ECR_REGISTRY/user-service:latest
+
+      - name: Build and push invoice-service image
+        run: |
+          IMAGE_TAG=${GITHUB_SHA}
+          docker build -t $ECR_REGISTRY/invoice-service:$IMAGE_TAG ./services/invoice-service
+          docker tag $ECR_REGISTRY/invoice-service:$IMAGE_TAG $ECR_REGISTRY/invoice-service:latest
+          docker push $ECR_REGISTRY/invoice-service:$IMAGE_TAG
+          docker push $ECR_REGISTRY/invoice-service:latest
+
+      - name: Upload files to EC2 (compose + nginx conf)
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          source: |
+            docker-compose.deploy.yml
+            nginx/conf.d/*
+          target: /opt/voiceinvoice/
+
+      - name: Deploy on EC2 via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            set -e
+            mkdir -p /opt/voiceinvoice/nginx/conf.d
+            mv -f /opt/voiceinvoice/*.conf /opt/voiceinvoice/nginx/conf.d/ 2>/dev/null || true
+            cd /opt/voiceinvoice
+            # Write env file
+            cat > .env << 'EOF'
+            ECR_REGISTRY=${{ secrets.ECR_REGISTRY }}
+            IMAGE_TAG=${GITHUB_SHA}
+            CLIENT_URL=${{ secrets.CLIENT_URL }}
+            SESSION_SECRET=${{ secrets.SESSION_SECRET }}
+            MONGODB_URI=${{ secrets.MONGODB_URI }}
+            GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
+            GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}
+            OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}
+            EOF
+            # Login to ECR on the server
+            aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.ECR_REGISTRY }}
+            # Pull and up
+            docker compose --env-file .env -f docker-compose.deploy.yml pull
+            docker compose --env-file .env -f docker-compose.deploy.yml up -d --remove-orphans

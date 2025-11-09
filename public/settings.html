@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Business Settings - Voice Invoice Generator</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="dashboard-styles.css">
+    <style>
+        .settings-container {
+            max-width: 900px;
+            margin: 2rem auto;
+            padding: 0 2rem 4rem 2rem;
+        }
+        
+        .settings-card {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
+        }
+        
+        .settings-card h2 {
+            color: #333;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-group label {
+            display: block;
+            color: #333;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-family: inherit;
+            transition: all 0.3s ease;
+        }
+        
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            background: #f0f3ff;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+        
+        .form-hint {
+            font-size: 0.85rem;
+            color: #666;
+            margin-top: 0.25rem;
+        }
+        
+        .btn-save {
+            padding: 1rem 3rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+        
+        .btn-save:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(102, 126, 234, 0.4);
+        }
+        
+        .saved-items {
+            margin-top: 1rem;
+        }
+        
+        .saved-item {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .saved-item-info {
+            flex: 1;
+        }
+        
+        .saved-item-info strong {
+            color: #333;
+            display: block;
+        }
+        
+        .saved-item-info span {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .btn-remove {
+            padding: 0.5rem 1rem;
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+        
+        .btn-remove:hover {
+            background: #c82333;
+        }
+        
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            display: none;
+        }
+        
+        .success-message.show {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Header -->
+    <div class="dashboard-header">
+        <div class="header-content">
+            <div class="header-left">
+                <h2>🎤 Voice Invoice</h2>
+            </div>
+            <div class="header-right">
+                <div class="user-info">
+                    <img id="userAvatar" class="user-avatar" src="" alt="User">
+                    <span id="userName" class="user-name"></span>
+                </div>
+                <button class="logout-btn" onclick="logout()">Logout</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="settings-container">
+        <h1 style="color: white; margin-bottom: 1rem;">⚙️ Business Settings</h1>
+        <p style="color: rgba(255,255,255,0.9); margin-bottom: 2rem;">
+            Save your business information to speed up future invoice creation. This info will be auto-filled next time!
+        </p>
+        
+        <div class="success-message" id="successMessage">
+            ✅ Settings saved successfully!
+        </div>
+        
+        <!-- Business Information -->
+        <div class="settings-card">
+            <h2>📋 Your Business Information</h2>
+            <form id="businessForm">
+                <div class="form-group">
+                    <label for="companyName">Company/Business Name</label>
+                    <input type="text" id="companyName" placeholder="e.g., ABC Design Studio">
+                    <div class="form-hint">This will appear as "FROM" on your invoices</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="address">Business Address</label>
+                    <textarea id="address" placeholder="123 Main Street, City, State, ZIP"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="phone">Phone Number</label>
+                    <input type="tel" id="phone" placeholder="(555) 123-4567">
+                </div>
+                
+                <div class="form-group">
+                    <label for="email">Business Email</label>
+                    <input type="email" id="email" placeholder="contact@yourbusiness.com">
+                </div>
+                
+                <div class="form-group">
+                    <label for="defaultCurrency">Default Currency</label>
+                    <select id="defaultCurrency">
+                        <option value="USD">USD - US Dollar ($)</option>
+                        <option value="EUR">EUR - Euro (€)</option>
+                        <option value="GBP">GBP - British Pound (£)</option>
+                        <option value="CAD">CAD - Canadian Dollar (CA$)</option>
+                        <option value="AUD">AUD - Australian Dollar (A$)</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="defaultPaymentTerms">Default Payment Terms</label>
+                    <textarea id="defaultPaymentTerms" placeholder="e.g., Payment due within 30 days. Late payments subject to 1.5% monthly interest."></textarea>
+                    <div class="form-hint">These notes will be added to your invoices by default</div>
+                </div>
+                
+                <button type="submit" class="btn-save">💾 Save Settings</button>
+            </form>
+        </div>
+        
+        <!-- Frequent Clients -->
+        <div class="settings-card">
+            <h2>👥 Frequent Clients</h2>
+            <p style="color: #666; margin-bottom: 1rem;">
+                Clients are automatically saved when you create invoices. You can remove any you no longer need.
+            </p>
+            <div id="frequentClients" class="saved-items"></div>
+        </div>
+        
+        <!-- Common Services -->
+        <div class="settings-card">
+            <h2>💼 Common Services/Items</h2>
+            <p style="color: #666; margin-bottom: 1rem;">
+                Services are automatically saved from your invoices. This helps speed up future invoice creation.
+            </p>
+            <div id="commonServices" class="saved-items"></div>
+        </div>
+        
+        <div style="text-align: center; margin-top: 2rem;">
+            <a href="/dashboard" style="color: white; text-decoration: none; font-size: 1.1rem;">
+                ← Back to Dashboard
+            </a>
+        </div>
+    </div>
+    
+    <script src="settings.js"></script>
+</body>
+</html>

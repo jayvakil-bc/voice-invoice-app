@@ -1,0 +1,60 @@
+version: '3.8'
+
+services:
+  api-gateway:
+    image: ${ECR_REGISTRY}/api-gateway:${IMAGE_TAG}
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      CLIENT_URL: ${CLIENT_URL}
+      AUTH_SERVICE_URL: http://auth-service:3001
+      USER_SERVICE_URL: http://user-service:3002
+      INVOICE_SERVICE_URL: http://invoice-service:3003
+      SESSION_SECRET: ${SESSION_SECRET}
+      MONGODB_URI: ${MONGODB_URI}
+    depends_on:
+      - auth-service
+      - user-service
+      - invoice-service
+    restart: unless-stopped
+
+  auth-service:
+    image: ${ECR_REGISTRY}/auth-service:${IMAGE_TAG}
+    environment:
+      NODE_ENV: production
+      AUTH_SERVICE_PORT: 3001
+      SESSION_SECRET: ${SESSION_SECRET}
+      MONGODB_URI: ${MONGODB_URI}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      CLIENT_URL: ${CLIENT_URL}
+    restart: unless-stopped
+
+  user-service:
+    image: ${ECR_REGISTRY}/user-service:${IMAGE_TAG}
+    environment:
+      NODE_ENV: production
+      USER_SERVICE_PORT: 3002
+      MONGODB_URI: ${MONGODB_URI}
+    restart: unless-stopped
+
+  invoice-service:
+    image: ${ECR_REGISTRY}/invoice-service:${IMAGE_TAG}
+    environment:
+      NODE_ENV: production
+      INVOICE_SERVICE_PORT: 3003
+      MONGODB_URI: ${MONGODB_URI}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+    restart: unless-stopped
+
+  nginx:
+    image: nginx:1.25-alpine
+    depends_on:
+      - api-gateway
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - /opt/voiceinvoice/certs:/etc/ssl/certs:ro
+    restart: unless-stopped
