@@ -66,15 +66,6 @@ console.log('  - Auth:', AUTH_SERVICE);
 console.log('  - User:', USER_SERVICE);
 console.log('  - Invoice:', INVOICE_SERVICE);
 
-// Proxy all /auth/* routes to the auth-service so OAuth happens on a single public domain
-app.use('/auth', createProxyMiddleware({
-    target: AUTH_SERVICE,
-    changeOrigin: true,
-    xfwd: true,
-    cookieDomainRewrite: "",
-    pathRewrite: { '^/auth': '/auth' }
-}));
-
 // Health check
 app.get('/api/health', async (req, res) => {
     try {
@@ -97,38 +88,14 @@ app.get('/api/health', async (req, res) => {
     }
 });
 
-// ===== AUTH ROUTES (proxy to auth-service) =====
-app.get('/auth/google', (req, res) => {
-    // Use dynamic AUTH_SERVICE URL so Render exposed URL works
-    res.redirect(`${AUTH_SERVICE.replace(/\/$/, '')}/auth/google`);
-});
-
-app.get('/auth/google/callback', (req, res) => {
-    // In most flows auth-service handles callback and redirects to CLIENT_URL
-    res.redirect((clientURL || 'http://localhost:3000') + '/dashboard');
-});
-
-app.get('/auth/logout', async (req, res) => {
-    try {
-        await axios.get(`${AUTH_SERVICE}/auth/logout`, {
-            headers: { Cookie: req.headers.cookie }
-        });
-        res.redirect('/');
-    } catch (error) {
-        res.redirect('/');
-    }
-});
-
-app.get('/auth/user', async (req, res) => {
-    try {
-        const response = await axios.get(`${AUTH_SERVICE}/auth/user`, {
-            headers: { Cookie: req.headers.cookie }
-        });
-        res.json(response.data);
-    } catch (error) {
-        res.status(401).json({ authenticated: false });
-    }
-});
+// Proxy all /auth/* routes to the auth-service so OAuth happens on a single public domain
+app.use('/auth', createProxyMiddleware({
+    target: AUTH_SERVICE,
+    changeOrigin: true,
+    xfwd: true,
+    cookieDomainRewrite: "",
+    pathRewrite: { '^/auth': '/auth' }
+}));
 
 // ===== PAGE ROUTES =====
 app.get('/', (req, res) => {
