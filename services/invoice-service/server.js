@@ -330,9 +330,10 @@ app.get('/invoices/:id/pdf', async (req, res) => {
         yPos = 320;
         doc.fontSize(10).font('Helvetica-Bold');
         doc.text('Description', 50, yPos);
-        doc.text('Qty', 300, yPos);
-        doc.text('Rate', 350, yPos);
-        doc.text('Amount', 450, yPos);
+        doc.text('Qty', 280, yPos);
+        doc.text('Unit', 320, yPos);
+        doc.text('Unit Price', 380, yPos);
+        doc.text('Total', 480, yPos);
         
         doc.moveTo(50, yPos + 15).lineTo(550, yPos + 15).stroke();
         
@@ -341,10 +342,11 @@ app.get('/invoices/:id/pdf', async (req, res) => {
         
         if (invoice.items && invoice.items.length > 0) {
             invoice.items.forEach(item => {
-                doc.text(item.description || '', 50, yPos, { width: 240 });
-                doc.text((item.quantity || 0).toString(), 300, yPos);
-                doc.text(`$${(item.rate || 0).toFixed(2)}`, 350, yPos);
-                doc.text(`$${(item.amount || 0).toFixed(2)}`, 450, yPos);
+                doc.text(item.description || '', 50, yPos, { width: 220 });
+                doc.text((item.quantity || 0).toString(), 280, yPos);
+                doc.text('package', 320, yPos); // Default unit
+                doc.text(`$${(item.rate || 0).toFixed(2)}`, 380, yPos);
+                doc.text(`$${(item.amount || 0).toFixed(2)}`, 480, yPos);
                 yPos += 20;
             });
         }
@@ -354,17 +356,20 @@ app.get('/invoices/:id/pdf', async (req, res) => {
         doc.moveTo(50, yPos).lineTo(550, yPos).stroke();
         yPos += 15;
         
-        doc.text('Subtotal:', 350, yPos);
-        doc.text(`$${(invoice.subtotal || 0).toFixed(2)}`, 450, yPos);
+        doc.text('Subtotal:', 380, yPos);
+        doc.text(`$${(invoice.subtotal || 0).toFixed(2)}`, 480, yPos);
         yPos += 20;
         
-        doc.text('Tax (10%):', 350, yPos);
-        doc.text(`$${(invoice.tax || 0).toFixed(2)}`, 450, yPos);
-        yPos += 20;
+        // Only show tax if it's greater than 0
+        if (invoice.tax && invoice.tax > 0) {
+            doc.text('Tax:', 380, yPos);
+            doc.text(`$${(invoice.tax || 0).toFixed(2)}`, 480, yPos);
+            yPos += 20;
+        }
         
         doc.fontSize(12).font('Helvetica-Bold');
-        doc.text('Total:', 350, yPos);
-        doc.text(`$${(invoice.total || 0).toFixed(2)}`, 450, yPos);
+        doc.text('TOTAL:', 380, yPos);
+        doc.text(`$${(invoice.total || 0).toFixed(2)}`, 480, yPos);
         
         // Notes
         if (invoice.notes) {
