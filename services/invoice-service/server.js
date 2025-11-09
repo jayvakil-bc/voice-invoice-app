@@ -75,7 +75,7 @@ app.post('/invoices/generate', async (req, res) => {
         const dueDateFormatted = dueDate.toISOString().split('T')[0];
         
         // Create prompt for OpenAI
-        let prompt = `You are a STRICT extractor that creates invoices from transcriptions. Use ONLY facts explicitly present in the input.
+        let prompt = `You are a STRICT extractor that creates line items from invoices. Use ONLY facts explicitly present in the inputs.
 
 CRITICAL BILLING CONTEXT:
 - Understand WHEN the pricing applies (immediate/today vs. future/ongoing)
@@ -83,8 +83,22 @@ CRITICAL BILLING CONTEXT:
 - If pricing is discussed for future work, ongoing retainers, or later phases, DO NOT include it in this invoice
 - Look for temporal indicators: "now", "today", "this month", "upfront", "deposit" vs. "monthly", "ongoing", "per month", "future"
 
+CRITICAL STRUCTURE:
+1. If there's a main package/service with a total price that applies NOW, create it as a line_item
+2. ONLY create sub-line_items if the transcription EXPLICITLY breaks down the pricing for individual deliverables
+3. DO NOT infer or distribute pricing across deliverables unless explicitly stated
+4. DO NOT include recurring/monthly fees unless this invoice represents that billing period
+
+Each line_item must have:
+- description: specific deliverable or package name
+- quantity: how many (default to 1 if not specified)
+- unit: what's being counted ("package", "episodes", "hours", "posts", "sessions")
+- unit_price: price per unit (ONLY if explicitly stated)
+- line_total: total for this line item
+- is_header: true for main package (if sub-items exist), false/null otherwise
+
 CRITICAL: Only break down costs if the transcription explicitly mentions individual prices for deliverables.
-If only a total package price is mentioned, create a single item for the entire package.
+If only a total package price is mentioned, create a single line_item for the entire package.
 Amounts must be numbers only (no currency symbols, no commas).
 
 TRANSCRIPTION:
@@ -92,37 +106,29 @@ ${transcript}
 
 Generate a properly structured invoice in JSON format with the following structure:
 {
-  "invoiceNumber": "INV-[generate unique number]",
-  "date": "[current date YYYY-MM-DD]",
-  "dueDate": "[30 days from date YYYY-MM-DD]",
-  "from": {
-    "name": "sender company/person",
-    "address": "sender address",
-    "phone": "sender phone",
-    "email": "sender email"
-  },
-  "to": {
-    "name": "client name",
-    "address": "client address",
-    "phone": "client phone",
-    "email": "client email"
-  },
-  "items": [
+  "invoice_number": "INV-[generate unique number]",
+  "date": "YYYY-MM-DD",
+  "line_items": [
     {
-      "description": "service or product description",
+      "description": "Main Package Name",
       "quantity": 1,
-      "rate": 1000,
-      "amount": 1000
+      "unit": "package",
+      "unit_price": [total price],
+      "line_total": [total price],
+      "is_header": true
+    },
+    {
+      "description": "Specific Deliverable 1",
+      "quantity": [number],
+      "unit": "[unit type]",
+      "unit_price": [price per unit],
+      "line_total": [quantity * unit_price],
+      "is_header": false
     }
   ],
-  "notes": "payment terms or additional notes"
+  "subtotal": [sum of all line_totals],
+  "total": [subtotal + any fees/taxes if mentioned]
 }
-
-Rules:
-- If no date mentioned, use today's date: ${todayFormatted}
-- If no due date mentioned, use 30 days from today: ${dueDateFormatted}
-- Each item must have: description, quantity (number), rate (number), amount (quantity * rate)
-- Do NOT include recurring fees unless this invoice is for that billing period
 `;
 
         const completion = await openai.chat.completions.create({
@@ -133,7 +139,34 @@ Rules:
 
         const invoiceData = JSON.parse(completion.choices[0].message.content);
         
-        // Ensure date and dueDate are set (fallback if GPT doesn't provide them)
+        // Map line_items to items (convert GPT output to our schema)
+        if (invoiceData.line_items && Array.isArray(invoiceData.line_items)) {
+            invoiceData.items = invoiceData.line_items.map(item => ({
+                description: item.description || 'Service',
+                quantity: Number(item.quantity) || 1,
+                rate: Number(item.unit_price) || 0,
+                amount: Number(item.line_total) || ((Number(item.quantity) || 1) * (Number(item.unit_price) || 0))
+            }));
+            delete invoiceData.line_items; // Remove the line_items field
+        } else if (invoiceData.items && Array.isArray(invoiceData.items)) {
+            // If GPT already used 'items', normalize it
+            invoiceData.items = invoiceData.items.map(item => ({
+                description: item.description || 'Service',
+                quantity: Number(item.quantity) || 1,
+                rate: Number(item.rate) || Number(item.unit_price) || 0,
+                amount: Number(item.amount) || Number(item.line_total) || ((Number(item.quantity) || 1) * (Number(item.rate) || Number(item.unit_price) || 0))
+            }));
+        } else {
+            invoiceData.items = [];
+        }
+        
+        // Use invoice_number if provided, otherwise invoiceNumber
+        if (invoiceData.invoice_number && !invoiceData.invoiceNumber) {
+            invoiceData.invoiceNumber = invoiceData.invoice_number;
+            delete invoiceData.invoice_number;
+        }
+        
+        // Ensure date and dueDate are set
         if (!invoiceData.date || invoiceData.date === '' || invoiceData.date === 'YYYY-MM-DD') {
             invoiceData.date = todayFormatted;
         }
@@ -141,27 +174,24 @@ Rules:
             invoiceData.dueDate = dueDateFormatted;
         }
         
-        // Validate and normalize items data
-        if (invoiceData.items && Array.isArray(invoiceData.items)) {
-            invoiceData.items = invoiceData.items.map(item => ({
-                description: item.description || 'Service',
-                quantity: Number(item.quantity) || 1,
-                rate: Number(item.rate) || 0,
-                amount: (Number(item.quantity) || 1) * (Number(item.rate) || 0)
-            }));
-        } else {
-            invoiceData.items = [];
+        // Calculate totals only if not provided by GPT
+        if (!invoiceData.subtotal) {
+            let subtotal = 0;
+            invoiceData.items.forEach(item => {
+                subtotal += item.amount;
+            });
+            invoiceData.subtotal = subtotal;
         }
         
-        // Calculate totals
-        let subtotal = 0;
-        invoiceData.items.forEach(item => {
-            subtotal += item.amount;
-        });
+        // Use GPT's total if provided, otherwise use subtotal (no automatic tax)
+        if (!invoiceData.total) {
+            invoiceData.total = invoiceData.subtotal;
+        }
         
-        invoiceData.subtotal = subtotal;
-        invoiceData.tax = subtotal * 0.1; // 10% tax
-        invoiceData.total = subtotal + invoiceData.tax;
+        // Only include tax if GPT mentioned it
+        if (!invoiceData.tax) {
+            invoiceData.tax = 0;
+        }
         
         // Save to database
         const invoice = await Invoice.create({
