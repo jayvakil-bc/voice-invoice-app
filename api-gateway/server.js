@@ -87,23 +87,23 @@ app.get('/api/health', async (req, res) => {
 
 // ===== PAGE ROUTES =====
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, '..', 'public', 'login.html'));
+    res.sendFile(path.join(__dirname, 'public', 'login.html'));
 });
 
 app.get('/dashboard', (req, res) => {
-    res.sendFile(path.join(__dirname, '..', 'public', 'dashboard.html'));
+    res.sendFile(path.join(__dirname, 'public', 'dashboard.html'));
 });
 
 app.get('/create', (req, res) => {
-    res.sendFile(path.join(__dirname, '..', 'public', 'index.html'));
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 app.get('/settings', (req, res) => {
-    res.sendFile(path.join(__dirname, '..', 'public', 'settings.html'));
+    res.sendFile(path.join(__dirname, 'public', 'settings.html'));
 });
 
 // Serve static files (JS, CSS, etc.) - AFTER page routes
-app.use(express.static(path.join(__dirname, '..', 'public')));
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Proxy all /auth/* routes to the auth-service so OAuth happens on a single public domain
 app.use('/auth', createProxyMiddleware({

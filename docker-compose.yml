@@ -52,7 +52,9 @@ services:
     restart: unless-stopped
 
   api-gateway:
-    build: ./api-gateway
+    build:
+      context: .
+      dockerfile: ./api-gateway/Dockerfile
     ports:
       - "3000:3000"
     environment:
