@@ -63,6 +63,13 @@ console.log('  - Auth:', AUTH_SERVICE);
 console.log('  - User:', USER_SERVICE);
 console.log('  - Invoice:', INVOICE_SERVICE);
 
+// Determine public folder path (different for local vs Docker)
+const publicPath = require('fs').existsSync(path.join(__dirname, 'public'))
+    ? path.join(__dirname, 'public')
+    : path.join(__dirname, '..', 'public');
+
+console.log('[API Gateway] Public folder:', publicPath);
+
 // Health check
 app.get('/api/health', async (req, res) => {
     try {
@@ -87,23 +94,23 @@ app.get('/api/health', async (req, res) => {
 
 // ===== PAGE ROUTES =====
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'login.html'));
+    res.sendFile(path.join(publicPath, 'login.html'));
 });
 
 app.get('/dashboard', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'dashboard.html'));
+    res.sendFile(path.join(publicPath, 'dashboard.html'));
 });
 
 app.get('/create', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+    res.sendFile(path.join(publicPath, 'index.html'));
 });
 
 app.get('/settings', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'settings.html'));
+    res.sendFile(path.join(publicPath, 'settings.html'));
 });
 
 // Serve static files (JS, CSS, etc.) - AFTER page routes
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(publicPath));
 
 // Proxy all /auth/* routes to the auth-service so OAuth happens on a single public domain
 app.use('/auth', createProxyMiddleware({
