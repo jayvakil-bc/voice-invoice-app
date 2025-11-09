@@ -75,7 +75,7 @@ app.post('/invoices/generate', async (req, res) => {
         const dueDateFormatted = dueDate.toISOString().split('T')[0];
         
         // Create prompt for OpenAI
-        let prompt = `You are a STRICT extractor that creates line items from invoices. Use ONLY facts explicitly present in the inputs.
+        let prompt = `You are a STRICT extractor that creates invoices from transcriptions. Use ONLY facts explicitly present in the input.
 
 CRITICAL BILLING CONTEXT:
 - Understand WHEN the pricing applies (immediate/today vs. future/ongoing)
@@ -83,22 +83,8 @@ CRITICAL BILLING CONTEXT:
 - If pricing is discussed for future work, ongoing retainers, or later phases, DO NOT include it in this invoice
 - Look for temporal indicators: "now", "today", "this month", "upfront", "deposit" vs. "monthly", "ongoing", "per month", "future"
 
-CRITICAL STRUCTURE:
-1. If there's a main package/service with a total price that applies NOW, create it as a line_item
-2. ONLY create sub-line_items if the transcription EXPLICITLY breaks down the pricing for individual deliverables
-3. DO NOT infer or distribute pricing across deliverables unless explicitly stated
-4. DO NOT include recurring/monthly fees unless this invoice represents that billing period
-
-Each line_item must have:
-- description: specific deliverable or package name
-- quantity: how many (default to 1 if not specified)
-- unit: what's being counted ("package", "episodes", "hours", "posts", "sessions")
-- unit_price: price per unit (ONLY if explicitly stated)
-- line_total: total for this line item
-- is_header: true for main package (if sub-items exist), false/null otherwise
-
 CRITICAL: Only break down costs if the transcription explicitly mentions individual prices for deliverables.
-If only a total package price is mentioned, create a single line_item for the entire package.
+If only a total package price is mentioned, create a single item for the entire package.
 Amounts must be numbers only (no currency symbols, no commas).
 
 TRANSCRIPTION:
@@ -106,29 +92,37 @@ ${transcript}
 
 Generate a properly structured invoice in JSON format with the following structure:
 {
-  "invoice_number": "INV-[generate unique number]",
-  "date": "[current date]",
-  "line_items": [
+  "invoiceNumber": "INV-[generate unique number]",
+  "date": "[current date YYYY-MM-DD]",
+  "dueDate": "[30 days from date YYYY-MM-DD]",
+  "from": {
+    "name": "sender company/person",
+    "address": "sender address",
+    "phone": "sender phone",
+    "email": "sender email"
+  },
+  "to": {
+    "name": "client name",
+    "address": "client address",
+    "phone": "client phone",
+    "email": "client email"
+  },
+  "items": [
     {
-      "description": "Main Package Name",
+      "description": "service or product description",
       "quantity": 1,
-      "unit": "package",
-      "unit_price": [total price],
-      "line_total": [total price],
-      "is_header": true
-    },
-    {
-      "description": "Specific Deliverable 1",
-      "quantity": [number],
-      "unit": "[unit type]",
-      "unit_price": [price per unit],
-      "line_total": [quantity * unit_price],
-      "is_header": false
+      "rate": 1000,
+      "amount": 1000
     }
   ],
-  "subtotal": [sum of all line_totals],
-  "total": [subtotal + any fees/taxes if mentioned]
+  "notes": "payment terms or additional notes"
 }
+
+Rules:
+- If no date mentioned, use today's date: ${todayFormatted}
+- If no due date mentioned, use 30 days from today: ${dueDateFormatted}
+- Each item must have: description, quantity (number), rate (number), amount (quantity * rate)
+- Do NOT include recurring fees unless this invoice is for that billing period
 `;
 
         const completion = await openai.chat.completions.create({
