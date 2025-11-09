@@ -88,16 +88,7 @@ app.get('/api/health', async (req, res) => {
     }
 });
 
-// Proxy all /auth/* routes to the auth-service so OAuth happens on a single public domain
-app.use('/auth', createProxyMiddleware({
-    target: AUTH_SERVICE,
-    changeOrigin: true,
-    xfwd: true,
-    cookieDomainRewrite: "",
-    pathRewrite: { '^/auth': '/auth' }
-}));
-
-// ===== PAGE ROUTES =====
+// ===== PAGE ROUTES (must be before proxy middleware) =====
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, '..', 'public', 'login.html'));
 });
@@ -113,6 +104,15 @@ app.get('/create', (req, res) => {
 app.get('/settings', (req, res) => {
     res.sendFile(path.join(__dirname, '..', 'public', 'settings.html'));
 });
+
+// Proxy all /auth/* routes to the auth-service so OAuth happens on a single public domain
+app.use('/auth', createProxyMiddleware({
+    target: AUTH_SERVICE,
+    changeOrigin: true,
+    xfwd: true,
+    cookieDomainRewrite: "",
+    pathRewrite: { '^/auth': '/auth' }
+}));
 
 // ===== USER SERVICE ROUTES =====
 app.get('/api/business-context', async (req, res) => {
