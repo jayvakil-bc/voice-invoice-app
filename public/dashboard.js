@@ -52,7 +52,7 @@ async function loadInvoices() {
                     <h3>${invoice.invoiceNumber}</h3>
                     <p><strong>Service:</strong> ${invoice.serviceName || 'N/A'}</p>
                     <p><strong>To:</strong> ${invoice.to?.name || 'N/A'} ${invoice.to?.company ? '(' + invoice.to.company + ')' : ''}</p>
-                    <p><strong>Amount:</strong> ${getCurrencySymbol(invoice.currency)} ${invoice.total?.toFixed(2) || '0.00'}</p>
+                    <p><strong>Amount:</strong> $${invoice.total?.toFixed(2) || '0.00'}</p>
                     <p><strong>Date:</strong> ${new Date(invoice.date).toLocaleDateString()}</p>
                     <p><strong>Due:</strong> ${new Date(invoice.dueDate).toLocaleDateString()}</p>
                 </div>
