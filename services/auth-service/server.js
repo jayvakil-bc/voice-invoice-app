@@ -29,7 +29,11 @@ const User = mongoose.model('User', userSchema);
 
 // Passport Google Strategy
 // Build callback URL dynamically for Render / production
-const callbackBase = process.env.AUTH_PUBLIC_URL || `http://localhost:${PORT}`;
+let callbackBase = process.env.AUTH_PUBLIC_URL || `http://localhost:${PORT}`;
+// If AUTH_PUBLIC_URL doesn't have protocol, add https://
+if (callbackBase && !callbackBase.startsWith('http')) {
+    callbackBase = `https://${callbackBase}`;
+}
 passport.use(new GoogleStrategy({
     clientID: process.env.GOOGLE_CLIENT_ID,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
@@ -76,7 +80,12 @@ passport.deserializeUser(async (id, done) => {
 // Middleware
 // Trust proxy so secure cookies work behind Nginx / AWS load balancer
 app.set('trust proxy', 1);
-app.use(cors({ origin: process.env.CLIENT_URL || 'http://localhost:3000', credentials: true }));
+let clientURL = process.env.CLIENT_URL || 'http://localhost:3000';
+// If CLIENT_URL doesn't have protocol, add https://
+if (clientURL && !clientURL.startsWith('http')) {
+    clientURL = `https://${clientURL}`;
+}
+app.use(cors({ origin: clientURL, credentials: true }));
 app.use(express.json());
 
 // Session
@@ -89,10 +98,8 @@ app.use(session({
         maxAge: 1000 * 60 * 60 * 24 * 7,
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production', // true for HTTPS in production
-        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-        domain: process.env.NODE_ENV === 'production' 
-            ? process.env.CLIENT_URL?.replace(/https?:\/\//, '') 
-            : 'localhost'
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax'
+        // Remove domain restriction to allow same-site cookies
     }
 }));
 
@@ -109,9 +116,9 @@ app.get('/auth/google',
 );
 
 app.get('/auth/google/callback',
-    passport.authenticate('google', { failureRedirect: process.env.CLIENT_URL || 'http://localhost:3000/' }),
+    passport.authenticate('google', { failureRedirect: clientURL || 'http://localhost:3000/' }),
     (req, res) => {
-        res.redirect((process.env.CLIENT_URL || 'http://localhost:3000') + '/dashboard');
+        res.redirect((clientURL || 'http://localhost:3000') + '/dashboard');
     }
 );
 

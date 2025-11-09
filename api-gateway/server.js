@@ -12,14 +12,30 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Service URLs
-const AUTH_SERVICE = process.env.AUTH_SERVICE_URL || 'http://localhost:3001';
-const USER_SERVICE = process.env.USER_SERVICE_URL || 'http://localhost:3002';
-const INVOICE_SERVICE = process.env.INVOICE_SERVICE_URL || 'http://localhost:3003';
+let AUTH_SERVICE = process.env.AUTH_SERVICE_URL || 'http://localhost:3001';
+let USER_SERVICE = process.env.USER_SERVICE_URL || 'http://localhost:3002';
+let INVOICE_SERVICE = process.env.INVOICE_SERVICE_URL || 'http://localhost:3003';
+
+// Add https:// protocol if missing (Render gives us just hostname)
+if (AUTH_SERVICE && !AUTH_SERVICE.startsWith('http')) {
+    AUTH_SERVICE = `https://${AUTH_SERVICE}`;
+}
+if (USER_SERVICE && !USER_SERVICE.startsWith('http')) {
+    USER_SERVICE = `https://${USER_SERVICE}`;
+}
+if (INVOICE_SERVICE && !INVOICE_SERVICE.startsWith('http')) {
+    INVOICE_SERVICE = `https://${INVOICE_SERVICE}`;
+}
 
 // Middleware
 // Trust proxy for correct secure cookies behind Nginx/ALB in production
 app.set('trust proxy', 1);
-app.use(cors({ origin: process.env.CLIENT_URL || 'http://localhost:3000', credentials: true }));
+let clientURL = process.env.CLIENT_URL || 'http://localhost:3000';
+// Add https:// protocol if missing
+if (clientURL && !clientURL.startsWith('http')) {
+    clientURL = `https://${clientURL}`;
+}
+app.use(cors({ origin: clientURL, credentials: true }));
 app.use(express.json());
 
 // Session (shared with auth service) - only if MongoDB is configured
@@ -33,10 +49,8 @@ if (process.env.MONGODB_URI) {
             maxAge: 1000 * 60 * 60 * 24 * 7,
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
-            sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-            domain: process.env.NODE_ENV === 'production' 
-                ? process.env.CLIENT_URL?.replace(/https?:\/\//, '') 
-                : 'localhost'
+            sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax'
+            // Remove domain restriction to allow same-site cookies
         }
     }));
 } else {
@@ -91,7 +105,7 @@ app.get('/auth/google', (req, res) => {
 
 app.get('/auth/google/callback', (req, res) => {
     // In most flows auth-service handles callback and redirects to CLIENT_URL
-    res.redirect((process.env.CLIENT_URL || 'http://localhost:3000') + '/dashboard');
+    res.redirect((clientURL || 'http://localhost:3000') + '/dashboard');
 });
 
 app.get('/auth/logout', async (req, res) => {
