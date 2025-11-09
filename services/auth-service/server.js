@@ -90,6 +90,7 @@ app.use(express.json());
 
 // Session
 app.use(session({
+    name: 'connect.sid',
     secret: process.env.SESSION_SECRET || 'auth-secret',
     resave: false,
     saveUninitialized: false,
@@ -97,9 +98,8 @@ app.use(session({
     cookie: {
         maxAge: 1000 * 60 * 60 * 24 * 7,
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production', // true for HTTPS in production
-        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax'
-        // Remove domain restriction to allow same-site cookies
+        secure: false, // Always false for HTTP
+        sameSite: 'lax'
     }
 }));
 

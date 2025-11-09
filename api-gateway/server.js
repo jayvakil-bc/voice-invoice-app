@@ -41,6 +41,7 @@ app.use(express.json());
 // Session (shared with auth service) - only if MongoDB is configured
 if (process.env.MONGODB_URI) {
     app.use(session({
+        name: 'connect.sid',
         secret: process.env.SESSION_SECRET || 'auth-secret',
         resave: false,
         saveUninitialized: false,
@@ -48,9 +49,8 @@ if (process.env.MONGODB_URI) {
         cookie: {
             maxAge: 1000 * 60 * 60 * 24 * 7,
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax'
-            // Remove domain restriction to allow same-site cookies
+            secure: false, // Always false for HTTP
+            sameSite: 'lax'
         }
     }));
 } else {
