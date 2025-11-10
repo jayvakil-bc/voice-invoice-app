@@ -56,6 +56,81 @@
         </div>
     </div>
     
+    <!-- Preview Invoice Modal -->
+    <div id="previewModal" class="modal hidden">
+        <div class="modal-content" style="max-width: 900px;">
+            <div class="modal-header">
+                <h2>📄 Invoice Preview</h2>
+                <button onclick="closePreviewModal()" class="close-btn">✕</button>
+            </div>
+            <div class="modal-body" style="max-height: 70vh; overflow-y: auto;">
+                <div class="preview-section">
+                    <div class="preview-header">
+                        <div>
+                            <label>Invoice Number:</label>
+                            <input type="text" id="preview_invoiceNumber" class="preview-input">
+                        </div>
+                        <div>
+                            <label>Date:</label>
+                            <input type="date" id="preview_date" class="preview-input">
+                        </div>
+                        <div>
+                            <label>Due Date:</label>
+                            <input type="date" id="preview_dueDate" class="preview-input">
+                        </div>
+                    </div>
+                    
+                    <div class="preview-parties">
+                        <div class="preview-party">
+                            <h3>From:</h3>
+                            <input type="text" id="preview_from_name" placeholder="Company Name" class="preview-input">
+                            <textarea id="preview_from_address" placeholder="Address" class="preview-input" rows="2"></textarea>
+                            <input type="text" id="preview_from_phone" placeholder="Phone" class="preview-input">
+                            <input type="email" id="preview_from_email" placeholder="Email" class="preview-input">
+                        </div>
+                        <div class="preview-party">
+                            <h3>Bill To:</h3>
+                            <input type="text" id="preview_to_name" placeholder="Client Name" class="preview-input">
+                            <textarea id="preview_to_address" placeholder="Address" class="preview-input" rows="2"></textarea>
+                            <input type="text" id="preview_to_phone" placeholder="Phone" class="preview-input">
+                            <input type="email" id="preview_to_email" placeholder="Email" class="preview-input">
+                        </div>
+                    </div>
+                    
+                    <div class="preview-items">
+                        <h3>Items:</h3>
+                        <div id="preview_items_list"></div>
+                    </div>
+                    
+                    <div class="preview-totals">
+                        <div class="total-row">
+                            <span>Subtotal:</span>
+                            <input type="number" id="preview_subtotal" class="preview-input" readonly style="background: #f5f5f5;">
+                        </div>
+                        <div class="total-row">
+                            <span>Tax:</span>
+                            <input type="number" id="preview_tax" class="preview-input" step="0.01">
+                        </div>
+                        <div class="total-row total-final">
+                            <span>TOTAL:</span>
+                            <input type="number" id="preview_total" class="preview-input" readonly style="background: #f5f5f5;">
+                        </div>
+                    </div>
+                    
+                    <div class="preview-notes">
+                        <label>Notes / Payment Terms:</label>
+                        <textarea id="preview_notes" class="preview-input" rows="3"></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button onclick="closePreviewModal()" class="btn-secondary">Cancel</button>
+                <button onclick="savePreviewChanges()" class="btn-primary">💾 Save Changes</button>
+                <button onclick="downloadFromPreview()" class="btn-primary" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%);">📥 Download PDF</button>
+            </div>
+        </div>
+    </div>
+    
     <script src="dashboard.js"></script>
 </body>
 </html>

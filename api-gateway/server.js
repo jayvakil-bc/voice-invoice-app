@@ -333,6 +333,25 @@ app.put('/api/invoices/:id/regenerate', async (req, res) => {
     }
 });
 
+// Update invoice (for preview edits)
+app.put('/api/invoices/:id', async (req, res) => {
+    try {
+        const authResponse = await axios.get(`${AUTH_SERVICE}/auth/user`, {
+            headers: { Cookie: req.headers.cookie }
+        });
+        
+        if (!authResponse.data.authenticated) {
+            return res.status(401).json({ error: 'Not authenticated' });
+        }
+        
+        const response = await axios.put(`${INVOICE_SERVICE}/invoices/${req.params.id}`, req.body);
+        res.json(response.data);
+    } catch (error) {
+        console.error('[Gateway] Update invoice error:', error.message);
+        res.status(500).json({ error: 'Failed to update invoice' });
+    }
+});
+
 app.delete('/api/invoices/:id', async (req, res) => {
     try {
         const authResponse = await axios.get(`${AUTH_SERVICE}/auth/user`, {

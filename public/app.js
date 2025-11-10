@@ -337,12 +337,204 @@ async function generateInvoice(text) {
             throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`);
         }
 
-        // Generate returns JSON with invoiceId, not a PDF
+        // Generate returns JSON with invoiceId and invoiceData
         const result = await response.json();
         console.log('[App] Invoice generated:', result);
         
+        // Show preview modal with the invoice data
+        showPreviewModal(result.invoiceId, result.invoiceData);
+        
+        status.textContent = '✅ Review your invoice below';
+        loading.classList.add('hidden');
+        generateBtn.disabled = false;
+
+    } catch (error) {
+        console.error('Error generating invoice:', error);
+        status.textContent = '❌ Error generating invoice. Please try again.';
+        loading.classList.add('hidden');
+        generateBtn.disabled = false;
+    }
+}
+
+// Global variable to store current invoice ID
+let currentInvoiceId = null;
+
+function showPreviewModal(invoiceId, invoiceData) {
+    currentInvoiceId = invoiceId;
+    
+    // Populate preview fields
+    document.getElementById('prev_invoiceNumber').textContent = invoiceData.invoiceNumber || '';
+    document.getElementById('prev_date').value = invoiceData.date || '';
+    document.getElementById('prev_dueDate').value = invoiceData.dueDate || '';
+    
+    // From fields
+    document.getElementById('prev_from_name').textContent = invoiceData.from?.name || '';
+    document.getElementById('prev_from_address').textContent = invoiceData.from?.address || '';
+    document.getElementById('prev_from_phone').textContent = invoiceData.from?.phone || '';
+    document.getElementById('prev_from_email').textContent = invoiceData.from?.email || '';
+    
+    // To fields
+    document.getElementById('prev_to_name').textContent = invoiceData.to?.name || '';
+    document.getElementById('prev_to_address').textContent = invoiceData.to?.address || '';
+    document.getElementById('prev_to_phone').textContent = invoiceData.to?.phone || '';
+    document.getElementById('prev_to_email').textContent = invoiceData.to?.email || '';
+    
+    // Items
+    const tbody = document.getElementById('prev_items_tbody');
+    tbody.innerHTML = '';
+    if (invoiceData.items && invoiceData.items.length > 0) {
+        invoiceData.items.forEach((item, index) => {
+            addItemRow(item.description, item.quantity, item.rate, item.amount);
+        });
+    }
+    
+    // Totals
+    document.getElementById('prev_subtotal_display').textContent = `$${(invoiceData.subtotal || 0).toFixed(2)}`;
+    document.getElementById('prev_tax').textContent = `$${(invoiceData.tax || 0).toFixed(2)}`;
+    document.getElementById('prev_total_display').textContent = `$${(invoiceData.total || 0).toFixed(2)}`;
+    
+    // Notes
+    document.getElementById('prev_notes').textContent = invoiceData.notes || '';
+    
+    // Show modal
+    document.getElementById('invoicePreviewModal').classList.remove('hidden');
+    
+    // Add event listeners for real-time calculations
+    addCalculationListeners();
+}
+
+function addItemRow(description = '', quantity = 1, rate = 0, amount = 0) {
+    const tbody = document.getElementById('prev_items_tbody');
+    const row = document.createElement('tr');
+    row.innerHTML = `
+        <td><div contenteditable="true" class="preview-item-desc" data-placeholder="Service description">${description}</div></td>
+        <td><div contenteditable="true" class="preview-item-qty" data-type="number">${quantity}</div></td>
+        <td><div contenteditable="true" class="preview-item-rate" data-type="currency">$${rate.toFixed(2)}</div></td>
+        <td><div class="preview-item-amount">$${amount.toFixed(2)}</div></td>
+        <td><button class="preview-btn-remove-item" onclick="removeItemRow(this)">✕</button></td>
+    `;
+    tbody.appendChild(row);
+}
+
+function addPreviewItem() {
+    addItemRow('', 1, 0, 0);
+    addCalculationListeners();
+}
+
+function removeItemRow(button) {
+    button.closest('tr').remove();
+    recalculateTotals();
+}
+
+function addCalculationListeners() {
+    // Listen to quantity and rate changes
+    document.querySelectorAll('.preview-item-qty, .preview-item-rate').forEach(field => {
+        field.addEventListener('input', function() {
+            const row = this.closest('tr');
+            const qtyField = row.querySelector('.preview-item-qty');
+            const rateField = row.querySelector('.preview-item-rate');
+            const amountField = row.querySelector('.preview-item-amount');
+            
+            const qty = parseFloat(qtyField.textContent.trim()) || 0;
+            const rate = parseFloat(rateField.textContent.replace('$', '').trim()) || 0;
+            const amount = qty * rate;
+            
+            amountField.textContent = `$${amount.toFixed(2)}`;
+            
+            recalculateTotals();
+        });
+    });
+    
+    // Listen to tax changes
+    document.getElementById('prev_tax').addEventListener('input', recalculateTotals);
+}
+
+function recalculateTotals() {
+    let subtotal = 0;
+    
+    // Sum all amounts
+    document.querySelectorAll('.preview-item-amount').forEach(field => {
+        const amount = parseFloat(field.textContent.replace('$', '').trim()) || 0;
+        subtotal += amount;
+    });
+    
+    const taxText = document.getElementById('prev_tax').textContent.replace('$', '').trim();
+    const tax = parseFloat(taxText) || 0;
+    const total = subtotal + tax;
+    
+    document.getElementById('prev_subtotal_display').textContent = `$${subtotal.toFixed(2)}`;
+    document.getElementById('prev_total_display').textContent = `$${total.toFixed(2)}`;
+}
+
+function closePreviewModal() {
+    document.getElementById('invoicePreviewModal').classList.add('hidden');
+    currentInvoiceId = null;
+    
+    // Reset form
+    transcript = '';
+    textInput.value = '';
+    status.textContent = 'Press to speak';
+}
+
+async function saveAndDownloadInvoice() {
+    if (!currentInvoiceId) return;
+    
+    try {
+        // Collect all data from preview
+        const items = [];
+        document.querySelectorAll('#prev_items_tbody tr').forEach(row => {
+            const desc = row.querySelector('.preview-item-desc').textContent.trim();
+            const qty = parseFloat(row.querySelector('.preview-item-qty').textContent.trim()) || 1;
+            const rate = parseFloat(row.querySelector('.preview-item-rate').textContent.replace('$', '').trim()) || 0;
+            const amount = parseFloat(row.querySelector('.preview-item-amount').textContent.replace('$', '').trim()) || 0;
+            
+            items.push({
+                description: desc,
+                quantity: qty,
+                rate: rate,
+                amount: amount
+            });
+        });
+        
+        const invoiceData = {
+            invoiceNumber: document.getElementById('prev_invoiceNumber').textContent.trim(),
+            date: document.getElementById('prev_date').value,
+            dueDate: document.getElementById('prev_dueDate').value,
+            from: {
+                name: document.getElementById('prev_from_name').textContent.trim(),
+                address: document.getElementById('prev_from_address').textContent.trim(),
+                phone: document.getElementById('prev_from_phone').textContent.trim(),
+                email: document.getElementById('prev_from_email').textContent.trim()
+            },
+            to: {
+                name: document.getElementById('prev_to_name').textContent.trim(),
+                address: document.getElementById('prev_to_address').textContent.trim(),
+                phone: document.getElementById('prev_to_phone').textContent.trim(),
+                email: document.getElementById('prev_to_email').textContent.trim()
+            },
+            items: items,
+            subtotal: parseFloat(document.getElementById('prev_subtotal_display').textContent.replace('$', '').trim()) || 0,
+            tax: parseFloat(document.getElementById('prev_tax').textContent.replace('$', '').trim()) || 0,
+            total: parseFloat(document.getElementById('prev_total_display').textContent.replace('$', '').trim()) || 0,
+            notes: document.getElementById('prev_notes').textContent.trim()
+        };
+        
+        // Update invoice in database
+        const updateResponse = await fetch(`/api/invoices/${currentInvoiceId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            credentials: 'include',
+            body: JSON.stringify(invoiceData)
+        });
+        
+        if (!updateResponse.ok) {
+            throw new Error('Failed to save invoice changes');
+        }
+        
         // Now download the PDF
-        const pdfResponse = await fetch(`/api/invoices/${result.invoiceId}/download`, {
+        const pdfResponse = await fetch(`/api/invoices/${currentInvoiceId}/download`, {
             credentials: 'include'
         });
         
@@ -354,28 +546,24 @@ async function generateInvoice(text) {
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `${result.invoiceData.invoiceNumber || 'invoice'}.pdf`;
+        a.download = `${invoiceData.invoiceNumber || 'invoice'}.pdf`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
         window.URL.revokeObjectURL(url);
-
-        status.textContent = '✅ Invoice generated successfully!';
-        loading.classList.add('hidden');
-        generateBtn.disabled = false;
         
-        // Reset after 3 seconds
+        // Close modal and reset
+        closePreviewModal();
+        
+        // Show success message
+        status.textContent = '✅ Invoice saved and downloaded!';
         setTimeout(() => {
             status.textContent = 'Press to speak';
-            transcript = '';
-            textInput.value = '';
         }, 3000);
-
+        
     } catch (error) {
-        console.error('Error generating invoice:', error);
-        status.textContent = '❌ Error generating invoice. Please try again.';
-        loading.classList.add('hidden');
-        generateBtn.disabled = false;
+        console.error('Error saving invoice:', error);
+        alert('Failed to save invoice. Please try again.');
     }
 }
 

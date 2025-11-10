@@ -75,7 +75,7 @@ app.post('/invoices/generate', async (req, res) => {
         const dueDateFormatted = dueDate.toISOString().split('T')[0];
         
         // Create prompt for OpenAI
-        let prompt = `You are a STRICT extractor that creates line items from invoices. Use ONLY facts explicitly present in the inputs.
+        let prompt = `You are a STRICT extractor that creates invoices from transcriptions. Use ONLY facts explicitly present in the inputs.
 
 CRITICAL BILLING CONTEXT:
 - Understand WHEN the pricing applies (immediate/today vs. future/ongoing)
@@ -89,28 +89,29 @@ CRITICAL STRUCTURE:
 3. DO NOT infer or distribute pricing across deliverables unless explicitly stated
 4. DO NOT include recurring/monthly fees unless this invoice represents that billing period
 
-Each line_item must have:
-- description: specific deliverable or package name
-- quantity: how many (default to 1 if not specified)
-- unit: what's being counted ("package", "episodes", "hours", "posts", "sessions")
-- unit_price: price per unit (ONLY if explicitly stated)
-- line_total: total for this line item
-- is_header: true for main package (if sub-items exist), false/null otherwise
-
-CRITICAL: Only break down costs if the transcription explicitly mentions individual prices for deliverables.
-If only a total package price is mentioned, create a single line_item for the entire package.
-Amounts must be numbers only (no currency symbols, no commas).
-
 TRANSCRIPTION:
 ${transcript}
 
 Generate a properly structured invoice in JSON format with the following structure:
 {
   "invoice_number": "INV-[generate unique number]",
-  "date": "YYYY-MM-DD",
+  "date": "${todayFormatted}",
+  "due_date": "${dueDateFormatted}",
+  "from": {
+    "name": "[Your company name from transcript or 'Your Company']",
+    "address": "[Your full address from transcript or '']",
+    "phone": "[Your phone from transcript or '']",
+    "email": "[Your email from transcript or '']"
+  },
+  "to": {
+    "name": "[Client name from transcript]",
+    "address": "[Client full address from transcript - IMPORTANT: extract complete address if mentioned]",
+    "phone": "[Client phone from transcript or '']",
+    "email": "[Client email from transcript or '']"
+  },
   "line_items": [
     {
-      "description": "Main Package Name",
+      "description": "Main Package Name or Service Description",
       "quantity": 1,
       "unit": "package",
       "unit_price": [total price],
@@ -118,7 +119,7 @@ Generate a properly structured invoice in JSON format with the following structu
       "is_header": true
     },
     {
-      "description": "Specific Deliverable 1",
+      "description": "Specific Deliverable (only if explicitly priced separately)",
       "quantity": [number],
       "unit": "[unit type]",
       "unit_price": [price per unit],
@@ -127,8 +128,16 @@ Generate a properly structured invoice in JSON format with the following structu
     }
   ],
   "subtotal": [sum of all line_totals],
-  "total": [subtotal + any fees/taxes if mentioned]
+  "total": [subtotal + any fees/taxes if mentioned],
+  "notes": "[Payment terms or additional notes from transcript]"
 }
+
+CRITICAL RULES:
+- Each line_item must have: description, quantity, unit, unit_price, line_total, is_header
+- Amounts must be numbers only (no currency symbols, no commas)
+- ALWAYS extract addresses when mentioned - look for street, city, state, zip patterns
+- Only break down costs if the transcription explicitly mentions individual prices
+- If only a total package price is mentioned, create a single line_item for the entire package
 `;
 
         const completion = await openai.chat.completions.create({
@@ -160,10 +169,23 @@ Generate a properly structured invoice in JSON format with the following structu
             invoiceData.items = [];
         }
         
-        // Use invoice_number if provided, otherwise invoiceNumber
+        // Normalize field names
         if (invoiceData.invoice_number && !invoiceData.invoiceNumber) {
             invoiceData.invoiceNumber = invoiceData.invoice_number;
             delete invoiceData.invoice_number;
+        }
+        
+        if (invoiceData.due_date && !invoiceData.dueDate) {
+            invoiceData.dueDate = invoiceData.due_date;
+            delete invoiceData.due_date;
+        }
+        
+        // Ensure from/to objects exist
+        if (!invoiceData.from) {
+            invoiceData.from = { name: '', address: '', phone: '', email: '' };
+        }
+        if (!invoiceData.to) {
+            invoiceData.to = { name: '', address: '', phone: '', email: '' };
         }
         
         // Ensure date and dueDate are set
@@ -232,6 +254,23 @@ app.get('/invoices/:id', async (req, res) => {
     }
 });
 
+// Update invoice
+app.put('/invoices/:id', async (req, res) => {
+    try {
+        const invoice = await Invoice.findById(req.params.id);
+        if (!invoice) return res.status(404).json({ error: 'Invoice not found' });
+        
+        // Update fields
+        Object.assign(invoice, req.body);
+        await invoice.save();
+        
+        res.json(invoice);
+    } catch (error) {
+        console.error('[Invoice Service] Update error:', error);
+        res.status(500).json({ error: 'Failed to update invoice' });
+    }
+});
+
 // Regenerate invoice
 app.put('/invoices/:id/regenerate', async (req, res) => {
     try {
@@ -292,96 +331,215 @@ app.get('/invoices/:id/pdf', async (req, res) => {
             total: invoice.total
         }));
         
-        const doc = new PDFDocument({ margin: 50 });
+        const doc = new PDFDocument({ 
+            margin: 50,
+            size: 'A4'
+        });
         
         res.setHeader('Content-Type', 'application/pdf');
         res.setHeader('Content-Disposition', `attachment; filename=invoice-${invoice.invoiceNumber}.pdf`);
         
         doc.pipe(res);
         
-        // Header
-        doc.fontSize(24).font('Helvetica-Bold').text('INVOICE', { align: 'center' });
-        doc.moveDown();
+        // Brand color
+        const brandColor = '#667eea';
+        const darkGray = '#333333';
+        const mediumGray = '#666666';
+        const lightGray = '#999999';
         
-        // Invoice details
-        doc.fontSize(10).font('Helvetica');
-        doc.text(`Invoice #: ${invoice.invoiceNumber}`, 50, 100);
-        doc.text(`Date: ${invoice.date}`, 50, 115);
-        doc.text(`Due Date: ${invoice.dueDate}`, 50, 130);
+        // Header with colored background
+        doc.rect(0, 0, 612, 120).fill(brandColor);
+        
+        // Invoice title
+        doc.fontSize(32)
+           .font('Helvetica-Bold')
+           .fillColor('white')
+           .text('INVOICE', 50, 40);
+        
+        // Invoice details in header
+        doc.fontSize(11)
+           .font('Helvetica')
+           .fillColor('white')
+           .text(`Invoice #: ${invoice.invoiceNumber}`, 380, 45)
+           .text(`Date: ${invoice.date}`, 380, 62)
+           .text(`Due Date: ${invoice.dueDate}`, 380, 79);
+        
+        // From and To sections
+        let yPos = 160;
         
         // From section
-        let yPos = 180;
-        doc.fontSize(12).font('Helvetica-Bold').text('From:', 50, yPos);
-        doc.fontSize(10).font('Helvetica');
-        if (invoice.from.name) doc.text(invoice.from.name, 50, yPos + 15);
-        if (invoice.from.address) doc.text(invoice.from.address, 50, yPos + 30);
-        if (invoice.from.phone) doc.text(invoice.from.phone, 50, yPos + 45);
-        if (invoice.from.email) doc.text(invoice.from.email, 50, yPos + 60);
+        doc.fontSize(10)
+           .font('Helvetica-Bold')
+           .fillColor(darkGray)
+           .text('FROM', 50, yPos);
+        
+        yPos += 20;
+        doc.fontSize(12)
+           .font('Helvetica-Bold')
+           .fillColor(darkGray);
+        if (invoice.from.name) doc.text(invoice.from.name, 50, yPos);
+        
+        yPos += 18;
+        doc.fontSize(10)
+           .font('Helvetica')
+           .fillColor(mediumGray);
+        if (invoice.from.address) {
+            const addressLines = doc.splitTextToFit(invoice.from.address, 220);
+            addressLines.forEach(line => {
+                doc.text(line, 50, yPos);
+                yPos += 14;
+            });
+        }
+        if (invoice.from.phone) {
+            doc.text(invoice.from.phone, 50, yPos);
+            yPos += 14;
+        }
+        if (invoice.from.email) {
+            doc.text(invoice.from.email, 50, yPos);
+        }
         
         // To section
-        doc.fontSize(12).font('Helvetica-Bold').text('Bill To:', 300, yPos);
-        doc.fontSize(10).font('Helvetica');
-        if (invoice.to.name) doc.text(invoice.to.name, 300, yPos + 15);
-        if (invoice.to.address) doc.text(invoice.to.address, 300, yPos + 30);
-        if (invoice.to.phone) doc.text(invoice.to.phone, 300, yPos + 45);
-        if (invoice.to.email) doc.text(invoice.to.email, 300, yPos + 60);
+        yPos = 160;
+        doc.fontSize(10)
+           .font('Helvetica-Bold')
+           .fillColor(darkGray)
+           .text('BILL TO', 320, yPos);
+        
+        yPos += 20;
+        doc.fontSize(12)
+           .font('Helvetica-Bold')
+           .fillColor(darkGray);
+        if (invoice.to.name) doc.text(invoice.to.name, 320, yPos);
+        
+        yPos += 18;
+        doc.fontSize(10)
+           .font('Helvetica')
+           .fillColor(mediumGray);
+        if (invoice.to.address) {
+            const addressLines = doc.splitTextToFit(invoice.to.address, 220);
+            addressLines.forEach(line => {
+                doc.text(line, 320, yPos);
+                yPos += 14;
+            });
+        }
+        if (invoice.to.phone) {
+            doc.text(invoice.to.phone, 320, yPos);
+            yPos += 14;
+        }
+        if (invoice.to.email) {
+            doc.text(invoice.to.email, 320, yPos);
+        }
         
         // Items table
-        yPos = 320;
-        doc.fontSize(10).font('Helvetica-Bold');
-        doc.text('Description', 50, yPos);
-        doc.text('Qty', 280, yPos);
-        doc.text('Unit', 320, yPos);
-        doc.text('Unit Price', 380, yPos);
-        doc.text('Total', 480, yPos);
+        yPos = 340;
         
-        doc.moveTo(50, yPos + 15).lineTo(550, yPos + 15).stroke();
+        // Table header with colored background
+        doc.rect(50, yPos - 5, 512, 25).fill('#f5f7fa');
         
-        yPos += 25;
-        doc.font('Helvetica');
+        doc.fontSize(10)
+           .font('Helvetica-Bold')
+           .fillColor(darkGray);
+        doc.text('Description', 60, yPos + 5);
+        doc.text('Qty', 360, yPos + 5, { width: 40, align: 'center' });
+        doc.text('Unit Price', 410, yPos + 5, { width: 70, align: 'right' });
+        doc.text('Amount', 490, yPos + 5, { width: 62, align: 'right' });
+        
+        yPos += 30;
+        
+        // Divider line
+        doc.strokeColor('#e0e0e0')
+           .lineWidth(1)
+           .moveTo(50, yPos)
+           .lineTo(562, yPos)
+           .stroke();
+        
+        yPos += 15;
+        
+        // Items
+        doc.font('Helvetica')
+           .fillColor(darkGray);
         
         if (invoice.items && invoice.items.length > 0) {
             invoice.items.forEach(item => {
-                doc.text(item.description || '', 50, yPos, { width: 220 });
-                doc.text((item.quantity || 0).toString(), 280, yPos);
-                doc.text('package', 320, yPos); // Default unit
-                doc.text(`$${(item.rate || 0).toFixed(2)}`, 380, yPos);
-                doc.text(`$${(item.amount || 0).toFixed(2)}`, 480, yPos);
-                yPos += 20;
+                // Check if we need a new page
+                if (yPos > 680) {
+                    doc.addPage();
+                    yPos = 50;
+                }
+                
+                const descHeight = doc.heightOfString(item.description || '', { width: 290 });
+                
+                doc.fontSize(10)
+                   .text(item.description || '', 60, yPos, { width: 290 });
+                doc.text((item.quantity || 0).toString(), 360, yPos, { width: 40, align: 'center' });
+                doc.text(`$${(item.rate || 0).toFixed(2)}`, 410, yPos, { width: 70, align: 'right' });
+                doc.text(`$${(item.amount || 0).toFixed(2)}`, 490, yPos, { width: 62, align: 'right' });
+                
+                yPos += Math.max(descHeight, 15) + 10;
             });
         }
         
-        // Totals
-        yPos += 20;
-        doc.moveTo(50, yPos).lineTo(550, yPos).stroke();
+        yPos += 10;
+        
+        // Totals section
+        doc.strokeColor('#e0e0e0')
+           .lineWidth(1)
+           .moveTo(380, yPos)
+           .lineTo(562, yPos)
+           .stroke();
+        
         yPos += 15;
         
-        doc.text('Subtotal:', 380, yPos);
-        doc.text(`$${(invoice.subtotal || 0).toFixed(2)}`, 480, yPos);
+        // Subtotal
+        doc.fontSize(10)
+           .font('Helvetica')
+           .fillColor(mediumGray)
+           .text('Subtotal:', 410, yPos, { width: 70, align: 'right' })
+           .text(`$${(invoice.subtotal || 0).toFixed(2)}`, 490, yPos, { width: 62, align: 'right' });
+        
         yPos += 20;
         
-        // Only show tax if it's greater than 0
+        // Tax (only if > 0)
         if (invoice.tax && invoice.tax > 0) {
-            doc.text('Tax:', 380, yPos);
-            doc.text(`$${(invoice.tax || 0).toFixed(2)}`, 480, yPos);
+            doc.text('Tax:', 410, yPos, { width: 70, align: 'right' })
+               .text(`$${invoice.tax.toFixed(2)}`, 490, yPos, { width: 62, align: 'right' });
             yPos += 20;
         }
         
-        doc.fontSize(12).font('Helvetica-Bold');
-        doc.text('TOTAL:', 380, yPos);
-        doc.text(`$${(invoice.total || 0).toFixed(2)}`, 480, yPos);
+        // Total with background
+        doc.rect(380, yPos - 5, 182, 30).fill(brandColor);
         
-        // Notes
+        doc.fontSize(12)
+           .font('Helvetica-Bold')
+           .fillColor('white')
+           .text('TOTAL:', 410, yPos + 5, { width: 70, align: 'right' })
+           .text(`$${(invoice.total || 0).toFixed(2)}`, 490, yPos + 5, { width: 62, align: 'right' });
+        
+        yPos += 45;
+        
+        // Notes section
         if (invoice.notes) {
-            yPos += 50;
-            doc.fontSize(10).fillColor('#666').font('Helvetica')
-               .text('Notes:', 50, yPos)
-               .text(invoice.notes, 50, yPos + 15, { width: 500 });
+            yPos += 10;
+            doc.fontSize(10)
+               .font('Helvetica-Bold')
+               .fillColor(darkGray)
+               .text('Payment Terms & Notes:', 50, yPos);
+            
+            yPos += 18;
+            doc.fontSize(9)
+               .font('Helvetica')
+               .fillColor(mediumGray)
+               .text(invoice.notes, 50, yPos, { width: 512, align: 'left' });
         }
         
         // Footer
-        doc.fontSize(8).fillColor('#999')
-           .text('Thank you for your business!', 50, 720, { align: 'center' });
+        const footerY = 750;
+        doc.fontSize(9)
+           .fillColor(lightGray)
+           .text('Thank you for your business!', 50, footerY, { 
+               width: 512, 
+               align: 'center' 
+           });
         
         // Finalize the PDF and end the stream
         doc.end();

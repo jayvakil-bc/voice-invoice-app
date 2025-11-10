@@ -72,6 +72,108 @@
             window.location.href = '/auth/logout';
         }
     </script>
+    
+    <!-- Invoice Preview Modal -->
+    <div id="invoicePreviewModal" class="preview-modal hidden">
+        <div class="preview-modal-content">
+            <div class="preview-modal-header">
+                <h2>📄 Review Your Invoice</h2>
+                <p style="margin: 0.5rem 0 0 0; opacity: 0.9; font-size: 0.95rem;">Edit any field by clicking on it</p>
+            </div>
+            <div class="preview-modal-body">
+                <!-- Invoice Preview (PDF-style) -->
+                <div class="invoice-preview-document">
+                    <!-- Header with gradient -->
+                    <div class="preview-invoice-header">
+                        <div class="preview-invoice-title">INVOICE</div>
+                        <div class="preview-invoice-meta">
+                            <div class="preview-meta-row">
+                                <span>Invoice #:</span>
+                                <span contenteditable="true" id="prev_invoiceNumber" class="preview-editable">INV-001</span>
+                            </div>
+                            <div class="preview-meta-row">
+                                <span>Date:</span>
+                                <input type="date" id="prev_date" class="preview-date-input">
+                            </div>
+                            <div class="preview-meta-row">
+                                <span>Due Date:</span>
+                                <input type="date" id="prev_dueDate" class="preview-date-input">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- From and To sections -->
+                    <div class="preview-parties">
+                        <div class="preview-party">
+                            <div class="preview-party-label">FROM</div>
+                            <div contenteditable="true" id="prev_from_name" class="preview-editable preview-company" data-placeholder="Company Name"></div>
+                            <div contenteditable="true" id="prev_from_address" class="preview-editable" data-placeholder="Address"></div>
+                            <div contenteditable="true" id="prev_from_phone" class="preview-editable" data-placeholder="Phone"></div>
+                            <div contenteditable="true" id="prev_from_email" class="preview-editable" data-placeholder="Email"></div>
+                        </div>
+                        <div class="preview-party">
+                            <div class="preview-party-label">BILL TO</div>
+                            <div contenteditable="true" id="prev_to_name" class="preview-editable preview-company" data-placeholder="Client Name"></div>
+                            <div contenteditable="true" id="prev_to_address" class="preview-editable" data-placeholder="Address"></div>
+                            <div contenteditable="true" id="prev_to_phone" class="preview-editable" data-placeholder="Phone"></div>
+                            <div contenteditable="true" id="prev_to_email" class="preview-editable" data-placeholder="Email"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Items table -->
+                    <div class="preview-items-section">
+                        <table class="preview-items-table">
+                            <thead>
+                                <tr>
+                                    <th style="text-align: left;">Description</th>
+                                    <th style="text-align: center; width: 80px;">Qty</th>
+                                    <th style="text-align: right; width: 110px;">Unit Price</th>
+                                    <th style="text-align: right; width: 110px;">Amount</th>
+                                    <th style="width: 40px;"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="prev_items_tbody">
+                                <!-- Items will be inserted here -->
+                            </tbody>
+                        </table>
+                        <button class="preview-btn-add-item" onclick="addPreviewItem()">+ Add Item</button>
+                    </div>
+                    
+                    <!-- Totals -->
+                    <div class="preview-totals-section">
+                        <div class="preview-total-row">
+                            <span>Subtotal:</span>
+                            <span id="prev_subtotal_display">$0.00</span>
+                        </div>
+                        <div class="preview-total-row">
+                            <span>Tax:</span>
+                            <span contenteditable="true" id="prev_tax" class="preview-editable" data-type="currency">$0.00</span>
+                        </div>
+                        <div class="preview-total-row preview-total-final">
+                            <span>TOTAL:</span>
+                            <span id="prev_total_display">$0.00</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Notes -->
+                    <div class="preview-notes-section">
+                        <div class="preview-notes-label">Payment Terms & Notes:</div>
+                        <div contenteditable="true" id="prev_notes" class="preview-editable preview-notes-content" data-placeholder="Add payment terms or notes here..."></div>
+                    </div>
+                    
+                    <!-- Footer -->
+                    <div class="preview-invoice-footer">
+                        Thank you for your business!
+                    </div>
+                </div>
+            </div>
+            <div class="preview-modal-footer">
+                <button onclick="closePreviewModal()" class="preview-btn-cancel">✕ Cancel</button>
+                <button onclick="saveAndDownloadInvoice()" class="preview-btn-save">💾 Save & Download PDF</button>
+            </div>
+        </div>
+    </div>
+    
     <script src="app.js"></script>
 </body>
 </html>

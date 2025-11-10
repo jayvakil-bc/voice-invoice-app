@@ -57,8 +57,8 @@ async function loadInvoices() {
                     <p><strong>Due:</strong> ${new Date(invoice.dueDate).toLocaleDateString()}</p>
                 </div>
                 <div class="invoice-actions">
-                    <button class="btn-action btn-download" onclick="downloadInvoice('${invoice._id}', '${invoice.invoiceNumber}')">
-                        📥 Download
+                    <button class="btn-action btn-download" onclick="previewInvoice('${invoice._id}', '${invoice.invoiceNumber}')">
+                        �️ Preview
                     </button>
                     <button class="btn-action btn-edit" onclick="editInvoice('${invoice._id}')">
                         ✏️ Edit
@@ -295,6 +295,204 @@ async function deleteInvoice(id) {
         console.error('Error deleting invoice:', error);
         alert('Failed to delete invoice');
     }
+}
+
+// Preview Invoice Modal
+let currentPreviewId = null;
+let currentPreviewInvoiceNumber = null;
+
+async function previewInvoice(id, invoiceNumber) {
+    try {
+        const response = await fetch(`/api/invoices/${id}`, {
+            credentials: 'include'
+        });
+        
+        const invoice = await response.json();
+        currentPreviewId = id;
+        currentPreviewInvoiceNumber = invoiceNumber;
+        
+        // Populate preview fields
+        document.getElementById('preview_invoiceNumber').value = invoice.invoiceNumber || '';
+        document.getElementById('preview_date').value = invoice.date || '';
+        document.getElementById('preview_dueDate').value = invoice.dueDate || '';
+        
+        // From fields
+        document.getElementById('preview_from_name').value = invoice.from?.name || '';
+        document.getElementById('preview_from_address').value = invoice.from?.address || '';
+        document.getElementById('preview_from_phone').value = invoice.from?.phone || '';
+        document.getElementById('preview_from_email').value = invoice.from?.email || '';
+        
+        // To fields
+        document.getElementById('preview_to_name').value = invoice.to?.name || '';
+        document.getElementById('preview_to_address').value = invoice.to?.address || '';
+        document.getElementById('preview_to_phone').value = invoice.to?.phone || '';
+        document.getElementById('preview_to_email').value = invoice.to?.email || '';
+        
+        // Items
+        const itemsList = document.getElementById('preview_items_list');
+        itemsList.innerHTML = '';
+        if (invoice.items && invoice.items.length > 0) {
+            invoice.items.forEach((item, index) => {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'preview-item';
+                itemDiv.innerHTML = `
+                    <input type="text" value="${item.description || ''}" placeholder="Description" data-item="${index}" data-field="description">
+                    <input type="number" value="${item.quantity || 1}" placeholder="Qty" data-item="${index}" data-field="quantity" min="1" step="1">
+                    <input type="number" value="${item.rate || 0}" placeholder="Rate" data-item="${index}" data-field="rate" min="0" step="0.01">
+                    <input type="number" value="${item.amount || 0}" placeholder="Amount" data-item="${index}" data-field="amount" min="0" step="0.01" readonly style="background: #f5f5f5;">
+                    <button class="btn-remove-item" onclick="removePreviewItem(${index})">✕</button>
+                `;
+                itemsList.appendChild(itemDiv);
+            });
+        }
+        
+        // Totals
+        document.getElementById('preview_subtotal').value = invoice.subtotal || 0;
+        document.getElementById('preview_tax').value = invoice.tax || 0;
+        document.getElementById('preview_total').value = invoice.total || 0;
+        
+        // Notes
+        document.getElementById('preview_notes').value = invoice.notes || '';
+        
+        // Add event listeners for real-time calculations
+        addPreviewCalculationListeners();
+        
+        // Show modal
+        document.getElementById('previewModal').classList.remove('hidden');
+    } catch (error) {
+        console.error('Error loading invoice for preview:', error);
+        alert('Failed to load invoice. Please try again.');
+    }
+}
+
+function addPreviewCalculationListeners() {
+    // Listen to quantity and rate changes to update amounts
+    document.querySelectorAll('[data-field="quantity"], [data-field="rate"]').forEach(input => {
+        input.addEventListener('input', function() {
+            const itemIndex = this.dataset.item;
+            const qtyInput = document.querySelector(`[data-item="${itemIndex}"][data-field="quantity"]`);
+            const rateInput = document.querySelector(`[data-item="${itemIndex}"][data-field="rate"]`);
+            const amountInput = document.querySelector(`[data-item="${itemIndex}"][data-field="amount"]`);
+            
+            const qty = parseFloat(qtyInput.value) || 0;
+            const rate = parseFloat(rateInput.value) || 0;
+            const amount = qty * rate;
+            
+            amountInput.value = amount.toFixed(2);
+            
+            // Recalculate totals
+            recalculatePreviewTotals();
+        });
+    });
+    
+    // Listen to tax changes
+    document.getElementById('preview_tax').addEventListener('input', recalculatePreviewTotals);
+}
+
+function recalculatePreviewTotals() {
+    let subtotal = 0;
+    
+    // Sum all amounts
+    document.querySelectorAll('[data-field="amount"]').forEach(input => {
+        subtotal += parseFloat(input.value) || 0;
+    });
+    
+    const tax = parseFloat(document.getElementById('preview_tax').value) || 0;
+    const total = subtotal + tax;
+    
+    document.getElementById('preview_subtotal').value = subtotal.toFixed(2);
+    document.getElementById('preview_total').value = total.toFixed(2);
+}
+
+function removePreviewItem(index) {
+    const itemDiv = document.querySelector(`[data-item="${index}"]`).closest('.preview-item');
+    itemDiv.remove();
+    recalculatePreviewTotals();
+}
+
+function closePreviewModal() {
+    document.getElementById('previewModal').classList.add('hidden');
+    currentPreviewId = null;
+    currentPreviewInvoiceNumber = null;
+}
+
+async function savePreviewChanges() {
+    if (!currentPreviewId) return;
+    
+    try {
+        // Collect all data
+        const items = [];
+        const itemsContainer = document.getElementById('preview_items_list');
+        itemsContainer.querySelectorAll('.preview-item').forEach((itemDiv, index) => {
+            const desc = itemDiv.querySelector('[data-field="description"]').value;
+            const qty = parseFloat(itemDiv.querySelector('[data-field="quantity"]').value) || 1;
+            const rate = parseFloat(itemDiv.querySelector('[data-field="rate"]').value) || 0;
+            const amount = parseFloat(itemDiv.querySelector('[data-field="amount"]').value) || 0;
+            
+            items.push({
+                description: desc,
+                quantity: qty,
+                rate: rate,
+                amount: amount
+            });
+        });
+        
+        const invoiceData = {
+            invoiceNumber: document.getElementById('preview_invoiceNumber').value,
+            date: document.getElementById('preview_date').value,
+            dueDate: document.getElementById('preview_dueDate').value,
+            from: {
+                name: document.getElementById('preview_from_name').value,
+                address: document.getElementById('preview_from_address').value,
+                phone: document.getElementById('preview_from_phone').value,
+                email: document.getElementById('preview_from_email').value
+            },
+            to: {
+                name: document.getElementById('preview_to_name').value,
+                address: document.getElementById('preview_to_address').value,
+                phone: document.getElementById('preview_to_phone').value,
+                email: document.getElementById('preview_to_email').value
+            },
+            items: items,
+            subtotal: parseFloat(document.getElementById('preview_subtotal').value) || 0,
+            tax: parseFloat(document.getElementById('preview_tax').value) || 0,
+            total: parseFloat(document.getElementById('preview_total').value) || 0,
+            notes: document.getElementById('preview_notes').value
+        };
+        
+        // Save via API
+        const response = await fetch(`/api/invoices/${currentPreviewId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            credentials: 'include',
+            body: JSON.stringify(invoiceData)
+        });
+        
+        if (!response.ok) {
+            throw new Error('Failed to save changes');
+        }
+        
+        alert('✅ Changes saved successfully!');
+        loadInvoices(); // Refresh the list
+    } catch (error) {
+        console.error('Error saving changes:', error);
+        alert('Failed to save changes. Please try again.');
+    }
+}
+
+async function downloadFromPreview() {
+    if (!currentPreviewId || !currentPreviewInvoiceNumber) return;
+    
+    // Save changes first
+    await savePreviewChanges();
+    
+    // Then download
+    await downloadInvoice(currentPreviewId, currentPreviewInvoiceNumber);
+    
+    // Close modal
+    closePreviewModal();
 }
 
 // Logout
