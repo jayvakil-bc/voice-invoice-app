@@ -980,3 +980,218 @@ h1 {
     transform: translateY(-2px);
     box-shadow: 0 6px 25px rgba(40, 167, 69, 0.4);
 }
+
+/* ===== CONTRACT PREVIEW MODAL STYLES ===== */
+
+.contract-preview-content {
+    max-width: 900px;
+}
+
+.contract-preview-document {
+    background: white;
+    padding: 2.5rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.preview-contract-header {
+    background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+    color: white;
+    padding: 2rem;
+    margin: -2.5rem -2.5rem 2rem -2.5rem;
+    border-radius: 12px 12px 0 0;
+}
+
+.preview-contract-title {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    letter-spacing: 1px;
+}
+
+.preview-contract-meta {
+    display: grid;
+    gap: 0.5rem;
+    font-size: 0.95rem;
+}
+
+.contract-title-editable {
+    display: block;
+    width: 100%;
+    background: rgba(255, 255, 255, 0.2);
+    padding: 0.5rem;
+    border-radius: 4px;
+}
+
+.preview-section {
+    margin-bottom: 2rem;
+}
+
+.preview-section-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #764ba2;
+    margin-bottom: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid #764ba2;
+    padding-bottom: 0.5rem;
+}
+
+.preview-party-box {
+    background: #f8f9fa;
+    border: 2px solid #764ba2;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.preview-party-label {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #764ba2;
+    margin-bottom: 1rem;
+    text-transform: uppercase;
+}
+
+.preview-party-details {
+    display: grid;
+    gap: 0.8rem;
+}
+
+.preview-field-group {
+    display: grid;
+    grid-template-columns: 100px 1fr;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.preview-field-group label {
+    font-weight: 600;
+    color: #555;
+    font-size: 0.9rem;
+}
+
+.preview-field-group .preview-editable {
+    background: white;
+    border: 1px solid #dee2e6;
+    padding: 0.5rem;
+    border-radius: 4px;
+    min-height: 24px;
+}
+
+.preview-field-group .preview-editable:hover {
+    border-color: #764ba2;
+}
+
+.preview-field-group .preview-editable:focus {
+    outline: none;
+    border-color: #764ba2;
+    box-shadow: 0 0 0 3px rgba(118, 75, 162, 0.1);
+}
+
+.contract-sections-container {
+    margin-top: 2rem;
+}
+
+.preview-contract-section {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.preview-contract-section:last-child {
+    border-bottom: none;
+}
+
+.preview-section-number {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #764ba2;
+    min-width: 40px;
+}
+
+.preview-section-content {
+    flex: 1;
+}
+
+.preview-section-content .preview-section-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 0.8rem;
+    border: 1px solid #e9ecef;
+    padding: 0.5rem;
+    border-radius: 4px;
+    background: white;
+    text-transform: none;
+}
+
+.preview-section-content .preview-section-title:hover {
+    border-color: #764ba2;
+    background: #f8f9fa;
+}
+
+.preview-section-content .preview-section-title:focus {
+    outline: none;
+    border-color: #764ba2;
+    box-shadow: 0 0 0 3px rgba(118, 75, 162, 0.1);
+}
+
+.preview-section-text {
+    color: #444;
+    line-height: 1.8;
+    text-align: justify;
+    border: 1px solid #e9ecef;
+    padding: 1rem;
+    border-radius: 4px;
+    background: white;
+    min-height: 80px;
+}
+
+.preview-section-text:hover {
+    border-color: #764ba2;
+    background: #f8f9fa;
+}
+
+.preview-section-text:focus {
+    outline: none;
+    border-color: #764ba2;
+    box-shadow: 0 0 0 3px rgba(118, 75, 162, 0.1);
+}
+
+/* Contract-specific modal buttons */
+.contract-preview-content .modal-btn {
+    padding: 0.8rem 2rem;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 1rem;
+}
+
+.contract-preview-content .btn-secondary {
+    background: white;
+    color: #666;
+    border: 2px solid #e9ecef;
+}
+
+.contract-preview-content .btn-secondary:hover {
+    border-color: #764ba2;
+    color: #764ba2;
+}
+
+.contract-preview-content .btn-primary {
+    background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+    color: white;
+    box-shadow: 0 4px 15px rgba(118, 75, 162, 0.3);
+}
+
+.contract-preview-content .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 25px rgba(118, 75, 162, 0.4);
+}

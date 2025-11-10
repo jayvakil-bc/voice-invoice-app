@@ -15,6 +15,7 @@ const PORT = process.env.PORT || 3000;
 let AUTH_SERVICE = process.env.AUTH_SERVICE_URL || 'http://localhost:3001';
 let USER_SERVICE = process.env.USER_SERVICE_URL || 'http://localhost:3002';
 let INVOICE_SERVICE = process.env.INVOICE_SERVICE_URL || 'http://localhost:3003';
+let CONTRACT_SERVICE = process.env.CONTRACT_SERVICE_URL || 'http://localhost:3004';
 
 // Add https:// protocol if missing (Render gives us just hostname)
 if (AUTH_SERVICE && !AUTH_SERVICE.startsWith('http')) {
@@ -25,6 +26,9 @@ if (USER_SERVICE && !USER_SERVICE.startsWith('http')) {
 }
 if (INVOICE_SERVICE && !INVOICE_SERVICE.startsWith('http')) {
     INVOICE_SERVICE = `https://${INVOICE_SERVICE}`;
+}
+if (CONTRACT_SERVICE && !CONTRACT_SERVICE.startsWith('http')) {
+    CONTRACT_SERVICE = `https://${CONTRACT_SERVICE}`;
 }
 
 // Middleware
@@ -67,6 +71,7 @@ console.log('[API Gateway] Services:');
 console.log('  - Auth:', AUTH_SERVICE);
 console.log('  - User:', USER_SERVICE);
 console.log('  - Invoice:', INVOICE_SERVICE);
+console.log('  - Contract:', CONTRACT_SERVICE);
 
 // Determine public folder path (different for local vs Docker)
 const publicPath = require('fs').existsSync(path.join(__dirname, 'public'))
@@ -78,10 +83,11 @@ console.log('[API Gateway] Public folder:', publicPath);
 // Health check
 app.get('/api/health', async (req, res) => {
     try {
-        const [auth, user, invoice] = await Promise.all([
+        const [auth, user, invoice, contract] = await Promise.all([
             axios.get(`${AUTH_SERVICE}/health`).catch(e => ({ data: { status: 'unhealthy' } })),
             axios.get(`${USER_SERVICE}/health`).catch(e => ({ data: { status: 'unhealthy' } })),
-            axios.get(`${INVOICE_SERVICE}/health`).catch(e => ({ data: { status: 'unhealthy' } }))
+            axios.get(`${INVOICE_SERVICE}/health`).catch(e => ({ data: { status: 'unhealthy' } })),
+            axios.get(`${CONTRACT_SERVICE}/health`).catch(e => ({ data: { status: 'unhealthy' } }))
         ]);
         
         res.json({
@@ -89,7 +95,8 @@ app.get('/api/health', async (req, res) => {
             services: {
                 auth: auth.data.status,
                 user: user.data.status,
-                invoice: invoice.data.status
+                invoice: invoice.data.status,
+                contract: contract.data.status
             }
         });
     } catch (error) {
@@ -108,6 +115,10 @@ app.get('/dashboard', (req, res) => {
 
 app.get('/create', (req, res) => {
     res.sendFile(path.join(publicPath, 'index.html'));
+});
+
+app.get('/create-contract', (req, res) => {
+    res.sendFile(path.join(publicPath, 'contract.html'));
 });
 
 app.get('/settings', (req, res) => {
@@ -419,6 +430,152 @@ app.get('/api/invoices/:id/download', async (req, res) => {
         }
         if (!res.headersSent) {
             res.status(500).json({ error: 'Failed to download invoice' });
+        }
+    }
+});
+
+// ===== CONTRACT SERVICE ROUTES =====
+app.post('/api/generate-contract', async (req, res) => {
+    try {
+        const authResponse = await axios.get(`${AUTH_SERVICE}/auth/user`, {
+            headers: { Cookie: req.headers.cookie }
+        });
+        
+        if (!authResponse.data.authenticated) {
+            return res.status(401).json({ error: 'Not authenticated' });
+        }
+        
+        const userId = authResponse.data.user.id;
+        
+        // Generate contract
+        const response = await axios.post(`${CONTRACT_SERVICE}/contracts/generate`, {
+            transcript: req.body.transcript,
+            userId
+        });
+        
+        res.json(response.data);
+    } catch (error) {
+        console.error('[Gateway] Generate contract error:', error.message);
+        res.status(500).json({ error: 'Failed to generate contract' });
+    }
+});
+
+app.get('/api/contracts', async (req, res) => {
+    try {
+        const authResponse = await axios.get(`${AUTH_SERVICE}/auth/user`, {
+            headers: { Cookie: req.headers.cookie }
+        });
+        
+        if (!authResponse.data.authenticated) {
+            return res.status(401).json({ error: 'Not authenticated' });
+        }
+        
+        const userId = authResponse.data.user.id;
+        
+        const response = await axios.get(`${CONTRACT_SERVICE}/contracts/user/${userId}`);
+        res.json(response.data);
+    } catch (error) {
+        console.error('[Gateway] Fetch contracts error:', error.message);
+        res.status(500).json({ error: 'Failed to fetch contracts' });
+    }
+});
+
+app.get('/api/contracts/:id', async (req, res) => {
+    try {
+        const authResponse = await axios.get(`${AUTH_SERVICE}/auth/user`, {
+            headers: { Cookie: req.headers.cookie }
+        });
+        
+        if (!authResponse.data.authenticated) {
+            return res.status(401).json({ error: 'Not authenticated' });
+        }
+        
+        const response = await axios.get(`${CONTRACT_SERVICE}/contracts/${req.params.id}`);
+        res.json(response.data);
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to fetch contract' });
+    }
+});
+
+app.put('/api/contracts/:id', async (req, res) => {
+    try {
+        const authResponse = await axios.get(`${AUTH_SERVICE}/auth/user`, {
+            headers: { Cookie: req.headers.cookie }
+        });
+        
+        if (!authResponse.data.authenticated) {
+            return res.status(401).json({ error: 'Not authenticated' });
+        }
+        
+        const response = await axios.put(`${CONTRACT_SERVICE}/contracts/${req.params.id}`, req.body);
+        res.json(response.data);
+    } catch (error) {
+        console.error('[Gateway] Update contract error:', error.message);
+        res.status(500).json({ error: 'Failed to update contract' });
+    }
+});
+
+app.delete('/api/contracts/:id', async (req, res) => {
+    try {
+        const authResponse = await axios.get(`${AUTH_SERVICE}/auth/user`, {
+            headers: { Cookie: req.headers.cookie }
+        });
+        
+        if (!authResponse.data.authenticated) {
+            return res.status(401).json({ error: 'Not authenticated' });
+        }
+        
+        await axios.delete(`${CONTRACT_SERVICE}/contracts/${req.params.id}`);
+        res.json({ success: true });
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to delete contract' });
+    }
+});
+
+app.get('/api/contracts/:id/download', async (req, res) => {
+    try {
+        console.log('[Gateway] PDF download request for contract:', req.params.id);
+        
+        const authResponse = await axios.get(`${AUTH_SERVICE}/auth/user`, {
+            headers: { Cookie: req.headers.cookie }
+        });
+        
+        if (!authResponse.data.authenticated) {
+            return res.status(401).json({ error: 'Not authenticated' });
+        }
+        
+        console.log('[Gateway] Fetching PDF from contract service...');
+        const response = await axios.get(`${CONTRACT_SERVICE}/contracts/${req.params.id}/pdf`, {
+            responseType: 'stream',
+            headers: { 'Accept': 'application/pdf' }
+        });
+        
+        console.log('[Gateway] PDF stream received, piping to response');
+        
+        res.setHeader('Content-Type', 'application/pdf');
+        if (response.headers['content-disposition']) {
+            res.setHeader('Content-Disposition', response.headers['content-disposition']);
+        }
+        
+        response.data.on('error', (err) => {
+            console.error('[Gateway] Stream error:', err);
+            if (!res.headersSent) {
+                res.status(500).json({ error: 'Failed to download contract' });
+            }
+        });
+        
+        response.data.on('end', () => {
+            console.log('[Gateway] PDF stream completed');
+        });
+        
+        response.data.pipe(res);
+    } catch (error) {
+        console.error('[Gateway] Download error:', error.message);
+        if (error.response) {
+            console.error('[Gateway] Error response status:', error.response.status);
+        }
+        if (!res.headersSent) {
+            res.status(500).json({ error: 'Failed to download contract' });
         }
     }
 });

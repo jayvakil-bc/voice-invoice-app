@@ -27,14 +27,35 @@
     <div class="dashboard-content">
         <div class="actions">
             <a href="/create" class="create-btn">+ Create New Invoice</a>
+            <a href="/create-contract" class="create-btn" style="background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);">+ Create New Contract</a>
         </div>
         
-        <div class="invoices-section">
-            <div class="section-header">
-                <h2>Your Invoices</h2>
-                <p class="invoice-count">Total: <span id="invoiceCount">0</span></p>
+        <!-- Tabs for Invoices and Contracts -->
+        <div class="dashboard-tabs">
+            <button class="tab-btn active" onclick="switchTab('invoices')">📄 Invoices</button>
+            <button class="tab-btn" onclick="switchTab('contracts')">📜 Contracts</button>
+        </div>
+        
+        <!-- Invoices Section -->
+        <div id="invoicesTab" class="tab-content active">
+            <div class="invoices-section">
+                <div class="section-header">
+                    <h2>Your Invoices</h2>
+                    <p class="invoice-count">Total: <span id="invoiceCount">0</span></p>
+                </div>
+                <div id="invoicesList"></div>
             </div>
-            <div id="invoicesList"></div>
+        </div>
+        
+        <!-- Contracts Section -->
+        <div id="contractsTab" class="tab-content">
+            <div class="contracts-section">
+                <div class="section-header">
+                    <h2>Your Contracts</h2>
+                    <p class="invoice-count">Total: <span id="contractCount">0</span></p>
+                </div>
+                <div id="contractsList"></div>
+            </div>
         </div>
     </div>
     

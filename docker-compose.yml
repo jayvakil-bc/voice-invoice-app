@@ -52,6 +52,22 @@ services:
       - mongodb
     restart: unless-stopped
 
+  contract-service:
+    build: ./services/contract-service
+    ports:
+      - "3004:3004"
+    environment:
+      - NODE_ENV=${NODE_ENV:-development}
+      - MONGODB_URI=${MONGODB_URI}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - CONTRACT_SERVICE_PORT=3004
+    volumes:
+      - ./services/contract-service:/app
+      - /app/node_modules
+    depends_on:
+      - mongodb
+    restart: unless-stopped
+
   api-gateway:
     build:
       context: .
@@ -67,6 +83,7 @@ services:
       - AUTH_SERVICE_URL=http://auth-service:3001
       - USER_SERVICE_URL=http://user-service:3002
       - INVOICE_SERVICE_URL=http://invoice-service:3003
+      - CONTRACT_SERVICE_URL=http://contract-service:3004
     volumes:
       - ./api-gateway:/app
       - ./public:/app/public
@@ -75,6 +92,7 @@ services:
       - auth-service
       - user-service
       - invoice-service
+      - contract-service
     restart: unless-stopped
 
   mongodb:

@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Contract - VoiceBiz</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Navigation Header -->
+    <nav class="nav-header">
+        <div class="nav-content">
+            <h2 class="nav-logo">📜 VoiceBiz Contracts</h2>
+            <div class="nav-links">
+                <a href="/dashboard" class="nav-link">← Back to Dashboard</a>
+                <button onclick="logout()" class="nav-link logout-link">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h1>📜 Create New Contract</h1>
+        <p class="subtitle">Press the mic and describe your contract terms, or type them directly below</p>
+        
+        <!-- Guidelines Section -->
+        <div class="guidelines">
+            <button id="toggleGuide" class="guide-toggle">📋 Speaking Guidelines</button>
+            <div id="guideContent" class="guide-content hidden">
+                <h3>What to include in your recording:</h3>
+                <ul>
+                    <li><strong>Service Provider:</strong> Your name/company, address, email, phone</li>
+                    <li><strong>Client:</strong> Client name, company, address, email, phone</li>
+                    <li><strong>Services:</strong> Detailed scope of work, deliverables, timeline</li>
+                    <li><strong>Payment Terms:</strong> Total fee, payment schedule, payment method</li>
+                    <li><strong>Responsibilities:</strong> Who does what, response times, requirements</li>
+                    <li><strong>Special Terms:</strong> Confidentiality, ownership, termination, liability</li>
+                    <li><strong>Duration:</strong> Start date, end date, renewal terms</li>
+                </ul>
+                <div class="example">
+                    <strong>Example:</strong> "Contract between ABC Marketing Agency at 123 Main Street, New York, contact@abc.com, and XYZ Corporation at 456 Oak Avenue, Los Angeles, john@xyz.com. We will provide social media marketing services including content creation, 3 posts per week, monthly analytics reports, for 6 months starting January 1st 2024. Payment is $5000 per month, due on the first of each month. We retain rights to strategy documents, client owns all published content. Either party can terminate with 30 days notice. Performance-based bonus of 10% if ROAS exceeds 4x. Client provides access to ad accounts showing actual spend."
+                </div>
+            </div>
+        </div>
+        
+        <button id="micBtn" class="mic-button">
+            <span class="mic-icon">🎤</span>
+        </button>
+        
+        <p id="status" class="status">Press to speak</p>
+        
+        <div class="input-option">
+            <p class="or-divider"><span>OR TYPE/EDIT BELOW</span></p>
+            <textarea 
+                id="textInput" 
+                class="text-input" 
+                placeholder="Type, paste, or speak to fill this box...&#10;&#10;Describe the full contract terms including parties, services, payment, responsibilities, duration, and any special clauses."
+                rows="10"
+            ></textarea>
+            <div class="button-group">
+                <button id="generateBtn" class="generate-button">Generate Contract</button>
+                <button id="clearBtn" class="clear-button">Clear</button>
+            </div>
+        </div>
+        
+        <div id="loading" class="loading hidden">
+            <div class="spinner"></div>
+            <p>Generating your contract...</p>
+        </div>
+    </div>
+
+    <script>
+        function logout() {
+            window.location.href = '/auth/logout';
+        }
+    </script>
+    
+    <!-- Contract Preview Modal -->
+    <div id="contractPreviewModal" class="preview-modal hidden">
+        <div class="preview-modal-content contract-preview-content">
+            <div class="preview-modal-header">
+                <h2>📜 Review Your Contract</h2>
+                <p style="margin: 0.5rem 0 0 0; opacity: 0.9; font-size: 0.95rem;">Edit any field by clicking on it</p>
+            </div>
+            <div class="preview-modal-body">
+                <!-- Contract Preview (PDF-style) -->
+                <div class="contract-preview-document">
+                    <!-- Header with gradient -->
+                    <div class="preview-contract-header">
+                        <div class="preview-contract-title">CONTRACT AGREEMENT</div>
+                        <div class="preview-contract-meta">
+                            <div class="preview-meta-row">
+                                <span>Title:</span>
+                                <span contenteditable="true" id="prev_contractTitle" class="preview-editable contract-title-editable"></span>
+                            </div>
+                            <div class="preview-meta-row">
+                                <span>Effective Date:</span>
+                                <input type="date" id="prev_effectiveDate" class="preview-date-input">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Parties Section -->
+                    <div class="preview-section">
+                        <div class="preview-section-title">THE PARTIES</div>
+                        
+                        <div class="preview-party-box">
+                            <div class="preview-party-label">Service Provider</div>
+                            <div class="preview-party-details">
+                                <div class="preview-field-group">
+                                    <label>Name:</label>
+                                    <span contenteditable="true" id="prev_sp_name" class="preview-editable"></span>
+                                </div>
+                                <div class="preview-field-group">
+                                    <label>Address:</label>
+                                    <span contenteditable="true" id="prev_sp_address" class="preview-editable"></span>
+                                </div>
+                                <div class="preview-field-group">
+                                    <label>Email:</label>
+                                    <span contenteditable="true" id="prev_sp_email" class="preview-editable"></span>
+                                </div>
+                                <div class="preview-field-group">
+                                    <label>Phone:</label>
+                                    <span contenteditable="true" id="prev_sp_phone" class="preview-editable"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="preview-party-box">
+                            <div class="preview-party-label">Client</div>
+                            <div class="preview-party-details">
+                                <div class="preview-field-group">
+                                    <label>Name:</label>
+                                    <span contenteditable="true" id="prev_client_name" class="preview-editable"></span>
+                                </div>
+                                <div class="preview-field-group">
+                                    <label>Address:</label>
+                                    <span contenteditable="true" id="prev_client_address" class="preview-editable"></span>
+                                </div>
+                                <div class="preview-field-group">
+                                    <label>Email:</label>
+                                    <span contenteditable="true" id="prev_client_email" class="preview-editable"></span>
+                                </div>
+                                <div class="preview-field-group">
+                                    <label>Phone:</label>
+                                    <span contenteditable="true" id="prev_client_phone" class="preview-editable"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Contract Sections -->
+                    <div id="contractSectionsContainer" class="contract-sections-container">
+                        <!-- Sections will be dynamically inserted here -->
+                    </div>
+                </div>
+            </div>
+            <div class="preview-modal-footer">
+                <button class="modal-btn btn-secondary" onclick="closePreviewModal()">Cancel</button>
+                <button class="modal-btn btn-primary" onclick="saveAndDownloadContract()">
+                    <span style="margin-right: 0.5rem;">💾</span> Save & Download PDF
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="contract.js"></script>
+</body>
+</html>

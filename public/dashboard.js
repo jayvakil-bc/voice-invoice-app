@@ -15,6 +15,7 @@ async function checkAuth() {
         document.getElementById('userAvatar').src = data.user.picture;
         
         loadInvoices();
+        loadContracts();
     } catch (error) {
         console.error('Error checking auth:', error);
         window.location.href = '/';
@@ -498,6 +499,118 @@ async function downloadFromPreview() {
 // Logout
 function logout() {
     window.location.href = '/auth/logout';
+}
+
+// Tab switching
+function switchTab(tabName) {
+    // Remove active class from all tabs and content
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+    
+    // Add active class to selected tab
+    event.target.classList.add('active');
+    
+    // Show corresponding content
+    if (tabName === 'invoices') {
+        document.getElementById('invoicesTab').classList.add('active');
+    } else if (tabName === 'contracts') {
+        document.getElementById('contractsTab').classList.add('active');
+    }
+}
+
+// Load contracts
+async function loadContracts() {
+    try {
+        const response = await fetch('/api/contracts', {
+            credentials: 'include'
+        });
+        
+        const contracts = await response.json();
+        const contractsList = document.getElementById('contractsList');
+        const contractCount = document.getElementById('contractCount');
+        
+        contractCount.textContent = contracts.length;
+        
+        if (contracts.length === 0) {
+            contractsList.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-state-icon">📜</div>
+                    <h3>No contracts yet</h3>
+                    <p>Create your first contract to get started!</p>
+                    <a href="/create-contract" class="create-btn" style="background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);">+ Create Contract</a>
+                </div>
+            `;
+            return;
+        }
+        
+        contractsList.innerHTML = contracts.map(contract => `
+            <div class="invoice-card">
+                <div class="invoice-info">
+                    <h3>${contract.contractTitle || 'Untitled Contract'}</h3>
+                    <p><strong>Service Provider:</strong> ${contract.parties?.serviceProvider?.name || 'N/A'}</p>
+                    <p><strong>Client:</strong> ${contract.parties?.client?.name || 'N/A'}</p>
+                    <p><strong>Effective Date:</strong> ${new Date(contract.effectiveDate).toLocaleDateString()}</p>
+                    <p><strong>Sections:</strong> ${contract.sections?.length || 0}</p>
+                </div>
+                <div class="invoice-actions">
+                    <button class="btn-action btn-download" onclick="downloadContract('${contract._id}', '${contract.contractTitle}')">
+                        📄 Download
+                    </button>
+                    <button class="btn-action btn-delete" onclick="deleteContract('${contract._id}')">
+                        🗑️ Delete
+                    </button>
+                </div>
+            </div>
+        `).join('');
+    } catch (error) {
+        console.error('Error loading contracts:', error);
+    }
+}
+
+// Download contract
+async function downloadContract(id, contractTitle) {
+    try {
+        console.log('[Dashboard] Downloading contract:', id);
+        const response = await fetch(`/api/contracts/${id}/download`, {
+            credentials: 'include'
+        });
+        
+        if (!response.ok) {
+            throw new Error('Failed to download contract');
+        }
+        
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${contractTitle.replace(/\s+/g, '_')}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+        
+        console.log('[Dashboard] Download completed');
+    } catch (error) {
+        console.error('Error downloading contract:', error);
+        alert('Failed to download contract: ' + error.message);
+    }
+}
+
+// Delete contract
+async function deleteContract(id) {
+    if (!confirm('Are you sure you want to delete this contract?')) return;
+    
+    try {
+        await fetch(`/api/contracts/${id}`, {
+            method: 'DELETE',
+            credentials: 'include'
+        });
+        
+        loadContracts();
+    } catch (error) {
+        console.error('Error deleting contract:', error);
+        alert('Failed to delete contract');
+    }
 }
 
 // Initialize
