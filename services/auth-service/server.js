@@ -125,7 +125,12 @@ app.get('/auth/google/callback',
 app.get('/auth/logout', (req, res) => {
     req.logout((err) => {
         if (err) return res.status(500).json({ error: 'Logout failed' });
-        res.json({ success: true });
+        req.session.destroy((err) => {
+            if (err) {
+                console.error('[Auth Service] Session destroy error:', err);
+            }
+            res.redirect('/');
+        });
     });
 });
 
