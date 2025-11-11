@@ -24,13 +24,15 @@ const contractSchema = new mongoose.Schema({
         serviceProvider: {
             name: String,
             address: String,
-            email: String
+            email: String,
+            phone: String
         },
         client: {
             name: String,
             signingAuthority: String,
             address: String,
-            email: String
+            email: String,
+            phone: String
         }
     },
     sections: [{
@@ -80,13 +82,15 @@ REQUIRED JSON OUTPUT FORMAT
     "serviceProvider": {
       "name": "[Name]",
       "address": "[Address or 'To be determined']",
-      "email": "[Email or 'To be determined']"
+      "email": "[Email or 'To be determined']",
+      "phone": "[Phone or leave blank]"
     },
     "client": {
       "name": "[Name]",
       "signingAuthority": "[Person or leave blank]",
       "address": "[Address or 'To be determined']",
-      "email": "[Email or 'To be determined']"
+      "email": "[Email or 'To be determined']",
+      "phone": "[Phone or leave blank]"
     }
   },
   "sections": [
@@ -310,6 +314,10 @@ app.get('/contracts/:id/pdf', async (req, res) => {
             doc.text(contract.parties.serviceProvider.email, 50, yPos);
             yPos += 14;
         }
+        if (contract.parties?.serviceProvider?.phone) {
+            doc.text(contract.parties.serviceProvider.phone, 50, yPos);
+            yPos += 14;
+        }
         
         yPos += 10;
         
@@ -332,6 +340,14 @@ app.get('/contracts/:id/pdf', async (req, res) => {
         }
         if (contract.parties?.client?.address) {
             doc.text(contract.parties.client.address, 50, yPos);
+            yPos += 14;
+        }
+        if (contract.parties?.client?.email) {
+            doc.text(contract.parties.client.email, 50, yPos);
+            yPos += 14;
+        }
+        if (contract.parties?.client?.phone) {
+            doc.text(contract.parties.client.phone, 50, yPos);
             yPos += 14;
         }
         if (contract.parties?.client?.email) {

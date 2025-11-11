@@ -1150,6 +1150,7 @@ h1 {
     border-radius: 4px;
     background: white;
     min-height: 80px;
+    white-space: pre-wrap;
 }
 
 .preview-section-text:hover {

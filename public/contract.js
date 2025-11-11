@@ -283,11 +283,15 @@ function showPreviewModal(contractData) {
         contractData.sections.forEach((section, index) => {
             const sectionDiv = document.createElement('div');
             sectionDiv.className = 'preview-contract-section';
+            
+            // Convert \n to <br> for proper display
+            const formattedContent = (section.content || '').replace(/\\n/g, '\n').replace(/\n/g, '<br>');
+            
             sectionDiv.innerHTML = `
                 <div class="preview-section-number">${index + 1}.</div>
                 <div class="preview-section-content">
                     <div class="preview-section-title" contenteditable="true" data-section-index="${index}" data-field="title">${section.title}</div>
-                    <div class="preview-section-text" contenteditable="true" data-section-index="${index}" data-field="content">${section.content}</div>
+                    <div class="preview-section-text" contenteditable="true" data-section-index="${index}" data-field="content">${formattedContent}</div>
                 </div>
             `;
             sectionsContainer.appendChild(sectionDiv);
@@ -337,9 +341,12 @@ async function saveAndDownloadContract() {
         
         sectionTitles.forEach((titleEl, index) => {
             const contentEl = sectionContents[index];
+            // Convert <br> back to \n and get innerHTML to preserve formatting
+            const contentText = contentEl.innerHTML.replace(/<br\s*\/?>/gi, '\n').replace(/<[^>]*>/g, '');
+            
             updatedData.sections.push({
                 title: titleEl.textContent.trim(),
-                content: contentEl.textContent.trim(),
+                content: contentText.trim(),
                 order: index + 1
             });
         });
