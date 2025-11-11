@@ -69,100 +69,129 @@ app.post('/contracts/generate', async (req, res) => {
         const todayFormatted = today.toISOString().split('T')[0];
         
         // Create comprehensive prompt for OpenAI with detailed safeguards
-        const prompt = `You are a professional contract generator. Extract information from the transcription and create a professional contract following the structure below.
+        const prompt = `You are a contract extraction and generation system. Your job is to EXTRACT information from the transcription and map it to a structured contract format.
 
-═══════════════════════════════════════════════════════════════════════
-REQUIRED JSON OUTPUT FORMAT
-═══════════════════════════════════════════════════════════════════════
+CRITICAL RULES:
+1. ONLY use information explicitly stated in the transcription
+2. DO NOT invent, assume, or add information not mentioned
+3. If information is missing, use "To be determined" 
+4. DO NOT copy from examples - extract from THIS transcription only
+5. Keep language professional but based on what was actually said
+
+TRANSCRIPTION TO EXTRACT FROM:
+"${transcript}"
+
+Now extract and map the following information:
+
+STEP 1: IDENTIFY THE PARTIES
+- Who is the SERVICE PROVIDER (the person/company providing services)?
+  Name: [Extract name]
+  Address: [Extract if mentioned, else "To be determined"]
+  Email: [Extract if mentioned, else "To be determined"]
+  Phone: [Extract if mentioned, else ""]
+
+- Who is the CLIENT (the person/company receiving services)?
+  Name: [Extract name]
+  Address: [Extract if mentioned, else "To be determined"]
+  Email: [Extract if mentioned, else "To be determined"]
+  Phone: [Extract if mentioned, else ""]
+
+STEP 2: IDENTIFY THE SERVICES
+- What services will be provided? List each one mentioned
+- What are the specific deliverables? (posts, hours, reports, etc.)
+- What is the timeline? (start date, duration, deadlines)
+
+STEP 3: IDENTIFY PAYMENT TERMS
+- What is the payment amount?
+- When is payment due? (monthly, upfront, milestones)
+- How should payment be made? (transfer, check, etc.)
+- Are there performance bonuses? If yes, explain the calculation clearly
+- Is there ad spend involved? If yes, note the amount and who controls the account
+
+STEP 4: IDENTIFY RESPONSIBILITIES
+- What must the CLIENT do? (provide access, feedback, materials, etc.)
+- What must the SERVICE PROVIDER do? (deliver work, meet deadlines, quality standards)
+
+STEP 5: IDENTIFY SPECIAL TERMS
+- Duration: How long is the contract? (months, ongoing, project-based)
+- Termination: What are the exit terms? (notice period, penalties if any)
+- Ownership: Who owns the work created?
+- Confidentiality: Is anything mentioned about keeping information private?
+
+Now generate a JSON response in this EXACT format:
 
 {
-  "contractTitle": "[Type, e.g., 'Marketing Services Contract']",
+  "contractTitle": "[Type] Services Contract",
   "effectiveDate": "${todayFormatted}",
   "parties": {
     "serviceProvider": {
-      "name": "[Name]",
-      "address": "[Address or 'To be determined']",
-      "email": "[Email or 'To be determined']",
-      "phone": "[Phone or leave blank]"
+      "name": "[extracted name]",
+      "address": "[extracted or 'To be determined']",
+      "email": "[extracted or 'To be determined']",
+      "phone": "[extracted or '']"
     },
     "client": {
-      "name": "[Name]",
-      "signingAuthority": "[Person or leave blank]",
-      "address": "[Address or 'To be determined']",
-      "email": "[Email or 'To be determined']",
-      "phone": "[Phone or leave blank]"
+      "name": "[extracted name]",
+      "signingAuthority": "[if mentioned]",
+      "address": "[extracted or 'To be determined']",
+      "email": "[extracted or 'To be determined']",
+      "phone": "[extracted or '']"
     }
   },
   "sections": [
     {
       "title": "AGREEMENT OVERVIEW",
-      "content": "This agreement is entered into on ${todayFormatted}.\\n\\nParties:\\na) Service Provider: [Name]\\nb) Client: [Name]\\n\\nPurpose: [Describe what service provider will do]",
+      "content": "This [Type of Service] agreement is entered into on ${todayFormatted} between [Service Provider Name] (Service Provider) and [Client Name] (Client).\\n\\nPurpose: [Extract 1-2 sentences about what service provider will do]",
       "order": 1
     },
     {
       "title": "SCOPE OF WORK",
-      "content": "The Service Provider agrees to perform:\\n\\na) [Main service 1]\\nb) [Main service 2]\\nc) [Main service 3]\\n\\nDeliverables:\\n- [Specific item 1]\\n- [Specific item 2]\\n\\nTimeline: [When work happens]",
+      "content": "The Service Provider will perform the following services:\\n\\n[List each service mentioned]\\n\\nDeliverables:\\n[List specific deliverables with quantities if mentioned]\\n\\nTimeline: [Extract timeline/schedule mentioned]",
       "order": 2
     },
     {
       "title": "PAYMENT TERMS",
-      "content": "Fee Structure:\\na) [Base amount if mentioned]\\nb) [Bonus/variable amount if mentioned]\\n\\nIf performance-based, add:\\nCalculation Method: Total = [base] + [bonus based on X metric]. The total REPLACES the base, not added to it.\\nMetrics: [Define how ROAS/revenue measured, which platform is source of truth]\\nPayment Cap: Maximum fee shall not exceed $[X] per month\\n\\nPayment Schedule: [When paid]\\nPayment Method: [How paid]\\n\\nIf ad spend mentioned, add:\\nAd Account: Client maintains ownership and billing control. Provider operates as authorized admin only.\\nTransparency: Provider must grant client view-only access and provide weekly spend reports.",
+      "content": "Total Fee: [Extract amount]\\nPayment Schedule: [When paid - monthly, upfront, etc.]\\nPayment Method: [How to pay]\\n\\n[If performance bonus mentioned: Add calculation details]\\n[If ad spend mentioned: Add account ownership and transparency clauses]",
       "order": 3
     },
     {
       "title": "RESPONSIBILITIES",
-      "content": "Client Responsibilities:\\na) [What client must do]\\nb) [What client must provide]\\n\\nService Provider Responsibilities:\\na) [What provider must deliver]\\nb) [Quality/timeline commitments]",
+      "content": "Client Responsibilities:\\n[List what client must do]\\n\\nService Provider Responsibilities:\\n[List what provider must do]",
       "order": 4
     },
     {
       "title": "OWNERSHIP & USAGE RIGHTS",
-      "content": "All ownership rights remain with Service Provider unless explicitly transferred.\\n\\nService Provider Rights: Full rights to use, modify, and repurpose all work\\nClient Usage: [Limited license for specific business use]\\nPortfolio Use: Provider may use work for portfolio and marketing",
+      "content": "[If mentioned in transcription, use that. Otherwise use:]\\nService Provider retains ownership of all work created. Client receives a license to use deliverables for their business purposes. Service Provider may use work in portfolio.",
       "order": 5
     },
     {
       "title": "CONFIDENTIALITY",
-      "content": "Confidential Information: All project-related information, deliverables, content, and communications\\n\\nObligations:\\na) Both parties must maintain confidentiality\\nb) No disclosure to third parties without written consent\\n\\nExceptions: Information may be disclosed only if mutually agreed in writing",
+      "content": "[If mentioned in transcription, use that. Otherwise use:]\\nBoth parties agree to keep all project information, communications, and deliverables confidential unless mutually agreed otherwise in writing.",
       "order": 6
     },
     {
       "title": "TERM & TERMINATION",
-      "content": "Contract Duration: [X months/period from transcription]\\n\\nTermination:\\na) Either party may terminate with [30] days written notice\\nb) If Client terminates without cause: [early termination fee if mentioned, otherwise 'no penalty']\\nc) If Provider terminates: No penalty to Client\\n\\nIf performance goals mentioned, add:\\nPerformance Exit: If [metric] falls below [threshold] for 2 consecutive months, Client may terminate immediately with no penalty",
+      "content": "Contract Duration: [Extract duration]\\nTermination: [Extract notice period and any penalties mentioned]\\n\\n[If performance goals mentioned, add exit clause for poor performance]",
       "order": 7
     },
     {
       "title": "GOVERNING LAW",
-      "content": "Governing Law: [Jurisdiction from transcription or 'To be determined']\\nJurisdiction: [Location or 'To be determined']\\nDispute Resolution: Good faith negotiation, then mediation if needed",
+      "content": "This agreement shall be governed by the laws of [jurisdiction if mentioned, else 'the applicable jurisdiction'].\\n\\nDispute Resolution: Any disputes will be resolved through good faith negotiation, followed by mediation if necessary.",
       "order": 8
     },
     {
       "title": "SIGNATURES",
-      "content": "IN WITNESS WHEREOF, the parties have executed this agreement:\\n\\nService Provider:\\nSignature: ___________________\\nName: [Provider Name]\\nDate: _______\\n\\nClient:\\nSignature: ___________________\\nName: [Client Name]\\nDate: _______",
+      "content": "IN WITNESS WHEREOF, the parties have executed this agreement:\\n\\nService Provider: ___________________\\nName: [Provider Name]\\nDate: _______\\n\\nClient: ___________________\\nName: [Client Name]\\nDate: _______",
       "order": 9
     }
   ]
 }
 
-═══════════════════════════════════════════════════════════════════════
-CRITICAL RULES
-═══════════════════════════════════════════════════════════════════════
-
-1. EXTRACT all details from transcription - do NOT invent information
-2. Use professional legal language with lettered sub-clauses (a, b, c)
-3. Keep sections concise (2-3 sentences or bullet points)
-4. If info missing, use "To be determined" not [Placeholder]
-5. DO NOT add late fees/penalties unless explicitly mentioned
-6. DO NOT copy any example contract details
-
-SPECIAL AUTO-DETECT & FIX:
-- Performance-based payment? → Clarify calculation, add caps, define metrics
-- Ad spend mentioned? → Add account ownership clause, transparency requirements  
-- Long-term contract? → Add performance exit clause
-- Harsh penalties? → Modify to reasonable caps
-
-TRANSCRIPTION:
-${transcript}
-
-Generate the complete JSON contract above using ONLY information from the transcription.`;
+IMPORTANT REMINDERS:
+- Extract exact names, amounts, and dates from transcription
+- Do NOT make up services, deliverables, or terms not mentioned
+- Use simple, clear language based on what was said
+- If something critical is missing, use "To be determined" not invented details`;
 
         const completion = await openai.chat.completions.create({
             model: 'gpt-4o',
