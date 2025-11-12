@@ -9,7 +9,7 @@ body {
     min-height: 100vh;
     display: flex;
     flex-direction: column;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
 }
 
 /* Navigation Header */
@@ -32,7 +32,7 @@ body {
 }
 
 .nav-logo {
-    color: #667eea;
+    color: #1a1a1a;
     font-size: 1.5rem;
     margin: 0;
 }
@@ -57,8 +57,8 @@ body {
 }
 
 .nav-link:hover {
-    background: #f0f3ff;
-    color: #667eea;
+    background: #f0f0f0;
+    color: #1a1a1a;
 }
 
 .logout-link {
@@ -111,7 +111,7 @@ h1 {
 }
 
 .guide-toggle {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
     color: white;
     border: none;
     padding: 0.75rem 1.5rem;
@@ -125,7 +125,7 @@ h1 {
 
 .guide-toggle:hover {
     transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
 }
 
 .guide-content {
@@ -160,19 +160,19 @@ h1 {
 }
 
 .guide-content li strong {
-    color: #667eea;
+    color: #1a1a1a;
 }
 
 .example {
     background: white;
     padding: 1rem;
     border-radius: 8px;
-    border-left: 4px solid #667eea;
+    border-left: 4px solid #333;
     margin-top: 1rem;
 }
 
 .example strong {
-    color: #667eea;
+    color: #1a1a1a;
     display: block;
     margin-bottom: 0.5rem;
 }
@@ -182,10 +182,10 @@ h1 {
     height: 140px;
     border-radius: 50%;
     border: none;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
     cursor: pointer;
     transition: all 0.3s ease;
-    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
     position: relative;
     overflow: hidden;
 }
@@ -276,7 +276,7 @@ h1 {
 .or-divider span {
     background: white;
     padding: 0 1rem;
-    color: #667eea;
+    color: #1a1a1a;
     font-weight: 600;
     font-size: 0.85rem;
     letter-spacing: 0.5px;
@@ -297,7 +297,7 @@ h1 {
 
 .text-input:focus {
     outline: none;
-    border-color: #667eea;
+    border-color: #1a1a1a;
     background: #f0f3ff;
     box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
@@ -315,7 +315,7 @@ h1 {
 .generate-button {
     flex: 1;
     padding: 1rem;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
     color: white;
     border: none;
     border-radius: 12px;
@@ -363,7 +363,7 @@ h1 {
     padding: 1.5rem;
     background: #f8f9fa;
     border-radius: 12px;
-    border: 2px solid #667eea;
+    border: 2px solid #1a1a1a;
     animation: slideIn 0.3s ease;
 }
 
@@ -399,7 +399,7 @@ h1 {
 
 .editable-transcript:focus {
     outline: none;
-    border-color: #667eea;
+    border-color: #1a1a1a;
     box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
@@ -465,7 +465,7 @@ h1 {
 }
 
 .transcript-box:not(:empty) {
-    border-color: #667eea;
+    border-color: #1a1a1a;
     background: #f0f3ff;
 }
 
@@ -489,7 +489,7 @@ h1 {
     width: 50px;
     height: 50px;
     border: 4px solid #f3f3f3;
-    border-top: 4px solid #667eea;
+    border-top: 4px solid #1a1a1a;
     border-radius: 50%;
     animation: spin 1s linear infinite;
 }
@@ -500,7 +500,7 @@ h1 {
 }
 
 .loading p {
-    color: #667eea;
+    color: #1a1a1a;
     font-weight: 500;
 }
 
@@ -598,7 +598,7 @@ h1 {
 }
 
 .preview-modal-header {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
     color: white;
     padding: 1.5rem 2rem;
     border-radius: 16px 16px 0 0;
@@ -622,7 +622,7 @@ h1 {
 
 /* Preview Invoice Header */
 .preview-invoice-header {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
     padding: 2rem 2.5rem;
     color: white;
     display: flex;
@@ -719,7 +719,7 @@ h1 {
 
 .preview-party-label {
     font-weight: bold;
-    color: #667eea;
+    color: #1a1a1a;
     font-size: 0.85rem;
     letter-spacing: 1px;
     margin-bottom: 0.5rem;
@@ -739,7 +739,7 @@ h1 {
 
 .preview-party .preview-editable:hover,
 .preview-party .preview-editable:focus {
-    border-color: #667eea;
+    border-color: #1a1a1a;
     background: #f8f9ff;
 }
 
@@ -815,7 +815,7 @@ h1 {
 .preview-item-desc:hover,
 .preview-item-qty:hover,
 .preview-item-rate:hover {
-    border-color: #667eea;
+    border-color: #1a1a1a;
     background: #f8f9ff;
     cursor: text;
 }
@@ -824,7 +824,7 @@ h1 {
 .preview-item-qty:focus,
 .preview-item-rate:focus {
     outline: none;
-    border-color: #667eea;
+    border-color: #1a1a1a;
     background: #f0f3ff;
 }
 
@@ -846,7 +846,7 @@ h1 {
 }
 
 .preview-btn-add-item {
-    background: #667eea;
+    background: #1a1a1a;
     color: white;
     border: none;
     border-radius: 8px;
@@ -895,7 +895,7 @@ h1 {
 }
 
 .preview-total-final {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
     color: white;
     padding: 0.7rem 1.5rem;
     border-radius: 8px;
@@ -959,8 +959,8 @@ h1 {
 }
 
 .preview-btn-cancel:hover {
-    border-color: #667eea;
-    color: #667eea;
+    border-color: #1a1a1a;
+    color: #1a1a1a;
 }
 
 .preview-btn-save {
@@ -996,7 +996,7 @@ h1 {
 }
 
 .preview-contract-header {
-    background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
     color: white;
     padding: 2rem;
     margin: -2.5rem -2.5rem 2rem -2.5rem;
@@ -1031,17 +1031,17 @@ h1 {
 .preview-section-title {
     font-size: 1.1rem;
     font-weight: 700;
-    color: #764ba2;
+    color: #1a1a1a;
     margin-bottom: 1rem;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    border-bottom: 2px solid #764ba2;
+    border-bottom: 2px solid #333;
     padding-bottom: 0.5rem;
 }
 
 .preview-party-box {
     background: #f8f9fa;
-    border: 2px solid #764ba2;
+    border: 2px solid #333;
     border-radius: 8px;
     padding: 1.5rem;
     margin-bottom: 1rem;
@@ -1050,7 +1050,7 @@ h1 {
 .preview-party-label {
     font-size: 1rem;
     font-weight: 700;
-    color: #764ba2;
+    color: #1a1a1a;
     margin-bottom: 1rem;
     text-transform: uppercase;
 }
@@ -1082,13 +1082,13 @@ h1 {
 }
 
 .preview-field-group .preview-editable:hover {
-    border-color: #764ba2;
+    border-color: #333;
 }
 
 .preview-field-group .preview-editable:focus {
     outline: none;
-    border-color: #764ba2;
-    box-shadow: 0 0 0 3px rgba(118, 75, 162, 0.1);
+    border-color: #1a1a1a;
+    box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.1);
 }
 
 .contract-sections-container {
@@ -1110,7 +1110,7 @@ h1 {
 .preview-section-number {
     font-size: 1.5rem;
     font-weight: 700;
-    color: #764ba2;
+    color: #1a1a1a;
     min-width: 40px;
 }
 
@@ -1131,14 +1131,14 @@ h1 {
 }
 
 .preview-section-content .preview-section-title:hover {
-    border-color: #764ba2;
+    border-color: #333;
     background: #f8f9fa;
 }
 
 .preview-section-content .preview-section-title:focus {
     outline: none;
-    border-color: #764ba2;
-    box-shadow: 0 0 0 3px rgba(118, 75, 162, 0.1);
+    border-color: #1a1a1a;
+    box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.1);
 }
 
 .preview-section-text {
@@ -1154,14 +1154,14 @@ h1 {
 }
 
 .preview-section-text:hover {
-    border-color: #764ba2;
+    border-color: #333;
     background: #f8f9fa;
 }
 
 .preview-section-text:focus {
     outline: none;
-    border-color: #764ba2;
-    box-shadow: 0 0 0 3px rgba(118, 75, 162, 0.1);
+    border-color: #1a1a1a;
+    box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.1);
 }
 
 /* Contract-specific modal buttons */
@@ -1182,17 +1182,17 @@ h1 {
 }
 
 .contract-preview-content .btn-secondary:hover {
-    border-color: #764ba2;
-    color: #764ba2;
+    border-color: #333;
+    color: #1a1a1a;
 }
 
 .contract-preview-content .btn-primary {
-    background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
     color: white;
-    box-shadow: 0 4px 15px rgba(118, 75, 162, 0.3);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
 }
 
 .contract-preview-content .btn-primary:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 25px rgba(118, 75, 162, 0.4);
+    box-shadow: 0 6px 25px rgba(0, 0, 0, 0.4);
 }
