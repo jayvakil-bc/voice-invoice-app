@@ -69,129 +69,204 @@ app.post('/contracts/generate', async (req, res) => {
         const todayFormatted = today.toISOString().split('T')[0];
         
         // Create comprehensive prompt for OpenAI with detailed safeguards
-        const prompt = `You are a contract extraction and generation system. Your job is to EXTRACT information from the transcription and map it to a structured contract format.
+        const prompt = `You are a professional contract generator. Your task is to take spoken/transcribed information and intelligently map it into a structured contract template.
 
-CRITICAL RULES:
-1. ONLY use information explicitly stated in the transcription
-2. DO NOT invent, assume, or add information not mentioned
-3. If information is missing, use "To be determined" 
-4. DO NOT copy from examples - extract from THIS transcription only
-5. Keep language professional but based on what was actually said
+═══════════════════════════════════════════════════════════════════════
+PART A: PROFESSIONAL STYLE REFERENCE
+═══════════════════════════════════════════════════════════════════════
 
-TRANSCRIPTION TO EXTRACT FROM:
-"${transcript}"
+Below is an example of a REAL, PROFESSIONAL contract. Use this ONLY as a STYLE REFERENCE to learn:
+- Professional legal tone and language
+- How to structure sub-clauses (a, b, c formatting)
+- How to phrase terms naturally and professionally
+- How to present detailed information clearly
 
-Now extract and map the following information:
+⚠️ CRITICAL SAFEGUARD: DO NOT copy any specific details from this example (names, dates, amounts, addresses, services, etc.). 
+This example is ONLY for learning STYLE, TONE, and FORMATTING. All actual content MUST come from the user's transcription.
 
-STEP 1: IDENTIFY THE PARTIES
-- Who is the SERVICE PROVIDER (the person/company providing services)?
-  Name: [Extract name]
-  Address: [Extract if mentioned, else "To be determined"]
-  Email: [Extract if mentioned, else "To be determined"]
-  Phone: [Extract if mentioned, else ""]
+--- EXAMPLE CONTRACT (STYLE REFERENCE ONLY) ---
 
-- Who is the CLIENT (the person/company receiving services)?
-  Name: [Extract name]
-  Address: [Extract if mentioned, else "To be determined"]
-  Email: [Extract if mentioned, else "To be determined"]
-  Phone: [Extract if mentioned, else ""]
+Personal Branding Contract
 
-STEP 2: IDENTIFY THE SERVICES
-- What services will be provided? List each one mentioned
-- What are the specific deliverables? (posts, hours, reports, etc.)
-- What is the timeline? (start date, duration, deadlines)
+This Social Media Manager Contract ("Contract") is entered into on October 29, 2024, by and Between:
 
-STEP 3: IDENTIFY PAYMENT TERMS
-- What is the payment amount?
-- When is payment due? (monthly, upfront, milestones)
-- How should payment be made? (transfer, check, etc.)
-- Are there performance bonuses? If yes, explain the calculation clearly
-- Is there ad spend involved? If yes, note the amount and who controls the account
+Client:
+Name: 1437753 Canada Inc.
+Signing authority: Fahad Rehman
+Address: 62, Stannardville Drive, Ajax, ON, L1T0M5
+Email: fahad@nextgenrealestate.ca
 
-STEP 4: IDENTIFY RESPONSIBILITIES
-- What must the CLIENT do? (provide access, feedback, materials, etc.)
-- What must the SERVICE PROVIDER do? (deliver work, meet deadlines, quality standards)
+Service Provider:
+Name: Naman Newatia
+Address: 108 Peter Street, Toronto, ON, M5V0W2
+Email: naman23.nn@gmail.com
 
-STEP 5: IDENTIFY SPECIAL TERMS
-- Duration: How long is the contract? (months, ongoing, project-based)
-- Termination: What are the exit terms? (notice period, penalties if any)
-- Ownership: Who owns the work created?
-- Confidentiality: Is anything mentioned about keeping information private?
+1. Scope of Work:
+The Service Provider agrees to perform the following services for the Client:
+a) Filming Sessions: At least two (2) filming sessions per month. More if necessary
+b) Content Creation: Forty-five (45) Instagram reels per month. (30 Video + 15 Text Quotes) per month
+Total deliverables: 45 reels as to the total that is mentioned above.
+c) Demo/Consultation Calls: As and when scheduled and necessary
+d) Social Media Management and Posting: For Instagram, Facebook, YouTube Shorts and TikTok
+e) Any scope of work, ideas completely outside this scope will not be included.
 
-Now generate a JSON response in this EXACT format:
+2. Contract Term:
+a) This Contract will commence on filming day, November 6th, 2024
+
+3. Compensation:
+a) The Client agrees to pay the Service Provider $1250 per month for the duration of the Contract.
+b) Payment will be due on the 6th of every month for the 3 months.
+c) The transfer will be made by interac on the service provider's email address.
+d) For the first month, the client will not be charged for the additional week required for demo calls and filming.
+e) For the first month, the service provider is making an exception of starting the filming before the first month's deposit is paid in full. The service provider will be accepting $250 as deposit and $1000 will be due before the post production begins by the service provider. From the second month, the process will go back to normal and the client will have to make the transfer in full on the ascertained date above.
+
+4. Responsibilities of the Service Provider:
+a) Schedule and conduct at least two (2) filming sessions per month.
+b) Create and deliver forty five (45) Instagram reels per month.
+c) Ensure all content aligns with the Client's brand and marketing strategy.
+d) Post and manage on all mentioned platforms - instagram, tiktok, youtube shorts, facebook.
+The service provider won't share client's content publicly (unless mutually agreed) without permission but can use it for his portfolio and meetings.
+
+5. Responsibilities of the Client:
+a) Provide necessary access to social media accounts and any other resources needed for content creation.
+b) Communicate any changes in strategy or content requirements promptly.
+c) Approve or provide feedback on content within a reasonable timeframe.
+d) Set days for filming content.
+
+6. Confidentiality:
+The Service Provider agrees to keep all Client information confidential and not to disclose any such information to any third party without the Client's prior consent.
+
+7. Termination:
+Either party may terminate this Contract with thirty (30) days written notice. If the Client terminates the Contract without cause, the Client will pay the Service Provider up to the termination date for the leftover months of the contract.
+
+8. Governing Law:
+This Contract shall be governed by and construed in accordance with the laws of the State of Ontario.
+
+9. Amendments:
+Any amendments or modifications to this Contract must be made in writing and signed by both Parties.
+
+10. Signatures:
+IN WITNESS WHEREOF, the parties hereto have executed this Social Media Manager Contract as of the day and year first above written.
+
+Service Provider:
+Signature: ____
+Name: Naman Newatia
+Date: October 29, 2024
+
+Client:
+Signature: ____
+Name: Fahad Rehman
+Date: October 29, 2024
+
+--- END OF EXAMPLE CONTRACT ---
+
+═══════════════════════════════════════════════════════════════════════
+CRITICAL INSTRUCTIONS FOR JSON OUTPUT
+═══════════════════════════════════════════════════════════════════════
+
+You MUST output a JSON object with this exact structure:
 
 {
-  "contractTitle": "[Type] Services Contract",
+  "contractTitle": "[Service Type] Contract",
   "effectiveDate": "${todayFormatted}",
   "parties": {
     "serviceProvider": {
-      "name": "[extracted name]",
-      "address": "[extracted or 'To be determined']",
-      "email": "[extracted or 'To be determined']",
-      "phone": "[extracted or '']"
+      "name": "[Extract from transcription]",
+      "address": "[Extract or 'To be determined']",
+      "email": "[Extract or 'To be determined']",
+      "phone": "[Extract or '']"
     },
     "client": {
-      "name": "[extracted name]",
-      "signingAuthority": "[if mentioned]",
-      "address": "[extracted or 'To be determined']",
-      "email": "[extracted or 'To be determined']",
-      "phone": "[extracted or '']"
+      "name": "[Extract from transcription]",
+      "signingAuthority": "[Extract if mentioned]",
+      "address": "[Extract or 'To be determined']",
+      "email": "[Extract or 'To be determined']",
+      "phone": "[Extract or '']"
     }
   },
   "sections": [
     {
       "title": "AGREEMENT OVERVIEW",
-      "content": "This [Type of Service] agreement is entered into on ${todayFormatted} between [Service Provider Name] (Service Provider) and [Client Name] (Client).\\n\\nPurpose: [Extract 1-2 sentences about what service provider will do]",
+      "content": "[Extract and format professionally using example style]",
       "order": 1
     },
     {
       "title": "SCOPE OF WORK",
-      "content": "The Service Provider will perform the following services:\\n\\n[List each service mentioned]\\n\\nDeliverables:\\n[List specific deliverables with quantities if mentioned]\\n\\nTimeline: [Extract timeline/schedule mentioned]",
+      "content": "[Use lettered sub-clauses (a, b, c) like example]",
       "order": 2
     },
     {
       "title": "PAYMENT TERMS",
-      "content": "Total Fee: [Extract amount]\\nPayment Schedule: [When paid - monthly, upfront, etc.]\\nPayment Method: [How to pay]\\n\\n[If performance bonus mentioned: Add calculation details]\\n[If ad spend mentioned: Add account ownership and transparency clauses]",
+      "content": "[Extract payment details, add safeguards if needed]",
       "order": 3
     },
     {
       "title": "RESPONSIBILITIES",
-      "content": "Client Responsibilities:\\n[List what client must do]\\n\\nService Provider Responsibilities:\\n[List what provider must do]",
+      "content": "[Separate Client and Service Provider responsibilities]",
       "order": 4
     },
     {
       "title": "OWNERSHIP & USAGE RIGHTS",
-      "content": "[If mentioned in transcription, use that. Otherwise use:]\\nService Provider retains ownership of all work created. Client receives a license to use deliverables for their business purposes. Service Provider may use work in portfolio.",
+      "content": "[Default: Service Provider retains all rights unless specified]",
       "order": 5
     },
     {
       "title": "CONFIDENTIALITY",
-      "content": "[If mentioned in transcription, use that. Otherwise use:]\\nBoth parties agree to keep all project information, communications, and deliverables confidential unless mutually agreed otherwise in writing.",
+      "content": "[Standard confidentiality clause unless specified]",
       "order": 6
     },
     {
       "title": "TERM & TERMINATION",
-      "content": "Contract Duration: [Extract duration]\\nTermination: [Extract notice period and any penalties mentioned]\\n\\n[If performance goals mentioned, add exit clause for poor performance]",
+      "content": "[Extract duration and termination terms]",
       "order": 7
     },
     {
       "title": "GOVERNING LAW",
-      "content": "This agreement shall be governed by the laws of [jurisdiction if mentioned, else 'the applicable jurisdiction'].\\n\\nDispute Resolution: Any disputes will be resolved through good faith negotiation, followed by mediation if necessary.",
+      "content": "[Extract jurisdiction or use 'To be determined']",
       "order": 8
     },
     {
       "title": "SIGNATURES",
-      "content": "IN WITNESS WHEREOF, the parties have executed this agreement:\\n\\nService Provider: ___________________\\nName: [Provider Name]\\nDate: _______\\n\\nClient: ___________________\\nName: [Client Name]\\nDate: _______",
+      "content": "IN WITNESS WHEREOF, the parties have executed this agreement:\\n\\nService Provider:\\nSignature: ___________________\\nName: [Provider Name]\\nDate: _______\\n\\nClient:\\nSignature: ___________________\\nName: [Client Name]\\nDate: _______",
       "order": 9
     }
   ]
 }
 
-IMPORTANT REMINDERS:
-- Extract exact names, amounts, and dates from transcription
-- Do NOT make up services, deliverables, or terms not mentioned
-- Use simple, clear language based on what was said
-- If something critical is missing, use "To be determined" not invented details`;
+═══════════════════════════════════════════════════════════════════════
+CONTENT MAPPING INSTRUCTIONS
+═══════════════════════════════════════════════════════════════════════
+
+1. EXTRACT information from transcription - DO NOT invent
+2. Use professional legal language like the example
+3. Use lettered sub-clauses (a, b, c) for multiple items
+4. If info missing, use "To be determined"
+5. DO NOT add late fees/penalties unless explicitly stated
+6. DO NOT copy example contract details
+
+SPECIAL AUTO-DETECT & ADD SAFEGUARDS:
+
+IF performance-based payment mentioned:
+- Clarify calculation method (total replaces base, not cumulative)
+- Define metrics clearly (ROAS formula, attribution window)
+- Add payment cap
+- Specify source of truth for disputes
+
+IF ad spend mentioned:
+- Clarify client owns account, provider is admin
+- Require view-only access + weekly reports
+- Explain unspent budget handling
+
+IF long contract + performance goals:
+- Add performance exit clause (can leave if metrics bad for 2 months)
+
+IF harsh termination penalties:
+- Modify to 50% of remaining fees, capped at reasonable max
+
+TRANSCRIPTION TO EXTRACT FROM:
+"${transcript}"
+
+Generate the JSON contract using ONLY information from the transcription above, formatted professionally like the example.`;
 
         const completion = await openai.chat.completions.create({
             model: 'gpt-4o',
