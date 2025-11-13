@@ -281,16 +281,45 @@ Generate the comprehensive contract JSON now, extracting EVERY detail from the t
             contractData.effectiveDate = todayFormatted;
         }
         
-        // Save to database
-        const contract = await Contract.create({
+        // Map the OpenAI response to our database schema structure
+        const contractToSave = {
             userId,
             originalTranscript: transcript,
-            ...contractData
-        });
+            contractTitle: contractData.title,
+            effectiveDate: contractData.effectiveDate,
+            parties: {
+                serviceProvider: {
+                    name: contractData.serviceProvider?.name || '⚠️ CLARIFICATION NEEDED: Service Provider Name',
+                    address: contractData.serviceProvider?.address || 'To be determined',
+                    email: contractData.serviceProvider?.email || 'To be determined',
+                    phone: contractData.serviceProvider?.phone || 'To be determined'
+                },
+                client: {
+                    name: contractData.client?.name || '⚠️ CLARIFICATION NEEDED: Client Name',
+                    signingAuthority: contractData.client?.signingAuthority || '',
+                    address: contractData.client?.address || 'To be determined',
+                    email: contractData.client?.email || 'To be determined',
+                    phone: contractData.client?.phone || 'To be determined'
+                }
+            },
+            sections: contractData.sections || []
+        };
+        
+        // Save to database
+        const contract = await Contract.create(contractToSave);
         
         console.log('[Contract Service] Contract created:', contract._id);
         
-        res.json({ contractId: contract._id, contractData });
+        // Return the properly structured contract data for the frontend
+        res.json({ 
+            contractId: contract._id, 
+            contractData: {
+                contractTitle: contract.contractTitle,
+                effectiveDate: contract.effectiveDate,
+                parties: contract.parties,
+                sections: contract.sections
+            }
+        });
         
     } catch (error) {
         console.error('[Contract Service] Generation error:', error);
