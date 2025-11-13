@@ -68,128 +68,203 @@ app.post('/contracts/generate', async (req, res) => {
         const today = new Date();
         const todayFormatted = today.toISOString().split('T')[0];
         
-        // Create detailed extraction prompt
-        const prompt = `You are a professional contract drafting assistant. Extract ALL information from the transcription and create a detailed, comprehensive contract.
+        // ULTRA-COMPREHENSIVE contract generation prompt - extracts EVERY detail
+        const prompt = `You are an expert contract generator specializing in extracting COMPLETE information from sales calls and business discussions. Your task is to capture EVERY mentioned detail, specification, metric, timeline, and commitment.
 
-CRITICAL INSTRUCTIONS:
-1. Extract EVERY detail mentioned in the transcription - don't summarize or skip anything
-2. If specific details are mentioned (amounts, percentages, timelines, metrics, features), include them ALL
-3. Use professional legal language but preserve all the technical and business details
-4. Structure information clearly with lettered sub-clauses (a, b, c, etc.)
-5. If something isn't mentioned, use "To be determined" - DO NOT invent information
+═══════════════════════════════════════════════════════════════════════
+PART A: CRITICAL EXTRACTION RULES
+═══════════════════════════════════════════════════════════════════════
 
+🚨 YOUR MISSION: CAPTURE EVERYTHING
+
+1. NEVER SKIP DETAILS
+   - Extract ALL numbers: prices, percentages, quantities, metrics, timelines
+   - Extract ALL commitments: guarantees, SLAs, performance targets, penalties
+   - Extract ALL specifications: system names, data volumes, request volumes, team sizes
+   - Extract ALL business context: current costs, ROI, risk exposure, justifications
+
+2. PARTY IDENTIFICATION (CRITICAL)
+   - Service Provider: Extract FULL legal name of company/person providing service
+   - Client: Extract FULL company name AND authorized signatory's name/title
+   - ⚠️ FLAG if either party name is missing or unclear
+
+3. ALWAYS FLAG AMBIGUITIES
+   - Use "⚠️ CLARIFICATION NEEDED:" for critical missing information
+   - Use "To be determined" only for minor administrative details
+
+4. NEVER INVENT - BUT NEVER SKIP
+   - DO NOT fabricate information not in transcription
+   - DO extract and document EVERYTHING that IS mentioned
+   - DO include exact quotes for critical commitments
+
+═══════════════════════════════════════════════════════════════════════
 TRANSCRIPTION TO EXTRACT FROM:
+═══════════════════════════════════════════════════════════════════════
+
 ${transcript}
 
-Create a detailed contract with these sections:
+═══════════════════════════════════════════════════════════════════════
+DETAILED EXTRACTION CHECKLIST - SEARCH FOR ALL OF THESE:
+═══════════════════════════════════════════════════════════════════════
 
-1. AGREEMENT OVERVIEW
-   - Who are the parties (service provider and client names, contact info if mentioned)
-   - What is the effective date or trigger for commencement
-   - What is the core purpose/goal of the agreement
-   - Include ALL context about what the solution/service does
+PARTY DETAILS:
+□ Service provider legal name (company/person)
+□ Client company name + authorized signatory
+□ Contact information (addresses, emails, phones)
 
-2. SCOPE OF WORK
-   - List EVERY service, feature, deliverable mentioned
-   - Include ALL technical details (system names, integration types, data types, performance metrics)
-   - Include ALL timelines and milestones mentioned
-   - Include ALL specifications (response times, volume metrics, capabilities)
-   - Use lettered sub-clauses for each distinct item
+FINANCIAL TERMS:
+□ Total contract value and breakdown
+□ Annual/monthly subscription amounts
+□ One-time fees (setup, onboarding, implementation)
+□ Per-unit pricing (per system, per request, per user, etc.)
+□ Volume tiers and upgrade triggers
+□ Payment schedule and timing
+□ Payment methods
+□ Refund conditions
+□ Prorated calculations
 
-3. PAYMENT TERMS
-   - Total fees (break down if multiple components mentioned)
-   - Payment schedule (when, how often, any special terms)
-   - Payment method
-   - Any special conditions (prepayment discounts, growth clauses, price protection)
-   - Include ALL financial details and calculations mentioned
+PERFORMANCE GUARANTEES:
+□ Specific metrics with target percentages
+□ Measurement methodology
+□ Evaluation periods and checkpoints
+□ Penalties for missing targets (refunds, extensions, termination rights)
+□ Audit processes
+□ Performance review schedules
 
-4. RESPONSIBILITIES
-   Client Responsibilities:
-   - List EVERY responsibility or requirement for the client
-   Service Provider Responsibilities:
-   - List EVERY deliverable, service, training, support obligation
+SCOPE & SPECIFICATIONS:
+□ All services and deliverables listed
+□ System counts and names (list every one mentioned)
+□ Data volumes (TB, GB, records)
+□ Request volumes (baseline, cap, overage handling)
+□ Team sizes and roles
+□ Technical specifications
+□ Integration requirements
 
-5. OWNERSHIP & USAGE RIGHTS
-   - Who owns what (IP, deliverables, work product)
-   - What usage rights does the client have
-   - What can the provider do with the work/data
-   - Include ALL ownership and licensing details mentioned
+TIMELINES & MILESTONES:
+□ Contract duration (years, months)
+□ Implementation period with phase breakdown
+□ Kickoff timing
+□ Training schedules
+□ Delivery deadlines
+□ Review checkpoints
 
-6. CONFIDENTIALITY
-   - What must be kept confidential
-   - Any exceptions or specific terms mentioned
-   - Data handling requirements (HIPAA, PHI, etc. if mentioned)
+INCLUDED SERVICES:
+□ Customer success manager assignments
+□ Training sessions (duration, attendees, topics)
+□ Reports and documentation
+□ Support levels
+□ Maintenance and updates
 
-7. TERM & TERMINATION
-   - How long is the contract
-   - Notice periods for termination
-   - What happens on termination (refunds, responsibilities, etc.)
-   - Include ALL performance guarantees, metrics, remediation terms if mentioned
-   - Include ALL exit protections or conditions
+BUSINESS CONTEXT:
+□ Current costs/pain points
+□ ROI calculations
+□ Risk exposure
+□ Payback periods
+□ Time savings
 
-8. GOVERNING LAW
-   - State/jurisdiction (or "To be determined" if not mentioned)
-   - Dispute resolution process
-   - How will disputes about metrics/ROI be resolved
+SCALING PROVISIONS:
+□ How to add systems/users/volume
+□ Incremental pricing
+□ Tier upgrade conditions
+□ Grace periods for overages
 
-9. SIGNATURES
-   - Signature blocks for both parties
+TERMINATION & RENEWAL:
+□ Contract binding period
+□ Early termination conditions
+□ Performance-based exit clauses
+□ Renewal terms
+□ What happens to fees if terminated
 
-Return ONLY valid JSON in this format (no markdown, no code blocks):
+═══════════════════════════════════════════════════════════════════════
+REQUIRED OUTPUT: JSON FORMAT
+═══════════════════════════════════════════════════════════════════════
+
+Return ONLY valid JSON (no markdown, no code blocks) with this structure:
+
 {
-    "title": "Brief descriptive title of the contract",
+    "title": "Brief descriptive title",
     "serviceProvider": {
-        "name": "Service provider company/person name",
-        "address": "Address if mentioned or 'To be determined'",
-        "email": "Email if mentioned or 'To be determined'",
-        "phone": "Phone if mentioned or 'To be determined'"
+        "name": "EXTRACT FULL LEGAL NAME - flag with ⚠️ if missing",
+        "address": "Extract or 'To be determined'",
+        "email": "Extract or 'To be determined'",
+        "phone": "Extract or 'To be determined'"
     },
     "client": {
-        "name": "Client company/person name",
-        "address": "Address if mentioned or 'To be determined'",
-        "email": "Email if mentioned or 'To be determined'",
-        "phone": "Phone if mentioned or 'To be determined'"
+        "name": "EXTRACT FULL COMPANY NAME + signatory - flag with ⚠️ if missing",
+        "address": "Extract or 'To be determined'",
+        "email": "Extract or 'To be determined'",
+        "phone": "Extract or 'To be determined'"
     },
     "effectiveDate": "${todayFormatted}",
     "sections": [
         {
             "title": "AGREEMENT OVERVIEW",
-            "content": "Detailed paragraph explaining parties, effective date trigger, and comprehensive purpose including all context"
+            "content": "Service Provider: [Full legal name]\\nClient: [Full company name + authorized signatory]\\nEffective Date: [Extract or ${todayFormatted}]\\nContract Type: [Extract tier/plan]\\nContract Duration: [Extract exact period - years/months]\\nPurpose: [Extract comprehensive purpose with business context]"
         },
         {
             "title": "SCOPE OF WORK",
-            "content": "a) First service/deliverable with all technical details\\nb) Second service/deliverable with all specs\\nc) Continue for each distinct service/feature/deliverable\\n\\nDeliverables:\\n- List every specific deliverable mentioned with full details\\n- Include all metrics, timelines, technical specifications\\n\\nTimeline: All timeline and milestone details"
+            "content": "Services:\\na) [Service 1 with complete specifications]\\nb) [Service 2 with complete specifications]\\nc) [Continue for all services]\\n\\nSystems Under Management: [Extract COUNT and list ALL system names mentioned]\\n\\nData Volume: [Extract TB/GB if mentioned]\\n\\nRequest Volume:\\n- Baseline: [Extract]\\n- Capacity: [Extract cap]\\n- Overage: [Extract handling]\\n\\nDeliverables:\\n- [Every specific deliverable with metrics and specs]\\n- [Include technical details]\\n- [Include documentation/reports]\\n\\nImplementation Timeline:\\n- Duration: [Extract period]\\n- Phase 1: [Extract milestone]\\n- Phase 2: [Extract milestone]\\n- [Continue for all phases]\\n\\nKickoff: [Extract timing]"
         },
         {
             "title": "PAYMENT TERMS",
-            "content": "Total Fee:\\na) Break down all fee components with exact amounts\\nb) List payment schedule with all dates and conditions\\nc) Payment method and any special terms\\nd) All price protection, growth, or adjustment clauses\\n\\nSchedule:\\na) When each payment is due with full details\\nb) All conditions and triggers\\n\\nMethod: Payment method\\n\\nPerformance Metrics & Dispute Resolution: If mentioned, include all details about how success is measured and disputes resolved"
+            "content": "Total Contract Value: [Extract with full breakdown]\\n\\nFee Structure:\\na) Annual/Monthly Subscription: [Extract amount per period]\\nb) Onboarding/Setup Fee: [Extract one-time charges]\\nc) Per-Unit Pricing: [Extract incremental costs]\\n   - Per additional system: [Extract amount]\\n   - Per tier upgrade: [Extract amount]\\n   - [Any other per-unit costs]\\n\\nTotal Amount: [Extract final sum]\\n\\nPayment Schedule:\\n- [Extract timing of each payment]\\n- [Extract invoice delivery method]\\n- [Extract when contract starts relative to payment]\\n\\nPayment Method: [Extract method]\\n\\nVolume Tiers:\\n- Current Tier: [Extract]\\n- Baseline: [Extract volume]\\n- Upgrade Trigger: [Extract conditions]\\n- Next Tier Cost: [Extract amount]\\n- Grace Period: [Extract overage tolerance]\\n\\nProrated Terms: [Extract how partial periods are calculated]\\n\\n[IF performance/bonus: Add calculation formulas, caps, measurement sources]\\n[IF ad spend: Add account ownership, transparency requirements, unspent fund handling]"
+        },
+        {
+            "title": "PERFORMANCE GUARANTEES",
+            "content": "Guarantee Period: [Extract evaluation window]\\n\\nCommitments:\\na) [Metric 1]: Target [X%] - [Extract measurement method]\\n   Penalty if missed: [Extract consequence]\\nb) [Metric 2]: Target [X%] - [Extract measurement method]\\n   Penalty if missed: [Extract consequence]\\nc) [Metric 3]: Target [X reduction/improvement] - [Extract baseline and target]\\n   Penalty if missed: [Extract consequence]\\n\\nMeasurement & Audit:\\n- Review Date: [Extract checkpoint timing]\\n- Audit Process: [Extract methodology]\\n- Reporting: [Extract frequency and format]\\n\\nRemediation: [Extract what happens if targets missed]\\n\\n[IF no guarantees mentioned, use: 'No specific performance guarantees documented in this agreement']"
+        },
+        {
+            "title": "INCLUDED SERVICES",
+            "content": "Customer Success:\\n- [Extract CSM assignment details]\\n- [Extract meeting frequency]\\n- [Extract duration of dedicated support]\\n\\nTraining:\\n- Session 1: [Extract duration, attendees, topics]\\n- Session 2: [Extract duration, attendees, topics]\\n- [Continue for all training]\\n\\nDocumentation:\\n- [Extract all reports/documentation included]\\n\\nSupport: [Extract support level included]\\n\\n[IF nothing specific mentioned, use: 'Standard support as per service provider's policies']"
         },
         {
             "title": "RESPONSIBILITIES",
-            "content": "Client Responsibilities:\\n- List every requirement, access needed, data to provide\\n- Include all collaboration and decision-making obligations\\n\\nService Provider Responsibilities:\\n- List every service, deliverable, training, support obligation\\n- Include all implementation, optimization, and ongoing support duties"
+            "content": "Client Responsibilities:\\n- [Extract every client obligation]\\n- [Include access/data requirements]\\n- [Include cooperation requirements]\\n\\nService Provider Responsibilities:\\n- [Extract every deliverable and obligation]\\n- [Include timeline commitments]\\n- [Include quality standards]"
+        },
+        {
+            "title": "SCALING & INCREMENTAL PRICING",
+            "content": "Adding Systems/Capacity:\\n- Cost per additional system: [Extract amount]\\n- Integration work: [Extract if included or separate charge]\\n- Prorated: [Extract prorating terms]\\n\\nTier Upgrades:\\n- Trigger: [Extract conditions]\\n- New pricing: [Extract amount]\\n- Effective: [Extract when change takes effect]\\n\\nRenewal Terms:\\n- [Extract what happens at contract end]\\n- [Extract how incremental fees roll into renewal]\\n\\n[IF not discussed, use: '⚠️ CLARIFICATION NEEDED: Scaling and incremental pricing terms']"
         },
         {
             "title": "OWNERSHIP & USAGE RIGHTS",
-            "content": "CRITICAL: State who owns what clearly\\n\\nFinal Deliverables Ownership: Who retains rights\\n\\nClient Usage: Exact usage rights granted, any limitations\\n\\nProvider Usage: What provider can do with work product, data, learnings"
+            "content": "Final Deliverables Ownership: [Extract or default to Service Provider]\\nClient Usage Rights: [Extract permitted usage]\\nService Provider Rights: [Extract what provider can do]\\n\\n[Standard clause]: All proprietary systems, methodologies, and intellectual property remain the exclusive property of Service Provider."
         },
         {
             "title": "CONFIDENTIALITY",
-            "content": "CRITICAL: All confidentiality obligations\\n\\nConfidential Information: What must be kept confidential\\n\\nObligations:\\na) Specific confidentiality duties\\nb) Data handling requirements (HIPAA, etc. if applicable)\\n\\nExceptions: Any exceptions to confidentiality"
+            "content": "Confidential Information: [Extract what must be kept confidential]\\nObligations: Both parties agree to maintain strict confidentiality of all proprietary information, business data, and trade secrets.\\nExceptions: [Extract any exceptions mentioned]\\nDuration: [Extract confidentiality period or use 'Duration of contract plus 2 years']"
         },
         {
             "title": "TERM & TERMINATION",
-            "content": "CRITICAL: Full contract duration and termination terms\\n\\nContract Duration: Exact length with start trigger\\n\\nContract Plan: Describe the tier/plan/scope in detail\\n\\nTermination Notice:\\na) Notice period required\\nb) What happens to payments on termination\\n\\nPerformance Based Remedies and Exit Protections:\\na) Any performance guarantees with exact metrics\\nb) Remediation procedures if targets not met\\nc) Exit rights and refund/credit terms\\n\\nOutstanding Payments: Responsibilities for fees through termination"
+            "content": "Contract Duration: [Extract exact period]\\nBinding Period: [Extract if explicitly binding]\\nContract Plan/Tier: [Extract specific tier name]\\n\\nTermination Rights:\\n- Standard Notice: [Extract notice period]\\n- Performance-Based Exit: [Extract if client can exit due to missed metrics]\\n- Early Termination: [Extract conditions and financial obligations]\\n\\nPayment on Termination:\\n- [Extract what happens to remaining payments]\\n- [Extract any refund provisions]\\n- [Extract any penalty caps]\\n\\nRenewal: [Extract renewal terms or flag as TBD]\\n\\n[IF long contract + performance goals: Add clause about exit if metrics fail repeatedly]\\n[IF harsh penalties: Moderate to reasonable caps]"
         },
         {
-            "title": "GOVERNING LAW",
-            "content": "Governing Law: State or jurisdiction\\n\\nJurisdiction: County/District or 'To be determined'\\n\\nDispute Resolution:\\na) First attempt resolution method\\nb) How ROI/metrics disputes will be resolved (authoritative data source)\\nc) Final dispute resolution procedure"
+            "title": "BUSINESS CONTEXT & ROI",
+            "content": "Current State:\\n- Existing Costs: [Extract current spend]\\n- Pain Points: [Extract problems being solved]\\n- Risk Exposure: [Extract compliance/financial risks]\\n\\nExpected Outcomes:\\n- ROI: [Extract payback period and savings]\\n- Time Savings: [Extract efficiency improvements]\\n- Risk Mitigation: [Extract risk reductions]\\n\\n[IF not discussed, use: 'Business context not documented in this agreement']"
+        },
+        {
+            "title": "GOVERNING LAW & DISPUTES",
+            "content": "Governing Law: [Extract jurisdiction or flag with ⚠️]\\nJurisdiction: [Extract court location or flag with ⚠️]\\nDispute Resolution: [Extract process or use 'Good faith negotiation, followed by mediation if needed']"
         },
         {
             "title": "SIGNATURES",
-            "content": "Service Provider: ___________________ Date: _______\\n\\nClient: ____________________________ Date: _______"
+            "content": "Service Provider: ___________________ Date: _______\\n(Name & Title)\\n\\nClient: ____________________________ Date: _______\\n(Name & Title)"
         }
     ]
-}`;
+}
+
+═══════════════════════════════════════════════════════════════════════
+FORMATTING RULES:
+═══════════════════════════════════════════════════════════════════════
+
+1. Use lettered sub-clauses (a, b, c) for payment breakdowns and metrics
+2. Use dashes (-) for lists of items
+3. Use "⚠️ CLARIFICATION NEEDED:" for missing critical information
+4. Extract exact numbers, percentages, and dollar amounts
+5. Include ALL system names if listed
+6. Document ALL phases if implementation timeline mentioned
+7. If a section has no relevant information, state that clearly rather than inventing
+
+Generate the comprehensive contract JSON now, extracting EVERY detail from the transcription.`;
         
         console.log('[Contract Service] Sending to OpenAI...');
 
