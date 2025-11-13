@@ -233,6 +233,54 @@ app.delete('/api/business-context/services/:description', async (req, res) => {
     }
 });
 
+// ===== AUDIO TRANSCRIPTION =====
+const multer = require('multer');
+const FormData = require('form-data');
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 25 * 1024 * 1024 } });
+
+app.post('/api/transcribe-audio', upload.single('audio'), async (req, res) => {
+    try {
+        const authResponse = await axios.get(`${AUTH_SERVICE}/auth/user`, {
+            headers: { Cookie: req.headers.cookie }
+        });
+        
+        if (!authResponse.data.authenticated) {
+            return res.status(401).json({ error: 'Not authenticated' });
+        }
+        
+        if (!req.file) {
+            return res.status(400).json({ error: 'No audio file provided' });
+        }
+        
+        console.log('[Gateway] Transcribing audio file:', req.file.originalname, req.file.size, 'bytes');
+        
+        // Create form data for OpenAI Whisper API
+        const formData = new FormData();
+        formData.append('file', req.file.buffer, {
+            filename: req.file.originalname,
+            contentType: req.file.mimetype
+        });
+        formData.append('model', 'whisper-1');
+        
+        // Call OpenAI Whisper API
+        const response = await axios.post('https://api.openai.com/v1/audio/transcriptions', formData, {
+            headers: {
+                ...formData.getHeaders(),
+                'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
+            },
+            maxContentLength: Infinity,
+            maxBodyLength: Infinity
+        });
+        
+        console.log('[Gateway] Transcription successful');
+        res.json({ transcription: response.data.text });
+        
+    } catch (error) {
+        console.error('[Gateway] Transcription error:', error.response?.data || error.message);
+        res.status(500).json({ error: 'Failed to transcribe audio' });
+    }
+});
+
 // ===== INVOICE SERVICE ROUTES =====
 app.post('/api/generate-invoice', async (req, res) => {
     try {

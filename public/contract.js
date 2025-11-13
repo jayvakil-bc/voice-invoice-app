@@ -35,6 +35,63 @@ const guideContent = document.getElementById('guideContent');
 const textInput = document.getElementById('textInput');
 const generateBtn = document.getElementById('generateBtn');
 const clearBtn = document.getElementById('clearBtn');
+const uploadAudioBtn = document.getElementById('uploadAudioBtn');
+const audioFileInput = document.getElementById('audioFileInput');
+const transcribingLoader = document.getElementById('transcribing');
+
+// Audio file upload handler
+uploadAudioBtn.addEventListener('click', () => {
+    audioFileInput.click();
+});
+
+audioFileInput.addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    // Validate file size (25MB limit for Whisper API)
+    if (file.size > 25 * 1024 * 1024) {
+        alert('File too large! Please upload a file smaller than 25MB.');
+        return;
+    }
+    
+    // Show transcribing loader
+    transcribingLoader.classList.remove('hidden');
+    uploadAudioBtn.disabled = true;
+    status.textContent = '🎵 Transcribing audio...';
+    
+    try {
+        // Create FormData to send file
+        const formData = new FormData();
+        formData.append('audio', file);
+        
+        // Send to backend for transcription
+        const response = await fetch('/api/transcribe-audio', {
+            method: 'POST',
+            body: formData,
+            credentials: 'include'
+        });
+        
+        if (!response.ok) {
+            throw new Error('Transcription failed');
+        }
+        
+        const data = await response.json();
+        
+        // Set transcribed text in textarea
+        textInput.value = data.transcription;
+        transcript = data.transcription;
+        status.textContent = '✅ Audio transcribed! Review and edit if needed, then generate contract.';
+        
+    } catch (error) {
+        console.error('Transcription error:', error);
+        status.textContent = '❌ Failed to transcribe audio. Please try again.';
+        alert('Failed to transcribe audio file. Please try again or use voice input instead.');
+    } finally {
+        transcribingLoader.classList.add('hidden');
+        uploadAudioBtn.disabled = false;
+        audioFileInput.value = ''; // Reset file input
+    }
+});
 
 // Check mic permissions on load
 navigator.permissions.query({ name: 'microphone' }).then((result) => {

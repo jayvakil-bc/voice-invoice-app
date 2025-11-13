@@ -282,6 +282,43 @@ h1 {
     letter-spacing: 0.5px;
 }
 
+.file-upload-section {
+    text-align: center;
+    margin: 1.5rem 0;
+}
+
+.upload-button {
+    padding: 1rem 2rem;
+    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.upload-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+}
+
+.upload-button:active {
+    transform: translateY(0);
+}
+
+.upload-info {
+    margin-top: 0.5rem;
+    font-size: 0.85rem;
+    color: #666;
+    font-style: italic;
+}
+
 .text-input {
     width: 100%;
     padding: 1rem;

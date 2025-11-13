@@ -48,6 +48,15 @@
         <p id="status" class="status">Press to speak</p>
         
         <div class="input-option">
+            <p class="or-divider"><span>OR UPLOAD AUDIO FILE</span></p>
+            <div class="file-upload-section">
+                <input type="file" id="audioFileInput" accept="audio/*,.m4a,.mp3,.wav,.mp4,.mpeg,.mpga,.webm" style="display: none;">
+                <button id="uploadAudioBtn" class="upload-button">
+                    <span>🎵 Upload Audio Recording</span>
+                </button>
+                <p class="upload-info">Supports: MP3, WAV, M4A, MP4, WebM (Max 25MB)</p>
+            </div>
+            
             <p class="or-divider"><span>OR TYPE/EDIT BELOW</span></p>
             <textarea 
                 id="textInput" 
@@ -64,6 +73,11 @@
         <div id="loading" class="loading hidden">
             <div class="spinner"></div>
             <p>Generating your invoice...</p>
+        </div>
+        
+        <div id="transcribing" class="loading hidden">
+            <div class="spinner"></div>
+            <p>Transcribing audio file...</p>
         </div>
     </div>
 
