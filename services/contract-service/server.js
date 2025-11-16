@@ -119,8 +119,13 @@ STEP 3: DECODE PAYMENT STRUCTURE
 □ What is the base fee amount?
 □ Is there a variable/bonus component?
 □ If yes: Is the total = base + bonus, OR does bonus REPLACE base?
-□ When are payments due?
+□ When are payments due? (Specific timing: immediate, within X hours, on anniversary, etc.)
+□ How are invoices delivered? (Stripe, wire, check, number of invoices, etc.)
+□ When does contract become effective? (On signing, on payment, on both payments clearing, etc.)
 □ What payment method was specified?
+□ Are there request volume tiers? (Baseline, cap, upgrade triggers, grace periods)
+□ Are there incremental system costs? (Per-system pricing, prorating, integration costs)
+□ What are performance guarantee remedies? (Specific consequences for missing metrics)
 
 STEP 4: IDENTIFY RESPONSIBILITIES
 □ What must the client provide/do?
@@ -130,9 +135,14 @@ STEP 4: IDENTIFY RESPONSIBILITIES
 STEP 5: CHECK FOR SPECIAL TERMS
 □ Ownership/IP rights mentioned?
 □ Confidentiality requirements stated?
-□ Performance metrics or goals discussed?
-□ Termination conditions specified?
-□ Contract duration explicitly stated?
+□ Performance metrics or goals discussed? (With specific percentages and consequences?)
+□ Termination conditions specified? (Material breach, cure periods, binding commitment?)
+□ Contract duration explicitly stated? (Including whether it's binding?)
+□ Training and support details? (Team names, duration, topics, CSM assignment?)
+□ Data volumes mentioned? (Terabytes, records, structured vs unstructured?)
+□ System counts and names? (How many, which specific systems?)
+□ Implementation milestones? (Week-by-week breakdown?)
+□ Governing law and jurisdiction? (State, county, arbitration rules?)
 
 STEP 6: FLAG WHAT'S MISSING OR UNCLEAR
 □ List any critical information that is:
@@ -196,6 +206,75 @@ c) MUTUAL TERMINATION OPTION:
 
 CRITICAL: DO NOT add late payment penalties, interest charges, or payment-related fees unless explicitly mentioned in the transcription.
 
+4. PERFORMANCE GUARANTEE REMEDIES (TIER 1 PRIORITY)
+IF the transcription mentions:
+- Specific performance metrics (95%, 98%, 90% targets, etc.)
+- Evaluation periods (120-day validation, 90-day checkpoints, etc.)
+- Consequences for missing targets
+
+THEN add detailed remedies in Section 3 (Payment Terms):
+a) METRIC-SPECIFIC REMEDIES:
+   For each metric mentioned, include:
+   - Exact threshold (e.g., "If coverage falls below 95%")
+   - Validation method (e.g., "validated via joint audit of 200 random data fields at day 90 with DPO")
+   - Specific consequence (e.g., "extends contract by 6 months at no additional cost" OR "refunds 25% of first-year subscription")
+   - Measurement source (e.g., "measured via platform dashboard logs" OR "measured via Jira tickets vs. DataVault timestamps")
+   
+b) STRUCTURED FORMAT:
+   "Performance Guarantee Remedies ([evaluation period]):\\n
+    a) [Metric Name]: If [condition] (validated via [method]), Service Provider [remedy]\\n
+    b) [Metric Name]: If [condition] (measured via [method]), Service Provider [remedy]\\n
+    c) [Metric Name]: If [condition] (measured via [method]), Service Provider [remedy]"
+
+5. REQUEST VOLUME TIERS (TIER 1 PRIORITY)
+IF the transcription mentions:
+- Baseline request volumes (e.g., 50 requests per month)
+- Capacity limits or headroom (e.g., up to 75 requests)
+- Tier upgrade triggers or overage handling
+
+THEN add complete volume structure in Section 3:
+"Request Volume Structure:\\n
+ - Baseline: [X requests per month]\\n
+ - Included Headroom: Up to [Y requests per month]\\n
+ - Tier Upgrade: If Client consistently exceeds [Y] requests for [X] consecutive months, pricing moves to $[amount]/month tier\\n
+ - Grace Period: [X]-day grace period before overage enforcement\\n
+ - Transparency: DataVault will discuss tier adjustment transparently rather than apply unexpected overage fees"
+
+6. COMPLETE LEGAL ENTITY NAMES (TIER 1 PRIORITY)
+Always extract and format complete legal names:
+- Service Provider: Include entity type (Inc., LLC, Corp.) and full address if mentioned
+- Client: Include full company legal name, state of incorporation if mentioned, authorized signatory with full name and title
+- Flag with ⚠️ if entity type or full legal name is unclear
+
+7. PAYMENT TIMING & CONTRACT START (TIER 2 PRIORITY)
+IF transcription mentions specific payment delivery timing:
+Extract and include:
+- How invoices are delivered (e.g., "Two Stripe invoices sent within 4 hours")
+- When each payment is due (e.g., "due immediately" vs "due on anniversary")
+- When contract becomes effective (e.g., "when both payments clear")
+- Kickoff timing relative to payment (e.g., "Executive kickoff within 48 hours of payment clearance")
+
+8. IMPLEMENTATION MILESTONES (TIER 2 PRIORITY)
+IF transcription mentions phase-by-phase timeline:
+Break down into week-by-week or phase-by-phase structure:
+"Implementation Timeline ([total duration]):\\n
+ - Week 0: [Extract kickoff details]\\n
+ - Weeks 1-2: [Extract milestone]\\n
+ - Weeks 3-4: [Extract milestone with deliverables]\\n
+ - Weeks 5-6: [Extract milestone]\\n
+ - Weeks 7-8: [Extract milestone and go-live details]"
+
+9. TRAINING & SUPPORT DETAILS (TIER 3 PRIORITY)
+IF transcription mentions training sessions, CSM, or support:
+Extract specific details:
+- Who gets trained (team names, number of people)
+- Duration (half-day, 2-hour, etc.)
+- Topics covered
+- CSM assignment duration and meeting frequency
+- Self-sufficiency timeline
+
+CRITICAL: DO NOT add late payment penalties, interest charges, or payment-related fees unless explicitly mentioned in the transcription.
+
 ═══════════════════════════════════════════════════════════════════════
 PART D: REQUIRED OUTPUT STRUCTURE - JSON FORMAT
 ═══════════════════════════════════════════════════════════════════════
@@ -224,35 +303,35 @@ Return ONLY valid JSON (no markdown, no code blocks) with this structure:
         },
         {
             "title": "2. SCOPE OF WORK",
-            "content": "The Service Provider agrees to perform the following services:\\na) [Service 1 with complete details]\\nb) [Service 2 with complete details]\\n\\nDeliverables:\\n- [Every specific deliverable with quantities/specs]\\n- [Include technical details]\\n\\nTimeline:\\n- Duration: [Extract period]\\n- Milestones: [Extract phases if mentioned]\\n- Deadlines: [Extract specific dates]\\n\\nExclusions: [Extract any scope boundaries or exclusions mentioned]"
+            "content": "The Service Provider agrees to perform the following services:\\na) [Service 1 with complete details]\\nb) [Service 2 with complete details]\\nc) [Continue for all services mentioned]\\n\\nSystems Under Management: [Extract COUNT - e.g., 17 systems] including [list ALL system names: Salesforce, Zendesk, AWS RDS, Snowflake, etc.]\\n\\nData Volume: [Extract if mentioned - e.g., 15 terabytes of structured data under management]\\n\\nDeliverables:\\n- Complete data inventory with sensitivity classifications\\n- [List ALL specific deliverables with quantities/specs]\\n- [Include technical details: real-time metadata maps, access logs, flow diagrams, deletion verification, compliance reports]\\n- [Shadow IT discovery if mentioned]\\n- [Cryptographic proof logging if mentioned]\\n\\nImplementation Timeline:\\n- Duration: [Extract period - e.g., 8 weeks from contract start]\\n- Week 0: [Extract kickoff details - e.g., Executive kickoff within 48 hours of payment clearance]\\n- Weeks 1-2: [Extract milestone - e.g., System connections for all systems]\\n- Weeks 3-4: [Extract milestone - e.g., Automated data discovery scan, classification, data map build]\\n- Weeks 5-6: [Extract milestone - e.g., Policy configuration, retention rules, pilot testing]\\n- Weeks 7-8: [Extract milestone - e.g., Full rollout, team training, go-live]\\n- [Extract operational notes - e.g., All operations via read-only API connections, no production disruption]\\n\\nExclusions: [Extract any scope boundaries mentioned - e.g., work completely outside this scope not included]"
         },
         {
             "title": "3. PAYMENT TERMS",
-            "content": "a) The Client agrees to pay the Service Provider [Extract total amount or structure]\\nb) Payment Schedule: [Extract when payments are due]\\nc) Payment Method: [Extract method - Stripe, wire, check, etc.]\\nd) Breakdown:\\n   - [Component 1]: [Amount]\\n   - [Component 2]: [Amount]\\n\\n[IF performance/variable fees mentioned, ADD calculation clarity, caps, metrics, dispute resolution per Part C]\\n[IF ad spend mentioned, ADD account ownership, transparency, unspent budget handling per Part C]"
+            "content": "a) The Client agrees to pay the Service Provider [Extract total amount - e.g., $412,200 total]\\nb) Fee Breakdown:\\n   - [Component 1 - e.g., Annual Subscription Year 1: $183,600]\\n   - [Component 2 - e.g., Annual Subscription Year 2: $183,600]\\n   - [Component 3 - e.g., Onboarding Fee: $45,000]\\n\\nPayment Schedule:\\n- [Extract detailed timing - e.g., Two Stripe invoices sent within 4 hours of agreement execution]\\n- [Invoice 1 details - e.g., $45,000 onboarding fee due immediately]\\n- [Invoice 2 details - e.g., $183,600 Year 1 subscription due immediately]\\n- [Subsequent payments - e.g., Year 2 payment of $183,600 due on first anniversary]\\n- Contract Effective Date: [Extract - e.g., When both initial payments clear]\\n- [Kickoff timing - e.g., Executive kickoff scheduled within 48 hours of payment clearance]\\n\\nPayment Method: [Extract method - Stripe, wire transfer, check, etc.]\\n\\nRequest Volume Structure (if mentioned):\\n- Baseline: [Extract - e.g., 50 data subject requests per month]\\n- Included Headroom: [Extract - e.g., Up to 75 requests per month]\\n- Tier Upgrade Trigger: [Extract - e.g., If exceeds 75 requests for 3 consecutive months, pricing moves to $24,000/month tier]\\n- Grace Period: [Extract - e.g., 90-day grace period before overage enforcement]\\n- Transparency: [Extract - e.g., No surprise charges; tier adjustments discussed transparently]\\n\\nIncremental System Pricing (if mentioned):\\n- New Major Systems: [Extract - e.g., $1,500/month per system, prorated for remaining contract term]\\n- Example Calculation: [Extract if provided - e.g., System added 6 months in = $9,000 for remaining 18 months]\\n- Integration Work: [Extract - e.g., Engineering work included at no additional charge]\\n- Renewal: [Extract - e.g., New systems roll into standard renewal pricing]\\n\\nPerformance Guarantee Remedies (if mentioned - CRITICAL):\\n[If transcription mentions performance metrics with 95%, 98%, 90% or similar targets, include:]\\na) [Metric 1 - e.g., Data Discovery Coverage]: If falls below [X%] (validated via [audit method] at day [X] with [party]), Service Provider [remedy - e.g., extends contract by 6 months at no additional cost]\\nb) [Metric 2 - e.g., Deletion Success Rate]: If falls below [X%] in any [period] (measured via [method]), Service Provider [remedy]\\nc) [Metric 3 - e.g., Fulfillment Time]: If does not achieve [X% improvement] from baseline of [X] to [target] within [timeframe] (measured via [method]), Service Provider [remedy - e.g., refunds 25% of first-year subscription]\\n\\n[IF performance/variable fees mentioned, ADD calculation clarity, caps, metrics, dispute resolution per Part C]\\n[IF ad spend mentioned, ADD account ownership, transparency, unspent budget handling per Part C]"
         },
         {
             "title": "4. RESPONSIBILITIES",
-            "content": "Client Responsibilities:\\na) [Every client obligation from transcription]\\nb) [Include access/data requirements]\\nc) [Include approval/feedback timelines]\\n\\nService Provider Responsibilities:\\na) [Every provider deliverable and obligation]\\nb) [Include quality standards]\\nc) [Include timeline commitments]"
+            "content": "Client Responsibilities:\\na) [Every client obligation from transcription]\\nb) [Include access/data requirements - e.g., Provide necessary access to all systems]\\nc) [Include approval/feedback timelines - e.g., Approve content within reasonable timeframe]\\nd) [Include cooperation requirements]\\n\\nService Provider Responsibilities:\\na) [Every provider deliverable and obligation]\\nb) [Include quality standards - e.g., Ensure content aligns with Client's strategy]\\nc) [Include timeline commitments - e.g., Conduct at least 2 sessions per month]\\n\\nTraining & Support (if mentioned as included in onboarding/setup fee):\\n- [Team 1 Training - e.g., DPO/Compliance Team: Half-day workshop covering request submission, audit trail review, compliance report generation, policy configuration]\\n- [Team 2 Training - e.g., Engineering Team: 2-hour session covering integration architecture, data map review, new system connection setup]\\n- [Dedicated Support - e.g., Customer Success Manager: 6 months with weekly check-ins and participation in compliance stand-ups]\\n- [Self-sufficiency Target - e.g., Week 10]"
         },
         {
-            "title": "5. OWNERSHIP & USAGE RIGHTS",
-            "content": "CRITICAL: All ownership rights, intellectual property, and usage rights for all deliverables, content, and work product remain exclusively with the Service Provider unless explicitly transferred in writing.\\n\\nFinal Deliverables Ownership: [Extract or default to Service Provider]\\nClient Usage Rights: [Extract permitted usage]\\nService Provider Rights: [Extract what provider can do with work]"
+            "title": "5. INTELLECTUAL PROPERTY & USAGE RIGHTS",
+            "content": "a) Platform Ownership: Service Provider retains all rights, title, and interest in its platform, software, algorithms, ML models, and proprietary technology.\\n\\nb) Client Data Ownership: Client retains all rights to its data. Service Provider acts as Data Processor under GDPR Article 28 and CCPA Section 1798.100.\\n\\nc) Data Maps & Configurations: Client receives perpetual, non-exclusive license to export and use data maps, policy configurations, audit reports, and compliance documentation generated during the contract term for internal compliance and operational purposes. Service Provider will provide full export within 30 days of termination.\\n\\nd) Anonymized Telemetry: Service Provider may use anonymized, aggregated usage data and system performance metrics for product improvement, analytics, and benchmarking, provided no personally identifiable information or Client-specific business data is included.\\n\\ne) Post-Termination: Upon contract termination, Service Provider will:\\n   - Provide Client with complete data export (data maps, policies, audit logs, configurations) within 30 days\\n   - Delete all Client data from Service Provider systems within 90 days unless retention required by law\\n   - Certify deletion in writing upon Client request"
         },
         {
-            "title": "6. CONFIDENTIALITY",
-            "content": "CRITICAL: All information, content, deliverables, and materials exchanged or created under this contract shall be kept strictly confidential by both parties unless otherwise agreed in writing.\\n\\nConfidential Information: [Extract what must be confidential]\\nObligations: Both parties must maintain confidentiality and not disclose to third parties\\nExceptions: [Extract any exceptions mentioned]\\nDuration: [Extract or use 'Duration of contract plus 2 years']"
+            "title": "6. CONFIDENTIALITY & DATA PROCESSING",
+            "content": "a) Mutual Confidentiality: All business terms, pricing, technical information, data maps, system architectures, and materials exchanged under this contract are confidential and may not be disclosed to third parties without prior written consent. This obligation survives contract termination for 5 years.\\n\\nb) Data Processor Role: Service Provider acts as Data Processor under GDPR Article 28 and CCPA. Client is Data Controller. Service Provider will process Client data only as instructed by Client and in accordance with applicable data protection laws.\\n\\nc) Data Processing Agreement: Parties will execute a separate Data Processing Agreement (DPA) within 30 days of contract execution, incorporating EU Standard Contractual Clauses for any transfers of personal data outside the European Economic Area.\\n\\nd) Security Standards: Service Provider maintains SOC 2 Type II certification and implements industry-standard security controls including:\\n   - Encryption of data at rest (AES-256) and in transit (TLS 1.3)\\n   - Role-based access controls and multi-factor authentication\\n   - Regular security audits and penetration testing\\n   - Continuous monitoring and threat detection\\n\\ne) Subprocessors: Service Provider may use subprocessors (cloud infrastructure providers) with 30-day advance notice to Client. Current subprocessors available upon request.\\n\\nf) Breach Notification: Service Provider will notify Client within 24 hours of discovering any security incident or suspected data breach affecting Client data, and will cooperate with Client's incident response procedures.\\n\\ng) Audit Rights: Client may audit Service Provider's security controls annually upon 30 days' written notice, either directly or through an independent third-party auditor bound by confidentiality obligations. Service Provider will provide reasonable access to documentation, systems, and personnel."
         },
         {
             "title": "7. TERM & TERMINATION",
-            "content": "Contract Duration: [Extract exact period - e.g., '3 months commencing November 6, 2024']\\nContract Plan/Tier: [Extract specific plan name if mentioned]\\n\\nTermination Rights:\\na) Either party may terminate with [Extract notice period or use '30 days'] written notice\\nb) Outstanding Payments: [Extract payment obligations on termination]\\n\\n[IF performance goals + long duration mentioned, ADD performance exit clause per Part C]\\n[IF harsh penalties mentioned, MODERATE to 50% cap per Part C]"
+            "content": "Contract Duration: [Extract exact period - e.g., 2 years commencing November 6, 2024]\\nBinding Period: [Extract if explicitly binding - e.g., 2-year binding commitment]\\nContract Plan/Tier: [Extract specific plan name - e.g., Enterprise Tier]\\n\\nTermination Rights:\\n- Standard Termination: [Extract - e.g., Early termination permitted only for material breach with 30-day cure period]\\n- Non-Renewal: [Extract - e.g., Either party may provide 30-day written notice before end of term to prevent automatic renewal]\\n- Notice Period: [Extract if different from above - e.g., 30 days written notice]\\n- Performance-Based Exit: [Extract if client can exit due to missed metrics - e.g., Performance guarantee extensions add 6 months to contract term, not optional cancellation rights]\\n\\nPayment on Termination:\\n- [Extract what happens to remaining payments - e.g., Outstanding payments non-refundable except as specified in performance guarantee remedies]\\n- [Extract any refund provisions]\\n- [Extract any penalty structure]\\n\\n[IF long contract + performance goals mentioned, ADD performance exit clause per Part C]\\n[IF harsh penalties mentioned, MODERATE to 50% cap per Part C]"
         },
         {
             "title": "8. GOVERNING LAW & DISPUTES",
-            "content": "Governing Law: [Extract jurisdiction or '⚠️ CLARIFICATION NEEDED: Jurisdiction']\\nJurisdiction: [Extract court location or '⚠️ CLARIFICATION NEEDED: Court jurisdiction']\\nDispute Resolution: [Extract process or 'Good faith negotiation, followed by mediation if needed']"
+            "content": "Governing Law: [Extract jurisdiction - e.g., Delaware law, California law] [If not mentioned: 'The laws of the State of Delaware (or state of mutual agreement), without regard to conflicts of law principles']\\nJurisdiction: [Extract court location - e.g., Courts of New Castle County, Delaware] [If not mentioned: 'Courts of competent jurisdiction in the applicable state']\\nDispute Resolution: [Extract process if mentioned - e.g., Good faith negotiation for 30 days, then binding arbitration under AAA Commercial Rules] [If not mentioned: 'Parties agree to good faith negotiation for 30 days. If unresolved, disputes shall be resolved through binding arbitration under the Commercial Arbitration Rules of the American Arbitration Association (AAA), with arbitration conducted in a mutually agreed location. Each party bears its own costs unless arbitrator decides otherwise.']"
         },
         {
             "title": "9. SIGNATURES",
-            "content": "IN WITNESS WHEREOF, the parties hereto have executed this Contract as of the day and year first above written.\\n\\nService Provider:\\nSignature: ____________________\\nName: [Extract name]\\nDate: _______\\n\\nClient:\\nSignature: ____________________\\nName: [Extract name]\\nTitle: [Extract title if mentioned]\\nDate: _______"
+            "content": "IN WITNESS WHEREOF, the parties hereto have executed this Contract as of the day and year first above written.\\n\\nService Provider:\\nSignature: ____________________\\nName: [Extract name with title - e.g., John Smith, CEO]\\n[Extract company name - e.g., DataVault Inc.]\\nDate: _______\\n\\nClient:\\nSignature: ____________________\\nName: [Extract full name with title - e.g., Rajesh Kumar, CTO]\\n[Extract company legal name]\\nDate: _______"
         }
     ]
 }
@@ -301,21 +380,51 @@ How to map the transcription to the contract:
    B. For CRITICAL information:
       → Use "⚠️ CLARIFICATION NEEDED: [describe what needs to be clarified]"
       
-      CRITICAL info includes:
-      ✓ Payment amounts, calculation methods, schedules
+      CRITICAL info that REQUIRES flagging if missing:
+      ✓ Payment amounts (total contract value)
+      ✓ Payment calculation methods (if performance-based or variable)
       ✓ Contract duration, start/end dates
       ✓ Core deliverables and quantities
-      ✓ Key deadlines
+      ✓ Key project deadlines
       ✓ Performance metrics tied to payment/termination
-      ✓ Termination penalties
+      ✓ Termination penalties or early exit fees
       
-      NON-CRITICAL info includes:
-      ✓ Email addresses
+      INFO that can use "To be determined" (DO NOT flag as missing):
+      ✓ Complete legal entity names → Use company name provided, add "(To be determined at signing)" if entity type unclear
+      ✓ Authorized signatory names → Use name provided, add "with authorized signatory title (to be confirmed at execution)"
+      ✓ Governing law/jurisdiction → Use "Governing law and jurisdiction to be determined by mutual agreement (typically Delaware or state of Client's incorporation)"
+      ✓ Payment net terms → Use "Payment due on receipt" as default
+      ✓ Email addresses/phone numbers
       ✓ Exact street addresses
       ✓ Secondary contact info
-      ✓ Meeting frequency details
+      
+      CRITICAL: Sections 5 (IP Rights) and 6 (Confidentiality/DPA) are now auto-generated with industry-standard language. DO NOT flag these sections as missing.
 
-7. REMEMBER: All content comes from the transcription, NOT from any example.
+7. EXTRACT DATA VOLUMES & SYSTEM COUNTS:
+   - Always include specific numbers: "15 terabytes", "17 systems", "50 requests per month"
+   - List ALL system names mentioned, not just a count
+   - Include data types: "structured data", "unstructured data", "PII", etc.
+
+8. EXTRACT DETAILED DELIVERABLES:
+   If transcription mentions comprehensive deliverables, include specific items like:
+   - Data inventory with classifications
+   - Real-time vs snapshot reporting
+   - Access logs and flow diagrams
+   - Deletion verification methods
+   - Compliance report formats
+   - Shadow IT discovery capabilities
+   - Cryptographic proof logging
+   - Machine learning-based classification
+   - Retention policy enforcement details
+
+9. EXTRACT INCREMENTAL PRICING:
+   If transcription mentions adding systems/users/capacity:
+   - Per-unit costs (e.g., "$1,500/month per system")
+   - Prorating calculations (e.g., "6 months into 2-year contract = $9,000 for remaining 18 months")
+   - What's included (e.g., "integration engineering work included")
+   - Renewal treatment (e.g., "rolls into standard renewal pricing")
+
+10. REMEMBER: All content comes from the transcription, NOT from any example.
 
 8. DO NOT ADD CLAUSES NOT MENTIONED:
    - NEVER add late payment terms, penalties, or fees unless explicitly stated
