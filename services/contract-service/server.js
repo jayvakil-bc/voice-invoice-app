@@ -282,19 +282,7 @@ PART D: REQUIRED OUTPUT STRUCTURE - JSON FORMAT
 Return ONLY valid JSON (no markdown, no code blocks) with this structure:
 
 {
-    "title": "Brief descriptive title",
-    "serviceProvider": {
-        "name": "EXTRACT FULL LEGAL NAME - flag with ⚠️ if missing",
-        "address": "Extract or 'To be determined'",
-        "email": "Extract or 'To be determined'",
-        "phone": "Extract or 'To be determined'"
-    },
-    "client": {
-        "name": "EXTRACT FULL COMPANY NAME + signatory - flag with ⚠️ if missing",
-        "address": "Extract or 'To be determined'",
-        "email": "Extract or 'To be determined'",
-        "phone": "Extract or 'To be determined'"
-    },
+    "title": "Brief descriptive title (e.g., 'Data Governance Platform Services Agreement')",
     "effectiveDate": "${todayFormatted}",
     "sections": [
         {
@@ -464,6 +452,14 @@ Generate the comprehensive contract JSON now using ONLY information from the tra
             contractData.effectiveDate = todayFormatted;
         }
         
+        // Extract party information from Section 1 content
+        const section1Content = contractData.sections?.[0]?.content || '';
+        const extractField = (content, fieldName) => {
+            const regex = new RegExp(`${fieldName}:\\s*([^\\n]+)`, 'i');
+            const match = content.match(regex);
+            return match ? match[1].trim() : 'To be determined';
+        };
+        
         // Map the OpenAI response to our database schema structure
         const contractToSave = {
             userId,
@@ -472,17 +468,17 @@ Generate the comprehensive contract JSON now using ONLY information from the tra
             effectiveDate: contractData.effectiveDate,
             parties: {
                 serviceProvider: {
-                    name: contractData.serviceProvider?.name || '⚠️ CLARIFICATION NEEDED: Service Provider Name',
-                    address: contractData.serviceProvider?.address || 'To be determined',
-                    email: contractData.serviceProvider?.email || 'To be determined',
-                    phone: contractData.serviceProvider?.phone || 'To be determined'
+                    name: extractField(section1Content, 'Service Provider'),
+                    address: 'To be determined',
+                    email: 'To be determined',
+                    phone: 'To be determined'
                 },
                 client: {
-                    name: contractData.client?.name || '⚠️ CLARIFICATION NEEDED: Client Name',
-                    signingAuthority: contractData.client?.signingAuthority || '',
-                    address: contractData.client?.address || 'To be determined',
-                    email: contractData.client?.email || 'To be determined',
-                    phone: contractData.client?.phone || 'To be determined'
+                    name: extractField(section1Content, 'Client'),
+                    signingAuthority: '',
+                    address: 'To be determined',
+                    email: 'To be determined',
+                    phone: 'To be determined'
                 }
             },
             sections: contractData.sections || []
