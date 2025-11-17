@@ -276,93 +276,114 @@ Extract specific details:
 CRITICAL: DO NOT add late payment penalties, interest charges, or payment-related fees unless explicitly mentioned in the transcription.
 
 ═══════════════════════════════════════════════════════════════════════
-PART D: REQUIRED OUTPUT STRUCTURE - JSON FORMAT
+PART D: ADAPTIVE OUTPUT STRUCTURE - BUILD WHAT YOU FIND
 ═══════════════════════════════════════════════════════════════════════
+
+CRITICAL: The sections below are GUIDELINES, not rigid templates. 
+
+YOUR JOB: Extract information from the transcription and intelligently organize it into appropriate contract sections. If the transcription mentions something that doesn't fit the examples below, CREATE A NEW SUBSECTION OR ADD IT WHERE IT MAKES SENSE.
+
+DO NOT force information into predetermined templates if it doesn't fit naturally.
+DO capture EVERY detail mentioned in the transcription, even if it's unconventional.
 
 Return ONLY valid JSON (no markdown, no code blocks) with this structure:
 
 {
-    "title": "Brief descriptive title (e.g., 'Data Governance Platform Services Agreement')",
+    "title": "[Descriptive title based on the services discussed]",
     "effectiveDate": "${todayFormatted}",
     "sections": [
         {
             "title": "1. AGREEMENT OVERVIEW",
-            "content": "Service Provider: [Full legal name]\\nClient: [Full company name + authorized signatory]\\nEffective Date: [Extract or ${todayFormatted}]\\nContract Type: [Extract tier/plan if mentioned]\\nContract Duration: [Extract exact period]\\nPurpose: [Extract comprehensive purpose]"
+            "content": "[Extract and format professionally: Service Provider name, Client name, Effective Date, Contract Duration, Purpose/Description of agreement]"
         },
         {
             "title": "2. SCOPE OF WORK",
-            "content": "The Service Provider agrees to perform the following services:\\na) [Service 1 with complete details]\\nb) [Service 2 with complete details]\\nc) [Continue for all services mentioned]\\n\\nSystems Under Management: [Extract COUNT - e.g., 17 systems] including [list ALL system names: Salesforce, Zendesk, AWS RDS, Snowflake, etc.]\\n\\nData Volume: [Extract if mentioned - e.g., 15 terabytes of structured data under management]\\n\\nDeliverables:\\n- Complete data inventory with sensitivity classifications\\n- [List ALL specific deliverables with quantities/specs]\\n- [Include technical details: real-time metadata maps, access logs, flow diagrams, deletion verification, compliance reports]\\n- [Shadow IT discovery if mentioned]\\n- [Cryptographic proof logging if mentioned]\\n\\nImplementation Timeline:\\n- Duration: [Extract period - e.g., 8 weeks from contract start]\\n- Week 0: [Extract kickoff details - e.g., Executive kickoff within 48 hours of payment clearance]\\n- Weeks 1-2: [Extract milestone - e.g., System connections for all systems]\\n- Weeks 3-4: [Extract milestone - e.g., Automated data discovery scan, classification, data map build]\\n- Weeks 5-6: [Extract milestone - e.g., Policy configuration, retention rules, pilot testing]\\n- Weeks 7-8: [Extract milestone - e.g., Full rollout, team training, go-live]\\n- [Extract operational notes - e.g., All operations via read-only API connections, no production disruption]\\n\\nExclusions: [Extract any scope boundaries mentioned - e.g., work completely outside this scope not included]"
+            "content": "[Extract ALL services, deliverables, timelines, milestones, technical specs, system counts, data volumes, implementation phases, operational notes, exclusions - CAPTURE EVERYTHING mentioned about what's being delivered]"
         },
         {
             "title": "3. PAYMENT TERMS",
-            "content": "a) The Client agrees to pay the Service Provider [Extract total amount - e.g., $412,200 total]\\nb) Fee Breakdown:\\n   - [Component 1 - e.g., Annual Subscription Year 1: $183,600]\\n   - [Component 2 - e.g., Annual Subscription Year 2: $183,600]\\n   - [Component 3 - e.g., Onboarding Fee: $45,000]\\n\\nPayment Schedule:\\n- [Extract detailed timing - e.g., Two Stripe invoices sent within 4 hours of agreement execution]\\n- [Invoice 1 details - e.g., $45,000 onboarding fee due immediately]\\n- [Invoice 2 details - e.g., $183,600 Year 1 subscription due immediately]\\n- [Subsequent payments - e.g., Year 2 payment of $183,600 due on first anniversary]\\n- Contract Effective Date: [Extract - e.g., When both initial payments clear]\\n- [Kickoff timing - e.g., Executive kickoff scheduled within 48 hours of payment clearance]\\n\\nPayment Method: [Extract method - Stripe, wire transfer, check, etc.]\\n\\nRequest Volume Structure (if mentioned):\\n- Baseline: [Extract - e.g., 50 data subject requests per month]\\n- Included Headroom: [Extract - e.g., Up to 75 requests per month]\\n- Tier Upgrade Trigger: [Extract - e.g., If exceeds 75 requests for 3 consecutive months, pricing moves to $24,000/month tier]\\n- Grace Period: [Extract - e.g., 90-day grace period before overage enforcement]\\n- Transparency: [Extract - e.g., No surprise charges; tier adjustments discussed transparently]\\n\\nIncremental System Pricing (if mentioned):\\n- New Major Systems: [Extract - e.g., $1,500/month per system, prorated for remaining contract term]\\n- Example Calculation: [Extract if provided - e.g., System added 6 months in = $9,000 for remaining 18 months]\\n- Integration Work: [Extract - e.g., Engineering work included at no additional charge]\\n- Renewal: [Extract - e.g., New systems roll into standard renewal pricing]\\n\\nPerformance Guarantee Remedies (if mentioned - CRITICAL):\\n[If transcription mentions performance metrics with 95%, 98%, 90% or similar targets, include:]\\na) [Metric 1 - e.g., Data Discovery Coverage]: If falls below [X%] (validated via [audit method] at day [X] with [party]), Service Provider [remedy - e.g., extends contract by 6 months at no additional cost]\\nb) [Metric 2 - e.g., Deletion Success Rate]: If falls below [X%] in any [period] (measured via [method]), Service Provider [remedy]\\nc) [Metric 3 - e.g., Fulfillment Time]: If does not achieve [X% improvement] from baseline of [X] to [target] within [timeframe] (measured via [method]), Service Provider [remedy - e.g., refunds 25% of first-year subscription]\\n\\n[IF performance/variable fees mentioned, ADD calculation clarity, caps, metrics, dispute resolution per Part C]\\n[IF ad spend mentioned, ADD account ownership, transparency, unspent budget handling per Part C]"
+            "content": "[Extract ALL payment information: total amounts, fee breakdowns, payment schedules, timing, methods, volume tiers, incremental pricing, performance guarantees with specific remedies, bonus structures, caps, when payments trigger, how invoices are sent - CAPTURE EVERY FINANCIAL DETAIL]"
         },
         {
             "title": "4. RESPONSIBILITIES",
-            "content": "Client Responsibilities:\\na) [Every client obligation from transcription]\\nb) [Include access/data requirements - e.g., Provide necessary access to all systems]\\nc) [Include approval/feedback timelines - e.g., Approve content within reasonable timeframe]\\nd) [Include cooperation requirements]\\n\\nService Provider Responsibilities:\\na) [Every provider deliverable and obligation]\\nb) [Include quality standards - e.g., Ensure content aligns with Client's strategy]\\nc) [Include timeline commitments - e.g., Conduct at least 2 sessions per month]\\n\\nTraining & Support (if mentioned as included in onboarding/setup fee):\\n- [Team 1 Training - e.g., DPO/Compliance Team: Half-day workshop covering request submission, audit trail review, compliance report generation, policy configuration]\\n- [Team 2 Training - e.g., Engineering Team: 2-hour session covering integration architecture, data map review, new system connection setup]\\n- [Dedicated Support - e.g., Customer Success Manager: 6 months with weekly check-ins and participation in compliance stand-ups]\\n- [Self-sufficiency Target - e.g., Week 10]"
+            "content": "[Extract what Client must do and what Service Provider must do. Include training details, support details, CSM assignments, meeting frequencies, approval processes, cooperation requirements - CAPTURE ALL OBLIGATIONS]"
         },
         {
             "title": "5. INTELLECTUAL PROPERTY & USAGE RIGHTS",
-            "content": "a) Platform Ownership: Service Provider retains all rights, title, and interest in its platform, software, algorithms, ML models, and proprietary technology.\\n\\nb) Client Data Ownership: Client retains all rights to its data. Service Provider acts as Data Processor under GDPR Article 28 and CCPA Section 1798.100.\\n\\nc) Data Maps & Configurations: Client receives perpetual, non-exclusive license to export and use data maps, policy configurations, audit reports, and compliance documentation generated during the contract term for internal compliance and operational purposes. Service Provider will provide full export within 30 days of termination.\\n\\nd) Anonymized Telemetry: Service Provider may use anonymized, aggregated usage data and system performance metrics for product improvement, analytics, and benchmarking, provided no personally identifiable information or Client-specific business data is included.\\n\\ne) Post-Termination: Upon contract termination, Service Provider will:\\n   - Provide Client with complete data export (data maps, policies, audit logs, configurations) within 30 days\\n   - Delete all Client data from Service Provider systems within 90 days unless retention required by law\\n   - Certify deletion in writing upon Client request"
+            "content": "[If IP/ownership mentioned in transcription, extract it here. Otherwise use standard SaaS language: Platform Ownership (Provider retains), Client Data Ownership (Client retains, Provider is Data Processor), Data Maps/Configs (Client gets export rights), Anonymized Telemetry (Provider can use), Post-Termination (30-day export, 90-day deletion)]"
         },
         {
             "title": "6. CONFIDENTIALITY & DATA PROCESSING",
-            "content": "a) Mutual Confidentiality: All business terms, pricing, technical information, data maps, system architectures, and materials exchanged under this contract are confidential and may not be disclosed to third parties without prior written consent. This obligation survives contract termination for 5 years.\\n\\nb) Data Processor Role: Service Provider acts as Data Processor under GDPR Article 28 and CCPA. Client is Data Controller. Service Provider will process Client data only as instructed by Client and in accordance with applicable data protection laws.\\n\\nc) Data Processing Agreement: Parties will execute a separate Data Processing Agreement (DPA) within 30 days of contract execution, incorporating EU Standard Contractual Clauses for any transfers of personal data outside the European Economic Area.\\n\\nd) Security Standards: Service Provider maintains SOC 2 Type II certification and implements industry-standard security controls including:\\n   - Encryption of data at rest (AES-256) and in transit (TLS 1.3)\\n   - Role-based access controls and multi-factor authentication\\n   - Regular security audits and penetration testing\\n   - Continuous monitoring and threat detection\\n\\ne) Subprocessors: Service Provider may use subprocessors (cloud infrastructure providers) with 30-day advance notice to Client. Current subprocessors available upon request.\\n\\nf) Breach Notification: Service Provider will notify Client within 24 hours of discovering any security incident or suspected data breach affecting Client data, and will cooperate with Client's incident response procedures.\\n\\ng) Audit Rights: Client may audit Service Provider's security controls annually upon 30 days' written notice, either directly or through an independent third-party auditor bound by confidentiality obligations. Service Provider will provide reasonable access to documentation, systems, and personnel."
+            "content": "[If confidentiality/DPA mentioned in transcription, extract it here. Otherwise use standard enterprise language: Mutual Confidentiality (5-year survival), Data Processor Role (GDPR/CCPA compliance), DPA requirement (30 days with SCCs), Security Standards (SOC 2 Type II, encryption, MFA), Subprocessors (30-day notice), Breach Notification (24 hours), Audit Rights (annual)]"
         },
         {
             "title": "7. TERM & TERMINATION",
-            "content": "Contract Duration: [Extract exact period - e.g., 2 years commencing November 6, 2024]\\nBinding Period: [Extract if explicitly binding - e.g., 2-year binding commitment]\\nContract Plan/Tier: [Extract specific plan name - e.g., Enterprise Tier]\\n\\nTermination Rights:\\n- Standard Termination: [Extract - e.g., Early termination permitted only for material breach with 30-day cure period]\\n- Non-Renewal: [Extract - e.g., Either party may provide 30-day written notice before end of term to prevent automatic renewal]\\n- Notice Period: [Extract if different from above - e.g., 30 days written notice]\\n- Performance-Based Exit: [Extract if client can exit due to missed metrics - e.g., Performance guarantee extensions add 6 months to contract term, not optional cancellation rights]\\n\\nPayment on Termination:\\n- [Extract what happens to remaining payments - e.g., Outstanding payments non-refundable except as specified in performance guarantee remedies]\\n- [Extract any refund provisions]\\n- [Extract any penalty structure]\\n\\n[IF long contract + performance goals mentioned, ADD performance exit clause per Part C]\\n[IF harsh penalties mentioned, MODERATE to 50% cap per Part C]"
+            "content": "[Extract contract duration, binding period, termination rights, cure periods, notice requirements, non-renewal process, performance-based exit clauses, refund provisions, what happens to payments on termination - CAPTURE ALL TERMINATION TERMS]"
         },
         {
             "title": "8. GOVERNING LAW & DISPUTES",
-            "content": "Governing Law: [Extract jurisdiction - e.g., Delaware law, California law] [If not mentioned: 'The laws of the State of Delaware (or state of mutual agreement), without regard to conflicts of law principles']\\nJurisdiction: [Extract court location - e.g., Courts of New Castle County, Delaware] [If not mentioned: 'Courts of competent jurisdiction in the applicable state']\\nDispute Resolution: [Extract process if mentioned - e.g., Good faith negotiation for 30 days, then binding arbitration under AAA Commercial Rules] [If not mentioned: 'Parties agree to good faith negotiation for 30 days. If unresolved, disputes shall be resolved through binding arbitration under the Commercial Arbitration Rules of the American Arbitration Association (AAA), with arbitration conducted in a mutually agreed location. Each party bears its own costs unless arbitrator decides otherwise.']"
+            "content": "[Extract governing law, jurisdiction, arbitration rules if mentioned. Otherwise use reasonable defaults: State law (Delaware or mutual agreement), arbitration (AAA Commercial Rules), good faith negotiation]"
         },
         {
             "title": "9. SIGNATURES",
-            "content": "IN WITNESS WHEREOF, the parties hereto have executed this Contract as of the day and year first above written.\\n\\nService Provider:\\nSignature: ____________________\\nName: [Extract name with title - e.g., John Smith, CEO]\\n[Extract company name - e.g., DataVault Inc.]\\nDate: _______\\n\\nClient:\\nSignature: ____________________\\nName: [Extract full name with title - e.g., Rajesh Kumar, CTO]\\n[Extract company legal name]\\nDate: _______"
+            "content": "[Standard signature block with extracted names, titles, company names for both Service Provider and Client]"
         }
     ]
 }
 
+ADAPTIVE INSTRUCTIONS:
+- If transcription mentions ROI/business context, ADD it to Section 2 or create "Business Context" subsection
+- If transcription mentions detailed SLAs, ADD them to Section 4 or create "Service Level Agreement" subsection
+- If transcription mentions warranty/indemnification, ADD Section 10 for "Warranties & Indemnification"
+- If transcription mentions specific compliance requirements (HIPAA, SOX, PCI), ADD them to Section 6
+- If transcription mentions renewal terms/pricing, ADD subsection to Section 7
+- The goal is to capture EVERYTHING discussed, not fit into a template
+
 ═══════════════════════════════════════════════════════════════════════
-PART E: CONTENT MAPPING INSTRUCTIONS
+PART E: INTELLIGENT CONTENT MAPPING - BE ADAPTIVE, NOT RIGID
 ═══════════════════════════════════════════════════════════════════════
 
-How to map the transcription to the contract:
+CORE PRINCIPLE: Your job is to CAPTURE EVERYTHING from the transcription and organize it intelligently, not force it into predetermined boxes.
 
-1. EXTRACT INFORMATION from the transcription for:
-   - Party names, dates, services, payment, responsibilities, special terms
+1. COMPREHENSIVE EXTRACTION:
+   Read the ENTIRE transcription carefully and identify ALL mentioned:
+   - Party information (names, roles, titles, companies)
+   - Services/deliverables (be specific - quantities, specs, systems, data volumes)
+   - Payment details (amounts, timing, methods, volume tiers, incremental costs, guarantees)
+   - Timeline/milestones (phases, weeks, deadlines, kickoff timing)
+   - Responsibilities (who does what, when, with what resources)
+   - Special terms (performance metrics, training, support, ROI context)
+   - Legal requirements (termination, IP, confidentiality, compliance)
 
-2. MAP TO APPROPRIATE SECTIONS:
-   - Section 1: Party names, start date, general purpose
-   - Section 2: Detailed services, deliverables, deadlines
-   - Section 3: ALL payment information (amounts, schedule, method)
-   - Section 4: What each party must do
-   - Section 5: Ownership (stays with provider unless transferred)
-   - Section 6: Confidentiality (all info confidential unless agreed)
-   - Section 7: Duration and termination
-   - Section 8: Legal jurisdiction
-   - Section 9: Signature lines
+2. INTELLIGENT ORGANIZATION:
+   - Group related information together logically
+   - If something doesn't fit neatly into a section, ADD A SUBSECTION
+   - If transcription is detailed about one topic, reflect that detail in the contract
+   - If transcription is vague about something, note it but don't invent details
+   - Think: "What would make this contract MOST useful to both parties?"
 
-3. ADD PROFESSIONAL CONTEXT:
-   - Don't just dump raw transcription text
-   - Wrap information in professional legal language
-   - Use complete sentences and proper clause structure
-   - Add standard legal phrasing where appropriate
+3. PROFESSIONAL FORMATTING:
+   - Use numbered/lettered clauses for organization (a, b, c)
+   - Write in complete sentences with proper legal phrasing
+   - "The Client agrees to..." not "Client: agrees"
+   - "Service Provider will deliver..." not "Provider does X"
+   - Use subsection headers when needed ("Request Volume Structure:", "Performance Guarantee Remedies:")
 
-4. USE PROFESSIONAL STYLE:
-   - "The Client agrees to pay..." (not just "Payment: $500")
-   - "The Service Provider will..." (not just "Provider: Does work")
-   - Use lettered sub-clauses (a, b, c) for multiple related items
-   - Use formal but clear language
+4. DETAIL PRESERVATION:
+   - If transcription says "17 systems" → List the count AND names if mentioned
+   - If transcription says "95% accuracy" → Include the percentage, validation method, and consequence
+   - If transcription says "$1,500/month per system" → Include the per-unit cost, prorating logic, and example calculation
+   - If transcription says "8-week timeline" → Break down the week-by-week milestones if provided
+   - DO NOT summarize away specifics - contracts need precision
 
-5. MAINTAIN CONCISENESS & CLARITY:
-   - Keep paragraphs to 2-3 sentences maximum
-   - Use lettered clauses (a, b, c) for lists
-   - Be direct and precise
-   - Each sentence should convey essential information only
+5. ADAPTIVE STRUCTURE:
+   - Unusual service model? Explain it clearly in Section 2
+   - Complex payment structure? Break it down step-by-step in Section 3
+   - Special compliance requirements? Add them to Section 6
+   - Detailed SLAs? Add subsection to Section 4 or create Section 10
+   - The 9-section structure is a STARTING POINT, not a constraint
 
-6. HANDLING MISSING OR UNCLEAR INFORMATION:
+6. HANDLING MISSING INFORMATION:
    A. For NON-CRITICAL information:
       → Use "To be determined"
    B. For CRITICAL information:
@@ -442,7 +463,7 @@ Generate the comprehensive contract JSON now using ONLY information from the tra
         const completion = await openai.chat.completions.create({
             model: 'gpt-4o',
             messages: [{ role: 'user', content: prompt }],
-            response_format: { type: 'json_object' }
+            response_format: { type: 'json_object' }    
         });
 
         const contractData = JSON.parse(completion.choices[0].message.content);
