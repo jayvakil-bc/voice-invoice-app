@@ -452,12 +452,72 @@ Generate the comprehensive contract JSON now using ONLY information from the tra
             contractData.effectiveDate = todayFormatted;
         }
         
-        // Extract party information from Section 1 content
-        const section1Content = contractData.sections?.[0]?.content || '';
-        const extractField = (content, fieldName) => {
-            const regex = new RegExp(`${fieldName}:\\s*([^\\n]+)`, 'i');
-            const match = content.match(regex);
-            return match ? match[1].trim() : 'To be determined';
+        // Super flexible party extraction - checks ALL sections if needed
+        const allContent = contractData.sections?.map(s => s.content).join('\n') || '';
+        
+        const extractServiceProvider = (content) => {
+            // Remove common words that aren't company names
+            const removeNoise = (str) => str.replace(/\(.*?\)/g, '').replace(/\[.*?\]/g, '').trim();
+            
+            // Try everything - be aggressive
+            const patterns = [
+                /(?:service\s*provider|provider|vendor|contractor|seller|consultant|freelancer|company|business|firm)[:\s-]+([^,\n.]+?)(?:\n|,|\.|$)/gi,
+                /(?:this\s+agreement\s+is\s+(?:made\s+)?(?:by\s+and\s+)?between|entered\s+into\s+by|agreement\s+between)\s+([^,\n.]+?)(?:\s+and|\s+\(|,)/gi,
+                /(?:^|\n)([A-Z][A-Za-z0-9\s&.,''-]+?(?:Inc\.|LLC|Corp\.|Corporation|Ltd\.|Limited|Co\.|Company))/gm,
+                /(?:services\s+(?:provided|offered)\s+by|delivered\s+by)\s+([^,\n.]+)/gi
+            ];
+            
+            const candidates = new Set();
+            for (const pattern of patterns) {
+                let match;
+                while ((match = pattern.exec(content)) !== null) {
+                    const name = removeNoise(match[1]);
+                    if (name && name.length > 2 && name.length < 100 && !name.includes('⚠️')) {
+                        candidates.add(name);
+                    }
+                }
+            }
+            
+            // Return first valid candidate
+            const validCandidates = Array.from(candidates).filter(c => 
+                c && !c.toLowerCase().includes('clarification') && !c.toLowerCase().includes('to be determined')
+            );
+            
+            return validCandidates[0] || 'Service Provider (To be determined at signing)';
+        };
+        
+        const extractClient = (content) => {
+            const removeNoise = (str) => str.replace(/\(.*?\)/g, '').replace(/\[.*?\]/g, '').trim();
+            
+            // Try everything for client too
+            const patterns = [
+                /(?:client|customer|buyer|purchaser|recipient)[:\s-]+([^,\n.]+?)(?:\n|,|\.|$)/gi,
+                /(?:and|with)\s+([A-Z][A-Za-z0-9\s&.,''-]+?)(?:\s+\(|,|\.|$)/g,
+                /(?:services\s+(?:to|for)|provided\s+to)\s+([^,\n.]+)/gi,
+                /(?:entered\s+into\s+with)\s+([^,\n.]+)/gi
+            ];
+            
+            const candidates = new Set();
+            for (const pattern of patterns) {
+                let match;
+                while ((match = pattern.exec(content)) !== null) {
+                    const name = removeNoise(match[1]);
+                    if (name && name.length > 2 && name.length < 100 && !name.includes('⚠️')) {
+                        // Skip if it's the service provider
+                        if (!name.toLowerCase().includes('provider') && 
+                            !name.toLowerCase().includes('vendor') &&
+                            !name.toLowerCase().includes('contractor')) {
+                            candidates.add(name);
+                        }
+                    }
+                }
+            }
+            
+            const validCandidates = Array.from(candidates).filter(c => 
+                c && !c.toLowerCase().includes('clarification') && !c.toLowerCase().includes('to be determined')
+            );
+            
+            return validCandidates[0] || 'Client (To be determined at signing)';
         };
         
         // Map the OpenAI response to our database schema structure
@@ -468,13 +528,13 @@ Generate the comprehensive contract JSON now using ONLY information from the tra
             effectiveDate: contractData.effectiveDate,
             parties: {
                 serviceProvider: {
-                    name: extractField(section1Content, 'Service Provider'),
+                    name: extractServiceProvider(allContent),
                     address: 'To be determined',
                     email: 'To be determined',
                     phone: 'To be determined'
                 },
                 client: {
-                    name: extractField(section1Content, 'Client'),
+                    name: extractClient(allContent),
                     signingAuthority: '',
                     address: 'To be determined',
                     email: 'To be determined',
