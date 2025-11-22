@@ -1,18 +1,19 @@
 /* Dashboard Specific Styles */
 body {
-    background: #1a1a1a;
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
     padding: 0;
     align-items: flex-start;
     display: block;
 }
 
 .dashboard-header {
-    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
     padding: 1.5rem 2rem;
-    box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 15px rgba(0, 0, 0, 0.3);
     position: sticky;
     top: 0;
     z-index: 100;
+    border-bottom: 3px solid #3b82f6;
 }
 
 .dashboard-header .header-content {
@@ -89,31 +90,34 @@ body {
 
 .create-btn {
     padding: 1.2rem 2.5rem;
-    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
     color: white;
-    border: none;
+    border: 3px solid #3b82f6;
     border-radius: 12px;
     font-size: 1.1rem;
-    font-weight: 600;
+    font-weight: 700;
     cursor: pointer;
     text-decoration: none;
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
     transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4);
 }
 
 .create-btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 25px rgba(102, 126, 234, 0.4);
+    box-shadow: 0 6px 25px rgba(37, 99, 235, 0.6);
+    background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+    border-color: #60a5fa;
 }
 
 .invoices-section {
-    background: #2d2d2d;
+    background: #1e293b;
     border-radius: 16px;
     padding: 2rem;
-    box-shadow: 0 2px 15px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    border: 2px solid #334155;
 }
 
 .section-header {
@@ -137,7 +141,7 @@ body {
 }
 
 .invoice-card {
-    border: 2px solid #444;
+    border: 3px solid #334155;
     border-radius: 12px;
     padding: 1.5rem;
     margin-bottom: 1rem;
@@ -145,12 +149,12 @@ body {
     justify-content: space-between;
     align-items: center;
     transition: all 0.3s ease;
-    background: #333;
+    background: #1e293b;
 }
 
 .invoice-card:hover {
-    border-color: #555;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    border-color: #3b82f6;
+    box-shadow: 0 4px 20px rgba(59, 130, 246, 0.3);
     transform: translateY(-2px);
 }
 
@@ -182,11 +186,11 @@ body {
 }
 
 .btn-action {
-    padding: 0.6rem 1.2rem;
-    border: none;
+    padding: 0.7rem 1.4rem;
+    border: 3px solid;
     border-radius: 8px;
     cursor: pointer;
-    font-weight: 500;
+    font-weight: 700;
     font-size: 0.9rem;
     transition: all 0.3s ease;
     display: inline-flex;
@@ -195,47 +199,55 @@ body {
 }
 
 .btn-download {
-    background: #28a745;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
     color: white;
+    border-color: #34d399;
 }
 
 .btn-download:hover {
-    background: #218838;
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
     transform: translateY(-2px);
-    box-shadow: 0 3px 10px rgba(40, 167, 69, 0.3);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.5);
+    border-color: #6ee7b7;
 }
 
 .btn-edit {
-    background: #ffc107;
-    color: #333;
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    color: white;
+    border-color: #fbbf24;
 }
 
 .btn-edit:hover {
-    background: #e0a800;
+    background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
     transform: translateY(-2px);
-    box-shadow: 0 3px 10px rgba(255, 193, 7, 0.3);
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.5);
+    border-color: #fcd34d;
 }
 
 .btn-drive {
-    background: #4285f4;
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
     color: white;
+    border-color: #60a5fa;
 }
 
 .btn-drive:hover {
-    background: #357ae8;
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
     transform: translateY(-2px);
-    box-shadow: 0 3px 10px rgba(66, 133, 244, 0.3);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.5);
+    border-color: #93c5fd;
 }
 
 .btn-delete {
-    background: #dc3545;
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
     color: white;
+    border-color: #f87171;
 }
 
 .btn-delete:hover {
-    background: #c82333;
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
     transform: translateY(-2px);
-    box-shadow: 0 3px 10px rgba(220, 53, 69, 0.3);
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.5);
+    border-color: #fca5a5;
 }
 
 /* Modal Styles */
@@ -350,43 +362,47 @@ body {
 
 .modal-footer {
     padding: 1.5rem 2rem;
-    border-top: 2px solid #444;
+    border-top: 3px solid #334155;
     display: flex;
     justify-content: flex-end;
     gap: 1rem;
-    background: #1a1a1a;
+    background: #0f172a;
 }
 
 .btn-primary {
-    padding: 0.8rem 2rem;
-    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+    padding: 0.9rem 2.5rem;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
     color: white;
-    border: none;
-    border-radius: 8px;
-    font-weight: 600;
+    border: 3px solid #34d399;
+    border-radius: 10px;
+    font-weight: 700;
     cursor: pointer;
     transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
 }
 
 .btn-primary:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.6);
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+    border-color: #6ee7b7;
 }
 
 .btn-secondary {
-    padding: 0.8rem 2rem;
-    background: #333;
-    color: #fff;
-    border: 2px solid #444;
-    border-radius: 8px;
-    font-weight: 600;
+    padding: 0.9rem 2.5rem;
+    background: #fef2f2;
+    color: #dc2626;
+    border: 3px solid #ef4444;
+    border-radius: 10px;
+    font-weight: 700;
     cursor: pointer;
     transition: all 0.3s ease;
 }
 
 .btn-secondary:hover {
-    border-color: #555;
-    color: #fff;
+    border-color: #f87171;
+    background: #fee2e2;
+    color: #991b1b;
 }
 
 /* Empty State */
