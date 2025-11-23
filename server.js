@@ -1243,6 +1243,21 @@ Return ONLY valid JSON (no markdown, no code blocks) with this structure:
 {
     "title": "[Descriptive title based on the services discussed]",
     "effectiveDate": "${todayFormatted}",
+    "parties": {
+        "serviceProvider": {
+            "name": "[Extract from transcript: company name, or 'Service Provider' if not mentioned]",
+            "address": "[Extract full address if mentioned, otherwise 'To be determined']",
+            "email": "[Extract email if mentioned, otherwise 'To be determined']",
+            "phone": "[Extract phone if mentioned, otherwise 'To be determined']"
+        },
+        "client": {
+            "name": "[Extract from transcript: company name, or 'Client' if not mentioned]",
+            "signingAuthority": "",
+            "address": "[Extract full address if mentioned, otherwise 'To be determined']",
+            "email": "[Extract email if mentioned, otherwise 'To be determined']",
+            "phone": "[Extract phone if mentioned, otherwise 'To be determined']"
+        }
+    },
     "sections": [
         {
             "title": "1. AGREEMENT OVERVIEW",
@@ -1425,127 +1440,25 @@ Generate the comprehensive contract JSON now using ONLY information from the tra
             contractData.effectiveDate = todayFormatted;
         }
         
-        // Extract party information from BOTH the AI response AND the original transcript
-        const allContent = contractData.sections?.map(s => s.content).join('\n') || '';
-        const fullSearchContent = `${transcript}\n${allContent}`;
-        
-        const extractPartyInfo = (content, isServiceProvider = true) => {
-            const removeNoise = (str) => str?.replace(/\(.*?\)/g, '').replace(/\[.*?\]/g, '').trim() || '';
-            
-            // Email regex
-            const emailRegex = /[\w.-]+@[\w.-]+\.\w+/g;
-            // Phone regex (matches various formats)
-            const phoneRegex = /\b(?:\+?1[-.\s]?)?\(?([0-9]{3})\)?[-.\s]?([0-9]{3})[-.\s]?([0-9]{4})\b/g;
-            
-            let name = '';
-            let email = '';
-            let phone = '';
-            let address = '';
-            
-            if (isServiceProvider) {
-                // Service Provider extraction patterns
-                const namePatterns = [
-                    // Direct mentions with "from" or company indicators
-                    /(?:I'm|I am|this is)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)\s+(?:from|at|with)\s+([A-Z][A-Za-z0-9\s&.,''-]+?)(?:\s+speaking|,|\.|$)/gi,
-                    /(?:from|representing|at|with)\s+([A-Z][A-Za-z0-9\s&.,''-]+?(?:Inc\.|LLC|Corp\.|Corporation|Ltd\.|Limited|Solutions|Technologies|Consulting|Group|Services))/gi,
-                    // Contract content patterns from AI-generated sections
-                    /(?:service\s*provider|provider)[:\s-]*['"]?([A-Z][A-Za-z0-9\s&.,''-]+?)['"]?(?:\s+\(|shall|will|agrees|\s+and|,|\.|$)/gi,
-                    /(?:between|by)\s+([A-Z][A-Za-z0-9\s&.,''-]+?(?:Inc\.|LLC|Corp\.|Corporation|Ltd\.|Limited|Solutions|Technologies|Consulting|Group|Services))/gi,
-                    /(?:agreement\s+(?:is\s+)?entered\s+into\s+(?:by|between))\s+([A-Z][A-Za-z0-9\s&.,''-]+?)(?:\s+and|,|\()/gi,
-                    // Look for company name in formal contract sections
-                    /This\s+Agreement\s+is\s+entered\s+into\s+between\s+([A-Z][A-Za-z0-9\s&.,''-]+?)(?:,|\s+\()/gi
-                ];
-                
-                for (const pattern of namePatterns) {
-                    pattern.lastIndex = 0; // Reset regex
-                    const match = pattern.exec(content);
-                    if (match) {
-                        const candidate = removeNoise(match[match.length - 1] || match[1]);
-                        // Validate: not too short, not too long, doesn't contain weird phrases
-                        if (candidate && candidate.length > 2 && candidate.length < 100 &&
-                            !candidate.toLowerCase().includes('will deliver') &&
-                            !candidate.toLowerCase().includes('shall provide') &&
-                            !candidate.toLowerCase().includes('agrees to') &&
-                            !candidate.toLowerCase().match(/^(the|and|or|for|with|to|be)$/i)) {
-                            name = candidate;
-                            break;
-                        }
-                    }
-                }
-            } else {
-                // Client extraction patterns
-                const namePatterns = [
-                    // Direct mentions
-                    /(?:speaking with|meeting with|call with|discussing with)\s+([A-Z][A-Za-z0-9\s&.,''-]+?)(?:,|\s+regarding|\s+about|\s+to)/gi,
-                    /(?:and|with)\s+([A-Z][A-Za-z0-9\s&.,''-]+?(?:Bank|Financial|Corp\.|Corporation|Inc\.|LLC|Ltd\.|Limited|Enterprises|Industries|Institute))(?:\s+regarding|,|\.|$)/gi,
-                    // Contract content
-                    /(?:client|customer)[:\s-]*['"]?([A-Z][A-Za-z0-9\s&.,''-]+?)['"]?(?:\s+\(|shall|will|agrees|\s+and|,|\.|$)/gi,
-                    /(?:and)\s+([A-Z][A-Za-z0-9\s&.,''-]+?)(?:\s+\(|,\s+(?:hereinafter|a|the))/gi,
-                    // Look for "Client:" or second party in agreement
-                    /(?:entered\s+into\s+between\s+[^,]+,\s+and)\s+([A-Z][A-Za-z0-9\s&.,''-]+?)(?:,|\s+\()/gi
-                ];
-                
-                for (const pattern of namePatterns) {
-                    pattern.lastIndex = 0; // Reset regex
-                    const match = pattern.exec(content);
-                    if (match) {
-                        const candidate = removeNoise(match[1]);
-                        // Validate and exclude service provider indicators
-                        if (candidate && candidate.length > 2 && candidate.length < 100 &&
-                            !candidate.toLowerCase().includes('provider') &&
-                            !candidate.toLowerCase().includes('service') &&
-                            !candidate.toLowerCase().includes('solutions') &&
-                            !candidate.toLowerCase().includes('consulting') &&
-                            !candidate.toLowerCase().includes('will deliver') &&
-                            !candidate.toLowerCase().includes('shall provide') &&
-                            !candidate.toLowerCase().match(/^(the|and|or|for|with|to|be)$/i)) {
-                            name = candidate;
-                            break;
-                        }
-                    }
-                }
-            }
-            
-            // Extract email
-            const emailMatches = content.match(emailRegex);
-            if (emailMatches && emailMatches.length > 0) {
-                email = isServiceProvider ? emailMatches[0] : (emailMatches[1] || emailMatches[0]);
-            }
-            
-            // Extract phone
-            const phoneMatches = content.match(phoneRegex);
-            if (phoneMatches && phoneMatches.length > 0) {
-                phone = isServiceProvider ? phoneMatches[0] : (phoneMatches[1] || phoneMatches[0]);
-            }
-            
-            // If still no name, use default (don't show "To be determined" for names)
-            if (!name || name.includes('⚠️') || name.toLowerCase().includes('to be determined')) {
-                name = isServiceProvider ? 'Service Provider' : 'Client';
-            }
-            
-            return {
-                name: name || (isServiceProvider ? 'Service Provider' : 'Client'),
-                email: email || 'To be determined',
-                phone: phone || 'To be determined',
-                address: address || 'To be determined'
-            };
-        };
-        
-        // Extract both parties
-        const serviceProviderInfo = extractPartyInfo(fullSearchContent, true);
-        const clientInfo = extractPartyInfo(fullSearchContent, false);
-        
-        // Map the OpenAI response to our database schema structure
+        // Map the OpenAI response directly - trust GPT-4o's extraction from the prompt
         const contractToSave = {
             userId,
             originalTranscript: transcript,
-            contractTitle: contractData.title,
+            contractTitle: contractData.title || 'Service Agreement',
             effectiveDate: contractData.effectiveDate,
-            parties: {
-                serviceProvider: serviceProviderInfo,
+            parties: contractData.parties || {
+                serviceProvider: {
+                    name: 'Service Provider',
+                    address: 'To be determined',
+                    email: 'To be determined',
+                    phone: 'To be determined'
+                },
                 client: {
-                    ...clientInfo,
-                    signingAuthority: ''
+                    name: 'Client',
+                    signingAuthority: '',
+                    address: 'To be determined',
+                    email: 'To be determined',
+                    phone: 'To be determined'
                 }
             },
             sections: contractData.sections || []
