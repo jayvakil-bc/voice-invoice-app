@@ -1050,12 +1050,16 @@ STEP 5: CHECK FOR SPECIAL TERMS
 □ Ownership/IP rights mentioned?
 □ Confidentiality requirements stated?
 □ Performance metrics or goals discussed? (With specific percentages and consequences?)
+□ SLA commitments with specific metrics? (Uptime %, response times, availability targets?)
+□ SLA penalty mechanisms? (Service credits, refunds, remedies for breach?)
 □ Termination conditions specified? (Material breach, cure periods, binding commitment?)
 □ Contract duration explicitly stated? (Including whether it's binding?)
 □ Training and support details? (Team names, duration, topics, CSM assignment?)
 □ Data volumes mentioned? (Terabytes, records, structured vs unstructured?)
 □ System counts and names? (How many, which specific systems?)
 □ Implementation milestones? (Week-by-week breakdown?)
+□ Specific project dates? (Kickoff date, go-live date, deadline context?)
+□ Business context? (Seasonal considerations, urgency drivers, strategic timing?)
 □ Governing law and jurisdiction? (State, county, arbitration rules?)
 
 STEP 6: FLAG WHAT'S MISSING OR UNCLEAR
@@ -1187,6 +1191,40 @@ Extract specific details:
 - CSM assignment duration and meeting frequency
 - Self-sufficiency timeline
 
+10. SERVICE LEVEL AGREEMENTS (TIER 1 PRIORITY)
+IF the transcription mentions:
+- Uptime commitments (99%, 99.9%, 99.95%, etc.)
+- Response time requirements (<200ms, <500ms, etc.)
+- Support availability (24/7, business hours, etc.)
+- Performance targets with percentages (95% of requests, etc.)
+- Consequences for missing SLAs
+
+THEN add complete SLA structure in Section 3 (Payment Terms) or create dedicated SLA subsection in Section 4:
+"Service Level Agreements:\\n
+ a) Uptime: Service Provider commits to [X]% uptime [measured how/when]\\n
+ b) Response Times: [Y] API response times for [Z]% of requests [measured via what tool]\\n
+ c) Support Availability: [24/7 monitoring, X hours of monthly support time]\\n
+ d) SLA Breach Remedies: If Service Provider fails to meet SLAs, [specific remedy: service credits proportional to breach, refunds, etc.]\\n
+ e) Measurement: [How SLAs are measured, reporting frequency, dispute resolution]"
+
+11. PROJECT TIMELINE & BUSINESS CONTEXT (TIER 2 PRIORITY)
+IF transcription mentions specific dates, deadlines, or strategic timing:
+Extract and include in Section 2 (Scope of Work) or Section 7 (Term & Termination):
+- Kickoff date (e.g., "December 15th")
+- Go-live target (e.g., "late June, early July 2026")
+- Project duration (e.g., "7 months total", "by month 7")
+- Business context (e.g., "want this done by Q2", "stabilize before Q4 busy season", "budget approved last month")
+- Strategic rationale (e.g., "CTO has been pushing for this", "Operations approved budget")
+
+Format as:
+"Project Timeline:\\n
+ - Kickoff: [Specific date or condition]\\n
+ - Phase 1 Completion: [Date or duration]\\n
+ - Phase 2 Completion: [Date or duration]\\n
+ - Go-Live Target: [Specific date or timeframe]\\n
+ - Total Duration: [X months/weeks]\\n
+ - Business Context: [Strategic timing, seasonal considerations, urgency drivers]"
+
 CRITICAL: DO NOT add late payment penalties, interest charges, or payment-related fees unless explicitly mentioned in the transcription.
 
 ═══════════════════════════════════════════════════════════════════════
@@ -1212,11 +1250,11 @@ Return ONLY valid JSON (no markdown, no code blocks) with this structure:
         },
         {
             "title": "2. SCOPE OF WORK",
-            "content": "[Extract ALL services, deliverables, timelines, milestones, technical specs, system counts, data volumes, implementation phases, operational notes, exclusions - CAPTURE EVERYTHING mentioned about what's being delivered]"
+            "content": "[Extract ALL services, deliverables, timelines, milestones, technical specs, system counts, data volumes, implementation phases, operational notes, exclusions - CAPTURE EVERYTHING mentioned about what's being delivered. Include specific project dates (kickoff, go-live, deadlines) and business context (seasonal timing, urgency drivers, strategic rationale).]"
         },
         {
             "title": "3. PAYMENT TERMS",
-            "content": "[Extract ALL payment information: total amounts, fee breakdowns, payment schedules, timing, methods, volume tiers, incremental pricing, performance guarantees with specific remedies, bonus structures, caps, when payments trigger, how invoices are sent - CAPTURE EVERY FINANCIAL DETAIL]"
+            "content": "[Extract ALL payment information: total amounts, fee breakdowns, payment schedules, timing, methods, volume tiers, incremental pricing, performance guarantees with specific remedies, bonus structures, caps, when payments trigger, how invoices are sent - CAPTURE EVERY FINANCIAL DETAIL. CRITICAL: Include SLA commitments with specific metrics (uptime %, response times, availability targets) and SLA penalty mechanisms (service credits, refunds, consequences for breach).]"
         },
         {
             "title": "4. RESPONSIBILITIES",
