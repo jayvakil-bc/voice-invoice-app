@@ -355,8 +355,84 @@ function showPreviewModal(contractData) {
         });
     }
     
+    // Auto-detect and highlight uncertain/ambiguous fields that need confirmation
+    highlightUncertainFields(contractData);
+    
+    // Add click listeners for confirmation
+    addConfirmationListeners();
+    
     modal.classList.remove('hidden');
     modal.classList.add('active');
+}
+
+// Auto-detect uncertain fields that need user confirmation
+function highlightUncertainFields(contractData) {
+    const uncertainPatterns = [
+        /to be determined/gi,
+        /tbd/gi,
+        /pending/gi,
+        /unclear/gi,
+        /not specified/gi,
+        /to be confirmed/gi,
+        /\[.*?\]/g,  // [placeholder text]
+        /\{.*?\}/g,  // {placeholder text}
+        /___+/g,     // underscores
+        /\?\?+/g,    // question marks
+        /AMBIGUOUS/gi,
+        /MISSING/gi
+    ];
+    
+    // Check all contenteditable elements
+    const editableElements = document.querySelectorAll('[contenteditable="true"]');
+    
+    editableElements.forEach(element => {
+        const text = element.textContent || element.innerHTML;
+        let hasUncertainty = false;
+        
+        // Check for uncertain patterns
+        for (const pattern of uncertainPatterns) {
+            if (pattern.test(text)) {
+                hasUncertainty = true;
+                break;
+            }
+        }
+        
+        // Check if field is empty or too short
+        if (text.trim().length < 3) {
+            hasUncertainty = true;
+        }
+        
+        // Add needs-confirmation class if uncertain
+        if (hasUncertainty) {
+            element.classList.add('needs-confirmation');
+            element.setAttribute('data-needs-confirmation', 'true');
+        }
+    });
+}
+
+// Add click listeners to confirm fields
+function addConfirmationListeners() {
+    const uncertainFields = document.querySelectorAll('.needs-confirmation');
+    
+    uncertainFields.forEach(field => {
+        // Double-click to confirm
+        field.addEventListener('dblclick', function() {
+            if (this.classList.contains('needs-confirmation')) {
+                this.classList.remove('needs-confirmation');
+                this.classList.add('confirmed');
+                this.setAttribute('data-needs-confirmation', 'false');
+                this.setAttribute('data-confirmed', 'true');
+                
+                // Remove confirmed class after 3 seconds
+                setTimeout(() => {
+                    this.classList.remove('confirmed');
+                }, 3000);
+            }
+        });
+        
+        // Show tooltip on hover
+        field.setAttribute('title', 'Double-click to confirm this field is correct');
+    });
 }
 
 // Close preview modal
