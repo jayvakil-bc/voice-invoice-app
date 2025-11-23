@@ -1021,7 +1021,7 @@ Before generating the contract, follow this extraction process:
 STEP 1: IDENTIFY CORE ENTITIES
 □ Who is the service provider? (Exact name/entity)
 □ Who is the client? (Exact name/entity)
-□ What is the effective date? (Exact date or clear start condition)
+□ What is the effective date? (USE ${todayFormatted} - DO NOT invent dates from the past)
 
 STEP 2: MAP DELIVERABLES
 □ What specific services will be provided?
@@ -1059,7 +1059,7 @@ STEP 5: CHECK FOR SPECIAL TERMS
 □ System counts and names? (How many, which specific systems?)
 □ Implementation milestones? (Week-by-week breakdown?)
 □ Specific project dates? (Kickoff date, go-live date, deadline context?)
-□ Business context? (Seasonal considerations, urgency drivers, strategic timing?)
+□ Business context? (Seasonal considerations, urgency drivers, strategic timing, approval history, stakeholder context?)
 □ Governing law and jurisdiction? (State, county, arbitration rules?)
 
 STEP 6: FLAG WHAT'S MISSING OR UNCLEAR
@@ -1261,19 +1261,19 @@ Return ONLY valid JSON (no markdown, no code blocks) with this structure:
     "sections": [
         {
             "title": "1. AGREEMENT OVERVIEW",
-            "content": "[Extract and format professionally: Service Provider name, Client name, Effective Date, Contract Duration, Purpose/Description of agreement]"
+            "content": "[Extract and format professionally: Service Provider name, Client name, Effective Date (MUST USE ${todayFormatted} - DO NOT write dates like 'November 23, 2023'), Contract Duration, Purpose/Description of agreement]"
         },
         {
             "title": "2. SCOPE OF WORK",
-            "content": "[Extract ALL services, deliverables, timelines, milestones, technical specs, system counts, data volumes, implementation phases, operational notes, exclusions - CAPTURE EVERYTHING mentioned about what's being delivered. Include specific project dates (kickoff, go-live, deadlines) and business context (seasonal timing, urgency drivers, strategic rationale).]"
+            "content": "[Extract ALL services, deliverables, timelines, milestones, technical specs, system counts, data volumes (include terabytes, data types like structured/unstructured), implementation phases, operational notes, exclusions - CAPTURE EVERYTHING mentioned about what's being delivered. Include specific project dates (kickoff, go-live, deadlines) and business context (seasonal timing, urgency drivers, strategic rationale, stakeholder approval history, budget context).]"
         },
         {
             "title": "3. PAYMENT TERMS",
-            "content": "[Extract ALL payment information: total amounts, fee breakdowns, payment schedules, timing, methods, volume tiers, incremental pricing, performance guarantees with specific remedies, bonus structures, caps, when payments trigger, how invoices are sent - CAPTURE EVERY FINANCIAL DETAIL. CRITICAL: Include SLA commitments with specific metrics (uptime %, response times, availability targets) and SLA penalty mechanisms (service credits, refunds, consequences for breach).]"
+            "content": "[Extract ALL payment information: total amounts, fee breakdowns, payment schedules, timing, methods, volume tiers, incremental pricing, performance guarantees with specific remedies, bonus structures, caps, when payments trigger, how invoices are sent - CAPTURE EVERY FINANCIAL DETAIL. CRITICAL: Include SLA commitments with specific metrics (uptime %, response times, availability targets) and SLA penalty mechanisms with detailed formulas (service credits proportional to breach duration/severity, specific calculation method, refunds, consequences for breach).]"
         },
         {
             "title": "4. RESPONSIBILITIES",
-            "content": "[Extract what Client must do and what Service Provider must do. Include training details, support details, CSM assignments, meeting frequencies, approval processes, cooperation requirements - CAPTURE ALL OBLIGATIONS]"
+            "content": "[Extract what Client must do (provide access, collaborate on compliance, approve deliverables) and what Service Provider must do (migration execution, API integration, portal development, incident response, performance optimization, warranty support). Include training details, support details, CSM assignments, meeting frequencies, approval processes, cooperation requirements - CAPTURE ALL OBLIGATIONS]"
         },
         {
             "title": "5. INTELLECTUAL PROPERTY & USAGE RIGHTS",
@@ -1315,12 +1315,14 @@ CORE PRINCIPLE: Your job is to CAPTURE EVERYTHING from the transcription and org
 1. COMPREHENSIVE EXTRACTION:
    Read the ENTIRE transcription carefully and identify ALL mentioned:
    - Party information (names, roles, titles, companies)
-   - Services/deliverables (be specific - quantities, specs, systems, data volumes)
+   - Services/deliverables (be specific - quantities, specs, systems, data volumes in terabytes/gigabytes)
    - Payment details (amounts, timing, methods, volume tiers, incremental costs, guarantees)
    - Timeline/milestones (phases, weeks, deadlines, kickoff timing)
    - Responsibilities (who does what, when, with what resources)
    - Special terms (performance metrics, training, support, ROI context)
    - Legal requirements (termination, IP, confidentiality, compliance)
+   - Business context (stakeholder approvals, budget history, urgency drivers, seasonal considerations)
+   - Data infrastructure (terabytes, structured vs unstructured, database types, file storage)
 
 2. INTELLIGENT ORGANIZATION:
    - Group related information together logically
@@ -1341,6 +1343,9 @@ CORE PRINCIPLE: Your job is to CAPTURE EVERYTHING from the transcription and org
    - If transcription says "95% accuracy" → Include the percentage, validation method, and consequence
    - If transcription says "$1,500/month per system" → Include the per-unit cost, prorating logic, and example calculation
    - If transcription says "8-week timeline" → Break down the week-by-week milestones if provided
+   - If transcription says "8 terabytes" → Include data volume, data types (structured/unstructured)
+   - If transcription says "CTO pushing", "budget approved" → Include stakeholder context and approval history
+   - If transcription says "retail banking customers", "Q4 busy season" → Include business context and industry details
    - DO NOT summarize away specifics - contracts need precision
 
 5. ADAPTIVE STRUCTURE:
@@ -1377,11 +1382,28 @@ CORE PRINCIPLE: Your job is to CAPTURE EVERYTHING from the transcription and org
       CRITICAL: Sections 5 (IP Rights) and 6 (Confidentiality/DPA) are now auto-generated with industry-standard language. DO NOT flag these sections as missing.
 
 7. EXTRACT DATA VOLUMES & SYSTEM COUNTS:
-   - Always include specific numbers: "15 terabytes", "17 systems", "50 requests per month"
+   - Always include specific numbers: "15 terabytes", "8 terabytes", "17 systems", "50 requests per month"
    - List ALL system names mentioned, not just a count
-   - Include data types: "structured data", "unstructured data", "PII", etc.
+   - Include data types: "structured data", "unstructured data", "database files", "file storage", "PII", etc.
+   - Include specific quantities mentioned in transcription (e.g., "8 terabytes of data - mix of structured databases and unstructured file storage")
 
-8. EXTRACT DETAILED DELIVERABLES:
+8. EXTRACT BUSINESS CONTEXT & STAKEHOLDER DETAILS:
+   If transcription mentions approval history, urgency drivers, or stakeholder context:
+   - CTO/executive pushing for project
+   - Budget approval timing ("approved last month", "approved last quarter")
+   - Industry context ("retail banking customers", "financial institution", "healthcare provider")
+   - Seasonal considerations ("Q4 busy season", "stabilize before peak period")
+   - Strategic rationale ("want this done by Q2", "ahead of compliance deadline")
+
+8. EXTRACT BUSINESS CONTEXT & STAKEHOLDER DETAILS:
+   If transcription mentions approval history, urgency drivers, or stakeholder context:
+   - CTO/executive pushing for project
+   - Budget approval timing ("approved last month", "approved last quarter")
+   - Industry context ("retail banking customers", "financial institution", "healthcare provider")
+   - Seasonal considerations ("Q4 busy season", "stabilize before peak period")
+   - Strategic rationale ("want this done by Q2", "ahead of compliance deadline")
+
+9. EXTRACT DETAILED DELIVERABLES:
    If transcription mentions comprehensive deliverables, include specific items like:
    - Data inventory with classifications
    - Real-time vs snapshot reporting
@@ -1393,16 +1415,22 @@ CORE PRINCIPLE: Your job is to CAPTURE EVERYTHING from the transcription and org
    - Machine learning-based classification
    - Retention policy enforcement details
 
-9. EXTRACT INCREMENTAL PRICING:
+10. EXTRACT INCREMENTAL PRICING:
    If transcription mentions adding systems/users/capacity:
    - Per-unit costs (e.g., "$1,500/month per system")
    - Prorating calculations (e.g., "6 months into 2-year contract = $9,000 for remaining 18 months")
    - What's included (e.g., "integration engineering work included")
    - Renewal treatment (e.g., "rolls into standard renewal pricing")
 
-10. REMEMBER: All content comes from the transcription, NOT from any example.
+11. CRITICAL DATE HANDLING:
+   - ALWAYS use ${todayFormatted} as the effective date in Section 1
+   - DO NOT write historical dates like "November 23, 2023" or "effective as of November 23, 2023"
+   - The correct format is: "This Agreement is between [Service Provider] and [Client] effective as of ${todayFormatted}"
+   - Extract project kickoff dates, go-live dates, and deadlines separately in Section 2 (Scope of Work)
 
-8. DO NOT ADD CLAUSES NOT MENTIONED:
+12. REMEMBER: All content comes from the transcription, NOT from any example.
+
+13. DO NOT ADD CLAUSES NOT MENTIONED:
    - NEVER add late payment terms, penalties, or fees unless explicitly stated
    - NEVER add clauses about topics not discussed
    - Only include what was actually mentioned
