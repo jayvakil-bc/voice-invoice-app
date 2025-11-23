@@ -1407,20 +1407,28 @@ Generate the comprehensive contract JSON now using ONLY information from the tra
             if (isServiceProvider) {
                 // Service Provider extraction patterns
                 const namePatterns = [
-                    // Direct mentions in transcript
-                    /(?:I'm|I am|this is)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)\s+from\s+([A-Z][A-Za-z0-9\s&.,''-]+?)(?:\s+speaking|,|\.|$)/gi,
-                    /(?:from|representing)\s+([A-Z][A-Za-z0-9\s&.,''-]+?(?:Inc\.|LLC|Corp\.|Corporation|Ltd\.|Limited|Solutions|Technologies|Consulting|Group))/gi,
-                    // Contract content patterns
-                    /(?:service\s*provider|provider)[:\s-]*['"]?([A-Z][A-Za-z0-9\s&.,''-]+?)['"]?(?:\s+\(|\s+and|,|\.|$)/gi,
-                    /(?:between|by)\s+([A-Z][A-Za-z0-9\s&.,''-]+?(?:Inc\.|LLC|Corp\.|Corporation|Ltd\.|Limited|Solutions|Technologies))/gi,
-                    /(?:agreement\s+(?:is\s+)?entered\s+into\s+by)\s+([A-Z][A-Za-z0-9\s&.,''-]+?)(?:\s+and|,|\()/gi
+                    // Direct mentions with "from" or company indicators
+                    /(?:I'm|I am|this is)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)\s+(?:from|at|with)\s+([A-Z][A-Za-z0-9\s&.,''-]+?)(?:\s+speaking|,|\.|$)/gi,
+                    /(?:from|representing|at|with)\s+([A-Z][A-Za-z0-9\s&.,''-]+?(?:Inc\.|LLC|Corp\.|Corporation|Ltd\.|Limited|Solutions|Technologies|Consulting|Group|Services))/gi,
+                    // Contract content patterns from AI-generated sections
+                    /(?:service\s*provider|provider)[:\s-]*['"]?([A-Z][A-Za-z0-9\s&.,''-]+?)['"]?(?:\s+\(|shall|will|agrees|\s+and|,|\.|$)/gi,
+                    /(?:between|by)\s+([A-Z][A-Za-z0-9\s&.,''-]+?(?:Inc\.|LLC|Corp\.|Corporation|Ltd\.|Limited|Solutions|Technologies|Consulting|Group|Services))/gi,
+                    /(?:agreement\s+(?:is\s+)?entered\s+into\s+(?:by|between))\s+([A-Z][A-Za-z0-9\s&.,''-]+?)(?:\s+and|,|\()/gi,
+                    // Look for company name in formal contract sections
+                    /This\s+Agreement\s+is\s+entered\s+into\s+between\s+([A-Z][A-Za-z0-9\s&.,''-]+?)(?:,|\s+\()/gi
                 ];
                 
                 for (const pattern of namePatterns) {
+                    pattern.lastIndex = 0; // Reset regex
                     const match = pattern.exec(content);
                     if (match) {
                         const candidate = removeNoise(match[match.length - 1] || match[1]);
-                        if (candidate && candidate.length > 2 && candidate.length < 100) {
+                        // Validate: not too short, not too long, doesn't contain weird phrases
+                        if (candidate && candidate.length > 2 && candidate.length < 100 &&
+                            !candidate.toLowerCase().includes('will deliver') &&
+                            !candidate.toLowerCase().includes('shall provide') &&
+                            !candidate.toLowerCase().includes('agrees to') &&
+                            !candidate.toLowerCase().match(/^(the|and|or|for|with|to|be)$/i)) {
                             name = candidate;
                             break;
                         }
@@ -1430,20 +1438,29 @@ Generate the comprehensive contract JSON now using ONLY information from the tra
                 // Client extraction patterns
                 const namePatterns = [
                     // Direct mentions
-                    /(?:speaking with|meeting with|call with)\s+([A-Z][A-Za-z0-9\s&.,''-]+?)(?:,|\s+regarding|\s+about)/gi,
-                    /(?:and|with)\s+([A-Z][A-Za-z0-9\s&.,''-]+?(?:Bank|Corp\.|Corporation|Inc\.|LLC|Ltd\.|Limited|Enterprises|Industries))(?:\s+regarding|,|\.|$)/gi,
+                    /(?:speaking with|meeting with|call with|discussing with)\s+([A-Z][A-Za-z0-9\s&.,''-]+?)(?:,|\s+regarding|\s+about|\s+to)/gi,
+                    /(?:and|with)\s+([A-Z][A-Za-z0-9\s&.,''-]+?(?:Bank|Financial|Corp\.|Corporation|Inc\.|LLC|Ltd\.|Limited|Enterprises|Industries|Institute))(?:\s+regarding|,|\.|$)/gi,
                     // Contract content
-                    /(?:client|customer)[:\s-]*['"]?([A-Z][A-Za-z0-9\s&.,''-]+?)['"]?(?:\s+\(|\s+and|,|\.|$)/gi,
-                    /(?:and)\s+([A-Z][A-Za-z0-9\s&.,''-]+?)(?:\s+\(|\s+with)/gi
+                    /(?:client|customer)[:\s-]*['"]?([A-Z][A-Za-z0-9\s&.,''-]+?)['"]?(?:\s+\(|shall|will|agrees|\s+and|,|\.|$)/gi,
+                    /(?:and)\s+([A-Z][A-Za-z0-9\s&.,''-]+?)(?:\s+\(|,\s+(?:hereinafter|a|the))/gi,
+                    // Look for "Client:" or second party in agreement
+                    /(?:entered\s+into\s+between\s+[^,]+,\s+and)\s+([A-Z][A-Za-z0-9\s&.,''-]+?)(?:,|\s+\()/gi
                 ];
                 
                 for (const pattern of namePatterns) {
+                    pattern.lastIndex = 0; // Reset regex
                     const match = pattern.exec(content);
                     if (match) {
                         const candidate = removeNoise(match[1]);
+                        // Validate and exclude service provider indicators
                         if (candidate && candidate.length > 2 && candidate.length < 100 &&
                             !candidate.toLowerCase().includes('provider') &&
-                            !candidate.toLowerCase().includes('solutions')) {
+                            !candidate.toLowerCase().includes('service') &&
+                            !candidate.toLowerCase().includes('solutions') &&
+                            !candidate.toLowerCase().includes('consulting') &&
+                            !candidate.toLowerCase().includes('will deliver') &&
+                            !candidate.toLowerCase().includes('shall provide') &&
+                            !candidate.toLowerCase().match(/^(the|and|or|for|with|to|be)$/i)) {
                             name = candidate;
                             break;
                         }
@@ -1463,7 +1480,7 @@ Generate the comprehensive contract JSON now using ONLY information from the tra
                 phone = isServiceProvider ? phoneMatches[0] : (phoneMatches[1] || phoneMatches[0]);
             }
             
-            // If still no name, use default
+            // If still no name, use default (don't show "To be determined" for names)
             if (!name || name.includes('⚠️') || name.toLowerCase().includes('to be determined')) {
                 name = isServiceProvider ? 'Service Provider' : 'Client';
             }
