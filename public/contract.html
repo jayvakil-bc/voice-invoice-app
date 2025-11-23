@@ -166,6 +166,45 @@
                     <div id="contractSectionsContainer" class="contract-sections-container">
                         <!-- Sections will be dynamically inserted here -->
                     </div>
+
+                    <!-- Signature Section -->
+                    <div class="preview-section signature-section">
+                        <div class="preview-section-title">SIGNATURES</div>
+                        
+                        <div class="signature-container">
+                            <!-- Service Provider Signature -->
+                            <div class="signature-box">
+                                <div class="signature-label">Service Provider</div>
+                                <div class="signature-canvas-wrapper">
+                                    <canvas id="signatureCanvasSP" class="signature-canvas"></canvas>
+                                    <div class="signature-placeholder" id="signaturePlaceholderSP">
+                                        Click to sign
+                                    </div>
+                                </div>
+                                <div class="signature-controls">
+                                    <button class="signature-btn" onclick="clearSignature('serviceProvider')">Clear</button>
+                                    <input type="text" id="signedBySP" placeholder="Your full name" class="signature-name-input">
+                                </div>
+                                <div class="signature-status" id="signatureStatusSP"></div>
+                            </div>
+
+                            <!-- Client Signature -->
+                            <div class="signature-box">
+                                <div class="signature-label">Client</div>
+                                <div class="signature-canvas-wrapper">
+                                    <canvas id="signatureCanvasClient" class="signature-canvas"></canvas>
+                                    <div class="signature-placeholder" id="signaturePlaceholderClient">
+                                        Click to sign
+                                    </div>
+                                </div>
+                                <div class="signature-controls">
+                                    <button class="signature-btn" onclick="clearSignature('client')">Clear</button>
+                                    <input type="text" id="signedByClient" placeholder="Client's full name" class="signature-name-input">
+                                </div>
+                                <div class="signature-status" id="signatureStatusClient"></div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div class="preview-modal-footer">

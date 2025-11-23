@@ -1334,3 +1334,128 @@ h1 {
     background: linear-gradient(135deg, #059669 0%, #047857 100%);
     border-color: #6ee7b7;
 }
+
+/* ==================== SIGNATURE SECTION ==================== */
+.signature-section {
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 3px solid #e5e7eb;
+}
+
+.signature-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    margin-top: 1.5rem;
+}
+
+.signature-box {
+    background: #ffffff;
+    border: 2px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.signature-label {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #e5e7eb;
+}
+
+.signature-canvas-wrapper {
+    position: relative;
+    background: #f9fafb;
+    border: 2px dashed #cbd5e1;
+    border-radius: 8px;
+    height: 150px;
+    margin-bottom: 1rem;
+    overflow: hidden;
+    cursor: crosshair;
+}
+
+.signature-canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+    touch-action: none;
+}
+
+.signature-placeholder {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #94a3b8;
+    font-size: 1rem;
+    font-weight: 600;
+    pointer-events: none;
+    user-select: none;
+}
+
+.signature-placeholder.hidden {
+    display: none;
+}
+
+.signature-controls {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    margin-bottom: 0.75rem;
+}
+
+.signature-btn {
+    background: #ef4444;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 0.9rem;
+}
+
+.signature-btn:hover {
+    background: #dc2626;
+    transform: translateY(-1px);
+}
+
+.signature-name-input {
+    flex: 1;
+    padding: 0.6rem 1rem;
+    border: 2px solid #e5e7eb;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    transition: all 0.2s ease;
+}
+
+.signature-name-input:focus {
+    outline: none;
+    border-color: #10b981;
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+.signature-status {
+    font-size: 0.85rem;
+    padding: 0.5rem;
+    border-radius: 6px;
+    text-align: center;
+    font-weight: 600;
+}
+
+.signature-status.signed {
+    background: #d1fae5;
+    color: #065f46;
+    border: 1px solid #10b981;
+}
+
+.signature-status.unsigned {
+    background: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #ef4444;
+}
+

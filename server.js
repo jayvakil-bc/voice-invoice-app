@@ -104,6 +104,25 @@ const contractSchema = new mongoose.Schema({
         content: String,
         order: Number
     }],
+    signatures: {
+        serviceProvider: {
+            signatureData: String,  // Base64 encoded signature image
+            signedBy: String,       // Name of person who signed
+            signedAt: Date,
+            ipAddress: String
+        },
+        client: {
+            signatureData: String,
+            signedBy: String,
+            signedAt: Date,
+            ipAddress: String
+        }
+    },
+    status: {
+        type: String,
+        enum: ['draft', 'awaiting_signatures', 'partially_signed', 'fully_signed'],
+        default: 'draft'
+    },
     createdAt: { type: Date, default: Date.now }
 });
 
@@ -1563,6 +1582,103 @@ app.delete('/api/contracts/:id', async (req, res) => {
     }
 });
 
+// Add signature to contract
+app.post('/api/contracts/:id/sign', requireAuth, async (req, res) => {
+    try {
+        const { party, signatureData, signedBy } = req.body;
+        
+        if (!party || !signatureData || !signedBy) {
+            return res.status(400).json({ error: 'Missing required fields: party, signatureData, signedBy' });
+        }
+        
+        if (party !== 'serviceProvider' && party !== 'client') {
+            return res.status(400).json({ error: 'Party must be either "serviceProvider" or "client"' });
+        }
+        
+        const contract = await Contract.findById(req.params.id);
+        if (!contract) return res.status(404).json({ error: 'Contract not found' });
+        
+        // Initialize signatures object if it doesn't exist
+        if (!contract.signatures) {
+            contract.signatures = {};
+        }
+        
+        // Add signature
+        contract.signatures[party] = {
+            signatureData,
+            signedBy,
+            signedAt: new Date(),
+            ipAddress: req.ip || req.connection.remoteAddress
+        };
+        
+        // Update contract status
+        const serviceProviderSigned = contract.signatures.serviceProvider?.signatureData;
+        const clientSigned = contract.signatures.client?.signatureData;
+        
+        if (serviceProviderSigned && clientSigned) {
+            contract.status = 'fully_signed';
+        } else if (serviceProviderSigned || clientSigned) {
+            contract.status = 'partially_signed';
+        }
+        
+        await contract.save();
+        
+        console.log(`[Contract Service] Signature added for ${party} on contract:`, contract._id);
+        
+        res.json({ 
+            success: true, 
+            status: contract.status,
+            signatures: contract.signatures
+        });
+        
+    } catch (error) {
+        console.error('[Contract Service] Signature error:', error);
+        res.status(500).json({ error: 'Failed to add signature' });
+    }
+});
+
+// Remove signature from contract
+app.delete('/api/contracts/:id/sign/:party', requireAuth, async (req, res) => {
+    try {
+        const { party } = req.params;
+        
+        if (party !== 'serviceProvider' && party !== 'client') {
+            return res.status(400).json({ error: 'Party must be either "serviceProvider" or "client"' });
+        }
+        
+        const contract = await Contract.findById(req.params.id);
+        if (!contract) return res.status(404).json({ error: 'Contract not found' });
+        
+        // Remove signature
+        if (contract.signatures && contract.signatures[party]) {
+            contract.signatures[party] = undefined;
+        }
+        
+        // Update contract status
+        const serviceProviderSigned = contract.signatures?.serviceProvider?.signatureData;
+        const clientSigned = contract.signatures?.client?.signatureData;
+        
+        if (!serviceProviderSigned && !clientSigned) {
+            contract.status = 'draft';
+        } else if (serviceProviderSigned || clientSigned) {
+            contract.status = 'partially_signed';
+        }
+        
+        await contract.save();
+        
+        console.log(`[Contract Service] Signature removed for ${party} on contract:`, contract._id);
+        
+        res.json({ 
+            success: true, 
+            status: contract.status
+        });
+        
+    } catch (error) {
+        console.error('[Contract Service] Remove signature error:', error);
+        res.status(500).json({ error: 'Failed to remove signature' });
+    }
+});
+
 // Generate PDF
 app.get('/api/contracts/:id/pdf', async (req, res) => {
     try {
@@ -1718,11 +1834,124 @@ app.get('/api/contracts/:id/pdf', async (req, res) => {
             });
         }
         
+        // Signature Section
+        yPos += 30;
+        
+        // Check if we need a new page for signatures
+        if (yPos > 600) {
+            doc.addPage();
+            yPos = 50;
+        }
+        
+        // Signature section title
+        doc.fontSize(14)
+           .font('Helvetica-Bold')
+           .fillColor(brandColor)
+           .text('SIGNATURES', 50, yPos);
+        
+        yPos += 25;
+        
+        // Service Provider Signature
+        doc.fontSize(10)
+           .font('Helvetica-Bold')
+           .fillColor(darkGray)
+           .text('Service Provider:', 50, yPos);
+        
+        yPos += 20;
+        
+        if (contract.signatures?.serviceProvider?.signatureData) {
+            // Draw signature image
+            try {
+                const signatureBuffer = Buffer.from(contract.signatures.serviceProvider.signatureData.replace(/^data:image\/\w+;base64,/, ''), 'base64');
+                doc.image(signatureBuffer, 50, yPos, { width: 200, height: 60 });
+                yPos += 70;
+            } catch (err) {
+                console.error('[Contract PDF] Signature image error:', err);
+                yPos += 60;
+            }
+            
+            // Signature line
+            doc.moveTo(50, yPos).lineTo(250, yPos).stroke();
+            yPos += 5;
+            
+            // Signed by and date
+            doc.fontSize(9)
+               .font('Helvetica')
+               .fillColor(mediumGray)
+               .text(`Signed by: ${contract.signatures.serviceProvider.signedBy}`, 50, yPos);
+            yPos += 12;
+            
+            if (contract.signatures.serviceProvider.signedAt) {
+                const signedDate = new Date(contract.signatures.serviceProvider.signedAt).toLocaleDateString();
+                doc.text(`Date: ${signedDate}`, 50, yPos);
+            }
+            yPos += 20;
+        } else {
+            // Unsigned - show placeholder
+            doc.moveTo(50, yPos + 60).lineTo(250, yPos + 60).stroke();
+            yPos += 65;
+            doc.fontSize(9)
+               .font('Helvetica-Oblique')
+               .fillColor(lightGray)
+               .text('Signature (Not yet signed)', 50, yPos);
+            yPos += 20;
+        }
+        
+        yPos += 20;
+        
+        // Client Signature
+        doc.fontSize(10)
+           .font('Helvetica-Bold')
+           .fillColor(darkGray)
+           .text('Client:', 50, yPos);
+        
+        yPos += 20;
+        
+        if (contract.signatures?.client?.signatureData) {
+            // Draw signature image
+            try {
+                const signatureBuffer = Buffer.from(contract.signatures.client.signatureData.replace(/^data:image\/\w+;base64,/, ''), 'base64');
+                doc.image(signatureBuffer, 50, yPos, { width: 200, height: 60 });
+                yPos += 70;
+            } catch (err) {
+                console.error('[Contract PDF] Signature image error:', err);
+                yPos += 60;
+            }
+            
+            // Signature line
+            doc.moveTo(50, yPos).lineTo(250, yPos).stroke();
+            yPos += 5;
+            
+            // Signed by and date
+            doc.fontSize(9)
+               .font('Helvetica')
+               .fillColor(mediumGray)
+               .text(`Signed by: ${contract.signatures.client.signedBy}`, 50, yPos);
+            yPos += 12;
+            
+            if (contract.signatures.client.signedAt) {
+                const signedDate = new Date(contract.signatures.client.signedAt).toLocaleDateString();
+                doc.text(`Date: ${signedDate}`, 50, yPos);
+            }
+        } else {
+            // Unsigned - show placeholder
+            doc.moveTo(50, yPos + 60).lineTo(250, yPos + 60).stroke();
+            yPos += 65;
+            doc.fontSize(9)
+               .font('Helvetica-Oblique')
+               .fillColor(lightGray)
+               .text('Signature (Not yet signed)', 50, yPos);
+        }
+        
         // Footer
         const footerY = 750;
         doc.fontSize(8)
            .fillColor('#999999')
-           .text('This contract was generated electronically.', 50, footerY, { 
+           .text(`Contract Status: ${contract.status || 'draft'}`, 50, footerY, { 
+               width: 512, 
+               align: 'center' 
+           })
+           .text('This contract was generated electronically.', 50, footerY + 10, { 
                width: 512, 
                align: 'center' 
            });

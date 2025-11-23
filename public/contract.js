@@ -531,3 +531,210 @@ async function saveAndDownloadContract() {
         alert('Failed to save or download contract. Please try again.');
     }
 }
+
+// ==================== SIGNATURE FUNCTIONALITY ====================
+
+// Signature canvas state
+const signatureState = {
+    serviceProvider: {
+        canvas: null,
+        ctx: null,
+        isDrawing: false,
+        hasSignature: false
+    },
+    client: {
+        canvas: null,
+        ctx: null,
+        isDrawing: false,
+        hasSignature: false
+    }
+};
+
+// Initialize signature canvases
+function initializeSignatureCanvases() {
+    ['serviceProvider', 'client'].forEach(party => {
+        const canvasId = party === 'serviceProvider' ? 'signatureCanvasSP' : 'signatureCanvasClient';
+        const canvas = document.getElementById(canvasId);
+        
+        if (!canvas) return;
+        
+        const rect = canvas.parentElement.getBoundingClientRect();
+        canvas.width = rect.width;
+        canvas.height = rect.height;
+        
+        const ctx = canvas.getContext('2d');
+        ctx.strokeStyle = '#000000';
+        ctx.lineWidth = 2;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        
+        signatureState[party].canvas = canvas;
+        signatureState[party].ctx = ctx;
+        
+        // Mouse events
+        canvas.addEventListener('mousedown', (e) => startDrawing(e, party));
+        canvas.addEventListener('mousemove', (e) => draw(e, party));
+        canvas.addEventListener('mouseup', () => stopDrawing(party));
+        canvas.addEventListener('mouseleave', () => stopDrawing(party));
+        
+        // Touch events for mobile
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            const touch = e.touches[0];
+            const mouseEvent = new MouseEvent('mousedown', {
+                clientX: touch.clientX,
+                clientY: touch.clientY
+            });
+            canvas.dispatchEvent(mouseEvent);
+        });
+        
+        canvas.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            const touch = e.touches[0];
+            const mouseEvent = new MouseEvent('mousemove', {
+                clientX: touch.clientX,
+                clientY: touch.clientY
+            });
+            canvas.dispatchEvent(mouseEvent);
+        });
+        
+        canvas.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            const mouseEvent = new MouseEvent('mouseup', {});
+            canvas.dispatchEvent(mouseEvent);
+        });
+    });
+}
+
+function startDrawing(e, party) {
+    signatureState[party].isDrawing = true;
+    const rect = signatureState[party].canvas.getBoundingClientRect();
+    signatureState[party].ctx.beginPath();
+    signatureState[party].ctx.moveTo(
+        e.clientX - rect.left,
+        e.clientY - rect.top
+    );
+    
+    // Hide placeholder
+    const placeholderId = party === 'serviceProvider' ? 'signaturePlaceholderSP' : 'signaturePlaceholderClient';
+    document.getElementById(placeholderId).classList.add('hidden');
+}
+
+function draw(e, party) {
+    if (!signatureState[party].isDrawing) return;
+    
+    const rect = signatureState[party].canvas.getBoundingClientRect();
+    signatureState[party].ctx.lineTo(
+        e.clientX - rect.left,
+        e.clientY - rect.top
+    );
+    signatureState[party].ctx.stroke();
+    signatureState[party].hasSignature = true;
+}
+
+function stopDrawing(party) {
+    if (signatureState[party].isDrawing) {
+        signatureState[party].isDrawing = false;
+        updateSignatureStatus(party);
+    }
+}
+
+function clearSignature(party) {
+    const state = signatureState[party];
+    if (state.ctx && state.canvas) {
+        state.ctx.clearRect(0, 0, state.canvas.width, state.canvas.height);
+        state.hasSignature = false;
+        
+        // Show placeholder again
+        const placeholderId = party === 'serviceProvider' ? 'signaturePlaceholderSP' : 'signaturePlaceholderClient';
+        document.getElementById(placeholderId).classList.remove('hidden');
+        
+        updateSignatureStatus(party);
+    }
+}
+
+function updateSignatureStatus(party) {
+    const statusId = party === 'serviceProvider' ? 'signatureStatusSP' : 'signatureStatusClient';
+    const statusEl = document.getElementById(statusId);
+    
+    if (signatureState[party].hasSignature) {
+        statusEl.textContent = '✓ Signature captured';
+        statusEl.className = 'signature-status signed';
+    } else {
+        statusEl.textContent = '⚠ Not signed';
+        statusEl.className = 'signature-status unsigned';
+    }
+}
+
+async function saveSignatures() {
+    const signatures = {};
+    
+    for (const party of ['serviceProvider', 'client']) {
+        if (signatureState[party].hasSignature) {
+            const nameInputId = party === 'serviceProvider' ? 'signedBySP' : 'signedByClient';
+            const signedBy = document.getElementById(nameInputId).value.trim();
+            
+            if (!signedBy) {
+                alert(`Please enter the full name for ${party === 'serviceProvider' ? 'Service Provider' : 'Client'} signature.`);
+                return false;
+            }
+            
+            const signatureData = signatureState[party].canvas.toDataURL('image/png');
+            
+            try {
+                const response = await fetch(`/api/contracts/${currentContractId}/sign`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({
+                        party,
+                        signatureData,
+                        signedBy
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`Failed to save ${party} signature`);
+                }
+                
+                console.log(`${party} signature saved successfully`);
+            } catch (error) {
+                console.error(`Error saving ${party} signature:`, error);
+                alert(`Failed to save ${party} signature. Please try again.`);
+                return false;
+            }
+        }
+    }
+    
+    return true;
+}
+
+// Update saveAndDownloadContract to include signatures
+const originalSaveAndDownload = saveAndDownloadContract;
+saveAndDownloadContract = async function() {
+    // Save signatures first if any exist
+    const hasServiceProviderSig = signatureState.serviceProvider?.hasSignature;
+    const hasClientSig = signatureState.client?.hasSignature;
+    
+    if (hasServiceProviderSig || hasClientSig) {
+        const sigsSaved = await saveSignatures();
+        if (!sigsSaved) return; // Don't proceed if signature save failed
+    }
+    
+    // Call original function
+    await originalSaveAndDownload();
+};
+
+// Initialize when preview modal opens
+const originalShowPreview = showContractPreview;
+showContractPreview = function(data) {
+    originalShowPreview(data);
+    
+    // Initialize signature canvases after a short delay to ensure DOM is ready
+    setTimeout(() => {
+        initializeSignatureCanvases();
+        updateSignatureStatus('serviceProvider');
+        updateSignatureStatus('client');
+    }, 100);
+};
+
