@@ -446,7 +446,24 @@ function closePreviewModal() {
 
 // Save and download contract
 async function saveAndDownloadContract() {
+    await saveContract();
+    if (currentContractId) {
+        await downloadPDF();
+    }
+}
+
+// Save contract (without downloading)
+async function saveContract() {
     try {
+        // Save signatures first if any exist
+        const hasServiceProviderSig = signatureState.serviceProvider?.hasSignature;
+        const hasClientSig = signatureState.client?.hasSignature;
+        
+        if (hasServiceProviderSig || hasClientSig) {
+            const sigsSaved = await saveSignatures();
+            if (!sigsSaved) return; // Don't proceed if signature save failed
+        }
+        
         // Gather updated data from preview
         const updatedData = {
             contractTitle: document.getElementById('prev_contractTitle').textContent.trim(),
@@ -474,7 +491,6 @@ async function saveAndDownloadContract() {
         
         sectionTitles.forEach((titleEl, index) => {
             const contentEl = sectionContents[index];
-            // Convert <br> back to \n and get innerHTML to preserve formatting
             const contentText = contentEl.innerHTML.replace(/<br\s*\/?>/gi, '\n').replace(/<[^>]*>/g, '');
             
             updatedData.sections.push({
@@ -496,10 +512,44 @@ async function saveAndDownloadContract() {
             throw new Error('Failed to update contract');
         }
         
-        console.log('Contract updated successfully');
+        console.log('Contract saved successfully');
+        
+        // Show success message and enable sharing/download
+        alert('✅ Contract saved successfully!\n\nYou can now:\n• Share it with your client for signature\n• Download the PDF');
+        
+        // Show share and download buttons
+        document.getElementById('shareBtn').style.display = 'inline-block';
+        document.getElementById('downloadBtn').style.display = 'inline-block';
+        
+        // Update save button to show it's saved
+        const saveBtnElements = document.querySelectorAll('button[onclick="saveContract()"]');
+        saveBtnElements.forEach(btn => {
+            btn.innerHTML = '<span style="margin-right: 0.5rem;">✅</span> Saved';
+            btn.disabled = true;
+        });
+        
+    } catch (error) {
+        console.error('Error saving contract:', error);
+        alert('❌ Failed to save contract. Please try again.');
+    }
+}
+
+// Download PDF function
+async function downloadPDF() {
+    try {
+        if (!currentContractId) {
+            alert('Please save the contract first.');
+            return;
+        }
+        
+        const downloadBtn = document.getElementById('downloadBtn');
+        if (downloadBtn) {
+            downloadBtn.disabled = true;
+            downloadBtn.textContent = '⏳ Generating PDF...';
+        }
         
         // Download PDF
-        const downloadResponse = await fetch(`/api/contracts/${currentContractId}/download`, {
+        const downloadResponse = await fetch(`/api/contracts/${currentContractId}/pdf`, {
             method: 'GET',
             credentials: 'include'
         });
@@ -511,8 +561,11 @@ async function saveAndDownloadContract() {
         const blob = await downloadResponse.blob();
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
+        
+        // Get contract title from preview
+        const contractTitle = document.getElementById('prev_contractTitle')?.textContent?.trim() || 'Contract';
         a.href = url;
-        a.download = `Contract_${updatedData.contractTitle.replace(/\s+/g, '_')}.pdf`;
+        a.download = `Contract_${contractTitle.replace(/\s+/g, '_')}.pdf`;
         document.body.appendChild(a);
         a.click();
         window.URL.revokeObjectURL(url);
@@ -520,15 +573,21 @@ async function saveAndDownloadContract() {
         
         console.log('PDF downloaded successfully');
         
-        // Close modal and redirect to dashboard
-        closePreviewModal();
-        setTimeout(() => {
-            window.location.href = '/dashboard';
-        }, 500);
+        if (downloadBtn) {
+            downloadBtn.disabled = false;
+            downloadBtn.textContent = '✅ Downloaded';
+        }
+        
+        alert('✅ PDF downloaded successfully!');
         
     } catch (error) {
-        console.error('Error saving/downloading contract:', error);
-        alert('Failed to save or download contract. Please try again.');
+        console.error('Error downloading PDF:', error);
+        alert('❌ Failed to download PDF. Please try again.');
+        
+        if (downloadBtn) {
+            downloadBtn.disabled = false;
+            downloadBtn.textContent = '📄 Download PDF';
+        }
     }
 }
 
