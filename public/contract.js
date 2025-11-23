@@ -738,3 +738,67 @@ showContractPreview = function(data) {
     }, 100);
 };
 
+// ==================== SHARE CONTRACT FUNCTIONALITY ====================
+
+async function shareContract() {
+    if (!currentContractId) {
+        alert('Please save the contract first before sharing.');
+        return;
+    }
+    
+    const shareBtn = document.getElementById('shareBtn');
+    shareBtn.disabled = true;
+    shareBtn.textContent = 'Generating Link...';
+    
+    try {
+        const response = await fetch(`/api/contracts/${currentContractId}/share`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include'
+        });
+        
+        if (!response.ok) {
+            throw new Error('Failed to generate shareable link');
+        }
+        
+        const result = await response.json();
+        
+        // Show share link modal
+        document.getElementById('shareableLink').value = result.shareableUrl;
+        document.getElementById('shareLinkModal').classList.remove('hidden');
+        
+    } catch (error) {
+        console.error('Error generating share link:', error);
+        alert('Failed to generate shareable link. Please try again.');
+    } finally {
+        shareBtn.disabled = false;
+        shareBtn.textContent = '🔗 Share with Client';
+    }
+}
+
+function closeShareLinkModal() {
+    document.getElementById('shareLinkModal').classList.add('hidden');
+}
+
+function copyShareLink() {
+    const input = document.getElementById('shareableLink');
+    input.select();
+    input.setSelectionRange(0, 99999); // For mobile devices
+    
+    navigator.clipboard.writeText(input.value).then(() => {
+        // Show copied feedback
+        const btn = event.target;
+        const originalText = btn.textContent;
+        btn.textContent = '✅ Copied!';
+        btn.style.background = '#10b981';
+        
+        setTimeout(() => {
+            btn.textContent = originalText;
+            btn.style.background = '#667eea';
+        }, 2000);
+    }).catch(err => {
+        console.error('Failed to copy:', err);
+        alert('Failed to copy link. Please copy manually.');
+    });
+}
+

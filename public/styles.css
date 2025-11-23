@@ -1335,6 +1335,19 @@ h1 {
     border-color: #6ee7b7;
 }
 
+.contract-preview-content .btn-share {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-color: #818cf8;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+}
+
+.contract-preview-content .btn-share:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 25px rgba(102, 126, 234, 0.6);
+    background: linear-gradient(135deg, #5568d3 0%, #6a5bb2 100%);
+}
+
 /* ==================== SIGNATURE SECTION ==================== */
 .signature-section {
     margin-top: 3rem;

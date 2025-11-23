@@ -209,6 +209,9 @@
             </div>
             <div class="preview-modal-footer">
                 <button class="modal-btn btn-secondary" onclick="closePreviewModal()">Cancel</button>
+                <button class="modal-btn btn-share" onclick="shareContract()" id="shareBtn">
+                    <span style="margin-right: 0.5rem;">🔗</span> Share with Client
+                </button>
                 <button class="modal-btn btn-primary" onclick="saveAndDownloadContract()">
                     <span style="margin-right: 0.5rem;">💾</span> Save & Download PDF
                 </button>
@@ -216,6 +219,35 @@
         </div>
     </div>
 
+    <!-- Share Link Modal -->
+    <div id="shareLinkModal" class="preview-modal hidden">
+        <div class="preview-modal-content" style="max-width: 600px;">
+            <div class="preview-modal-header">
+                <h2>🔗 Share Contract with Client</h2>
+                <p style="margin: 0.5rem 0 0 0; opacity: 0.9; font-size: 0.95rem;">Send this link to your client for review and signature</p>
+            </div>
+            <div class="preview-modal-body">
+                <div style="background: #f9fafb; padding: 1.5rem; border-radius: 8px; border: 2px solid #e5e7eb;">
+                    <label style="display: block; font-weight: 600; color: #374151; margin-bottom: 0.5rem;">Shareable Link:</label>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <input type="text" id="shareableLink" readonly style="flex: 1; padding: 0.75rem; border: 2px solid #d1d5db; border-radius: 6px; font-size: 0.95rem; background: white;">
+                        <button onclick="copyShareLink()" style="background: #667eea; color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 6px; font-weight: 600; cursor: pointer; white-space: nowrap;">
+                            📋 Copy
+                        </button>
+                    </div>
+                    <p style="margin: 1rem 0 0 0; font-size: 0.9rem; color: #6b7280;">
+                        ⏰ Link expires in 30 days<br>
+                        ✅ Client can view and sign without creating an account
+                    </p>
+                </div>
+            </div>
+            <div class="preview-modal-footer">
+                <button class="modal-btn btn-secondary" onclick="closeShareLinkModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
     <script src="contract.js"></script>
 </body>
 </html>
+

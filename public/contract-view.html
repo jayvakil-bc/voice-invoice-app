@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contract Review & Signature</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .view-container {
+            max-width: 900px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+        }
+        
+        .view-header {
+            text-align: center;
+            padding: 2rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 12px 12px 0 0;
+            margin: -2rem -2rem 2rem -2rem;
+        }
+        
+        .view-header h1 {
+            margin: 0 0 0.5rem 0;
+            font-size: 2rem;
+        }
+        
+        .view-header p {
+            margin: 0;
+            opacity: 0.9;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            margin-top: 1rem;
+        }
+        
+        .status-draft {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        
+        .status-partially_signed {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+        
+        .status-fully_signed {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        
+        .parties-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+        
+        .party-card {
+            padding: 1.5rem;
+            background: #f9fafb;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+        }
+        
+        .party-card h3 {
+            margin: 0 0 1rem 0;
+            color: #667eea;
+            font-size: 1.2rem;
+        }
+        
+        .party-field {
+            margin-bottom: 0.75rem;
+        }
+        
+        .party-field label {
+            font-weight: 600;
+            color: #4b5563;
+            display: block;
+            margin-bottom: 0.25rem;
+            font-size: 0.9rem;
+        }
+        
+        .party-field span {
+            color: #1f2937;
+        }
+        
+        .contract-section {
+            margin: 2rem 0;
+            padding: 1.5rem;
+            background: #f9fafb;
+            border-left: 4px solid #667eea;
+            border-radius: 4px;
+        }
+        
+        .contract-section h3 {
+            margin: 0 0 1rem 0;
+            color: #1f2937;
+            font-size: 1.1rem;
+        }
+        
+        .contract-section .content {
+            white-space: pre-wrap;
+            line-height: 1.8;
+            color: #374151;
+        }
+        
+        .signature-area {
+            margin: 3rem 0;
+            padding: 2rem;
+            background: #fef9f3;
+            border: 3px solid #f59e0b;
+            border-radius: 12px;
+        }
+        
+        .signature-area h2 {
+            margin: 0 0 1.5rem 0;
+            color: #92400e;
+            text-align: center;
+        }
+        
+        .signature-instructions {
+            background: white;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            border-left: 4px solid #10b981;
+        }
+        
+        .signature-instructions ul {
+            margin: 0.5rem 0 0 1.5rem;
+            padding: 0;
+        }
+        
+        .signature-instructions li {
+            margin: 0.5rem 0;
+            color: #374151;
+        }
+        
+        .already-signed {
+            background: #d1fae5;
+            padding: 1.5rem;
+            border-radius: 8px;
+            border: 2px solid #10b981;
+            text-align: center;
+        }
+        
+        .already-signed h3 {
+            margin: 0 0 0.5rem 0;
+            color: #065f46;
+        }
+        
+        .signature-display {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: white;
+            border-radius: 8px;
+        }
+        
+        .signature-display img {
+            max-width: 300px;
+            height: auto;
+            border: 2px solid #e5e7eb;
+            border-radius: 4px;
+        }
+        
+        .sign-button {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            border: none;
+            padding: 1rem 3rem;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: block;
+            margin: 2rem auto 0 auto;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+            transition: all 0.3s ease;
+        }
+        
+        .sign-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(16, 185, 129, 0.6);
+        }
+        
+        .sign-button:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .download-pdf {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 0.75rem 2rem;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            margin-top: 1rem;
+        }
+        
+        .download-pdf:hover {
+            background: #5568d3;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 3rem;
+        }
+        
+        .error-message {
+            background: #fee2e2;
+            color: #991b1b;
+            padding: 1.5rem;
+            border-radius: 8px;
+            border: 2px solid #ef4444;
+            text-align: center;
+            margin: 2rem 0;
+        }
+        
+        .success-message {
+            background: #d1fae5;
+            color: #065f46;
+            padding: 1.5rem;
+            border-radius: 8px;
+            border: 2px solid #10b981;
+            text-align: center;
+            margin: 2rem 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="view-container">
+        <div id="loadingState" class="loading">
+            <div class="spinner"></div>
+            <p>Loading contract...</p>
+        </div>
+        
+        <div id="errorState" class="error-message" style="display: none;">
+            <h3>⚠️ Unable to Load Contract</h3>
+            <p id="errorMessage"></p>
+        </div>
+        
+        <div id="contractContent" style="display: none;">
+            <!-- Contract header -->
+            <div class="view-header">
+                <h1 id="contractTitle"></h1>
+                <p>Effective Date: <span id="effectiveDate"></span></p>
+                <span id="statusBadge" class="status-badge"></span>
+            </div>
+            
+            <!-- Parties -->
+            <div class="parties-grid">
+                <div class="party-card">
+                    <h3>Service Provider</h3>
+                    <div class="party-field">
+                        <label>Name:</label>
+                        <span id="sp_name"></span>
+                    </div>
+                    <div class="party-field">
+                        <label>Address:</label>
+                        <span id="sp_address"></span>
+                    </div>
+                    <div class="party-field">
+                        <label>Email:</label>
+                        <span id="sp_email"></span>
+                    </div>
+                    <div class="party-field">
+                        <label>Phone:</label>
+                        <span id="sp_phone"></span>
+                    </div>
+                </div>
+                
+                <div class="party-card">
+                    <h3>Client</h3>
+                    <div class="party-field">
+                        <label>Name:</label>
+                        <span id="client_name"></span>
+                    </div>
+                    <div class="party-field">
+                        <label>Address:</label>
+                        <span id="client_address"></span>
+                    </div>
+                    <div class="party-field">
+                        <label>Email:</label>
+                        <span id="client_email"></span>
+                    </div>
+                    <div class="party-field">
+                        <label>Phone:</label>
+                        <span id="client_phone"></span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Contract sections -->
+            <div id="sectionsContainer"></div>
+            
+            <!-- Signature area -->
+            <div class="signature-area" id="signatureArea">
+                <h2>📝 Client Signature Required</h2>
+                
+                <div id="notSignedYet">
+                    <div class="signature-instructions">
+                        <strong>How to sign this contract:</strong>
+                        <ul>
+                            <li>Review all sections above carefully</li>
+                            <li>Draw your signature in the box below</li>
+                            <li>Enter your full legal name</li>
+                            <li>Click "Sign Contract" to complete</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="signature-box">
+                        <div class="signature-label">Your Signature</div>
+                        <div class="signature-canvas-wrapper">
+                            <canvas id="signatureCanvas" class="signature-canvas"></canvas>
+                            <div class="signature-placeholder" id="signaturePlaceholder">
+                                Click and draw your signature
+                            </div>
+                        </div>
+                        <div class="signature-controls">
+                            <button class="signature-btn" onclick="clearSignature()">Clear</button>
+                            <input type="text" id="signedBy" placeholder="Your full legal name" class="signature-name-input">
+                        </div>
+                    </div>
+                    
+                    <button class="sign-button" onclick="signContract()" id="signButton">
+                        ✍️ Sign Contract
+                    </button>
+                </div>
+                
+                <div id="alreadySigned" class="already-signed" style="display: none;">
+                    <h3>✅ This Contract Has Been Signed</h3>
+                    <p>Signed by: <strong id="signedByName"></strong></p>
+                    <p>Signed on: <strong id="signedDate"></strong></p>
+                    <div class="signature-display">
+                        <img id="signatureImage" src="" alt="Signature">
+                    </div>
+                </div>
+            </div>
+            
+            <div id="successMessage" class="success-message" style="display: none;">
+                <h3>🎉 Contract Signed Successfully!</h3>
+                <p>Thank you for signing. The service provider will be notified.</p>
+                <p>You can download a copy of the signed contract below.</p>
+            </div>
+            
+            <div style="text-align: center;">
+                <a href="#" id="downloadPdfBtn" class="download-pdf" onclick="downloadPDF(event)">
+                    📄 Download Signed Contract PDF
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script src="contract-view.js"></script>
+</body>
+</html>

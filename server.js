@@ -123,6 +123,12 @@ const contractSchema = new mongoose.Schema({
         enum: ['draft', 'awaiting_signatures', 'partially_signed', 'fully_signed'],
         default: 'draft'
     },
+    shareableLink: {
+        token: { type: String, unique: true, sparse: true },
+        createdAt: Date,
+        expiresAt: Date,
+        accessCount: { type: Number, default: 0 }
+    },
     createdAt: { type: Date, default: Date.now }
 });
 
@@ -1676,6 +1682,155 @@ app.delete('/api/contracts/:id/sign/:party', requireAuth, async (req, res) => {
     } catch (error) {
         console.error('[Contract Service] Remove signature error:', error);
         res.status(500).json({ error: 'Failed to remove signature' });
+    }
+});
+
+// Generate shareable link for contract
+app.post('/api/contracts/:id/share', requireAuth, async (req, res) => {
+    try {
+        const contract = await Contract.findById(req.params.id);
+        if (!contract) return res.status(404).json({ error: 'Contract not found' });
+        
+        // Check if user owns this contract
+        if (contract.userId.toString() !== req.user._id.toString()) {
+            return res.status(403).json({ error: 'Unauthorized' });
+        }
+        
+        // Generate unique token
+        const crypto = require('crypto');
+        const token = crypto.randomBytes(32).toString('hex');
+        
+        // Set link to expire in 30 days
+        const expiresAt = new Date();
+        expiresAt.setDate(expiresAt.getDate() + 30);
+        
+        contract.shareableLink = {
+            token,
+            createdAt: new Date(),
+            expiresAt,
+            accessCount: 0
+        };
+        
+        await contract.save();
+        
+        // Build shareable URL
+        const baseUrl = process.env.CLIENT_URL || `http://localhost:${PORT}`;
+        const shareableUrl = `${baseUrl}/contract/view/${token}`;
+        
+        console.log('[Contract Service] Shareable link generated for contract:', contract._id);
+        
+        res.json({
+            success: true,
+            shareableUrl,
+            expiresAt
+        });
+        
+    } catch (error) {
+        console.error('[Contract Service] Share link error:', error);
+        res.status(500).json({ error: 'Failed to generate shareable link' });
+    }
+});
+
+// View contract via shareable link (no auth required)
+app.get('/contract/view/:token', async (req, res) => {
+    res.sendFile('contract-view.html', { root: 'public' });
+});
+
+// Get contract data via shareable link (no auth required)
+app.get('/api/contracts/shared/:token', async (req, res) => {
+    try {
+        const contract = await Contract.findOne({ 'shareableLink.token': req.params.token });
+        
+        if (!contract) {
+            return res.status(404).json({ error: 'Contract not found or link expired' });
+        }
+        
+        // Check if link is expired
+        if (contract.shareableLink.expiresAt < new Date()) {
+            return res.status(410).json({ error: 'This link has expired' });
+        }
+        
+        // Increment access count
+        contract.shareableLink.accessCount += 1;
+        await contract.save();
+        
+        console.log('[Contract Service] Shared contract accessed:', contract._id, 'Count:', contract.shareableLink.accessCount);
+        
+        res.json({
+            contractId: contract._id,
+            contractTitle: contract.contractTitle,
+            effectiveDate: contract.effectiveDate,
+            parties: contract.parties,
+            sections: contract.sections,
+            signatures: contract.signatures,
+            status: contract.status
+        });
+        
+    } catch (error) {
+        console.error('[Contract Service] Shared contract error:', error);
+        res.status(500).json({ error: 'Failed to load contract' });
+    }
+});
+
+// Sign contract via shareable link (no auth required)
+app.post('/api/contracts/shared/:token/sign', async (req, res) => {
+    try {
+        const { party, signatureData, signedBy } = req.body;
+        
+        if (!party || !signatureData || !signedBy) {
+            return res.status(400).json({ error: 'Missing required fields' });
+        }
+        
+        if (party !== 'client') {
+            return res.status(400).json({ error: 'Only client can sign via shareable link' });
+        }
+        
+        const contract = await Contract.findOne({ 'shareableLink.token': req.params.token });
+        
+        if (!contract) {
+            return res.status(404).json({ error: 'Contract not found' });
+        }
+        
+        // Check if link is expired
+        if (contract.shareableLink.expiresAt < new Date()) {
+            return res.status(410).json({ error: 'This link has expired' });
+        }
+        
+        // Add client signature
+        if (!contract.signatures) {
+            contract.signatures = {};
+        }
+        
+        contract.signatures.client = {
+            signatureData,
+            signedBy,
+            signedAt: new Date(),
+            ipAddress: req.ip || req.connection.remoteAddress
+        };
+        
+        // Update status
+        const serviceProviderSigned = contract.signatures.serviceProvider?.signatureData;
+        const clientSigned = contract.signatures.client?.signatureData;
+        
+        if (serviceProviderSigned && clientSigned) {
+            contract.status = 'fully_signed';
+        } else if (clientSigned) {
+            contract.status = 'partially_signed';
+        }
+        
+        await contract.save();
+        
+        console.log('[Contract Service] Client signature added via shared link:', contract._id);
+        
+        res.json({
+            success: true,
+            status: contract.status,
+            message: 'Contract signed successfully!'
+        });
+        
+    } catch (error) {
+        console.error('[Contract Service] Shared sign error:', error);
+        res.status(500).json({ error: 'Failed to sign contract' });
     }
 });
 
