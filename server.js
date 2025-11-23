@@ -1812,6 +1812,95 @@ app.get('/api/contracts', requireAuth, async (req, res) => {
     }
 });
 
+// GET /api/contracts/:id/download - Download contract as PDF
+app.get('/api/contracts/:id/download', requireAuth, async (req, res) => {
+    try {
+        const userId = req.user._id;
+        const contractId = req.params.id;
+        
+        console.log(`[Contract Download] Fetching contract ${contractId} for user ${userId}`);
+        
+        const contract = await Contract.findOne({ _id: contractId, userId });
+        
+        if (!contract) {
+            return res.status(404).json({ error: 'Contract not found' });
+        }
+        
+        // Create PDF document
+        const doc = new PDFDocument({ 
+            size: 'A4',
+            margins: { top: 50, bottom: 50, left: 50, right: 50 }
+        });
+        
+        // Set response headers
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `attachment; filename="Contract_${contract.contractTitle.replace(/\s+/g, '_')}.pdf"`);
+        
+        // Pipe the PDF document to response
+        doc.pipe(res);
+        
+        // Add content to PDF
+        doc.fontSize(20).text(contract.contractTitle, { align: 'center' });
+        doc.moveDown();
+        doc.fontSize(12).text(`Effective Date: ${contract.effectiveDate}`, { align: 'center' });
+        doc.moveDown(2);
+        
+        // Parties section
+        doc.fontSize(14).text('PARTIES', { underline: true });
+        doc.moveDown(0.5);
+        doc.fontSize(11);
+        doc.text(`Service Provider: ${contract.parties.serviceProvider.name}`);
+        if (contract.parties.serviceProvider.address && contract.parties.serviceProvider.address !== 'To be determined') {
+            doc.text(`Address: ${contract.parties.serviceProvider.address}`);
+        }
+        if (contract.parties.serviceProvider.email && contract.parties.serviceProvider.email !== 'To be determined') {
+            doc.text(`Email: ${contract.parties.serviceProvider.email}`);
+        }
+        if (contract.parties.serviceProvider.phone && contract.parties.serviceProvider.phone !== 'To be determined') {
+            doc.text(`Phone: ${contract.parties.serviceProvider.phone}`);
+        }
+        doc.moveDown();
+        
+        doc.text(`Client: ${contract.parties.client.name}`);
+        if (contract.parties.client.address && contract.parties.client.address !== 'To be determined') {
+            doc.text(`Address: ${contract.parties.client.address}`);
+        }
+        if (contract.parties.client.email && contract.parties.client.email !== 'To be determined') {
+            doc.text(`Email: ${contract.parties.client.email}`);
+        }
+        if (contract.parties.client.phone && contract.parties.client.phone !== 'To be determined') {
+            doc.text(`Phone: ${contract.parties.client.phone}`);
+        }
+        doc.moveDown(2);
+        
+        // Contract sections
+        if (contract.sections && contract.sections.length > 0) {
+            contract.sections.forEach((section, index) => {
+                doc.fontSize(14).text(section.title, { underline: true });
+                doc.moveDown(0.5);
+                doc.fontSize(11).text(section.content, { align: 'justify' });
+                doc.moveDown(1.5);
+                
+                // Add page break if content is too long (except for last section)
+                if (index < contract.sections.length - 1 && doc.y > 650) {
+                    doc.addPage();
+                }
+            });
+        }
+        
+        // Finalize PDF
+        doc.end();
+        
+        console.log(`[Contract Download] PDF generated successfully for contract ${contractId}`);
+        
+    } catch (error) {
+        console.error('[Contract Download] Error:', error);
+        if (!res.headersSent) {
+            res.status(500).json({ error: 'Failed to generate PDF' });
+        }
+    }
+});
+
 app.post('/api/generate-invoice', requireAuth, async (req, res) => {
     try {
         const userId = req.user._id;
