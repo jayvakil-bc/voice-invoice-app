@@ -636,6 +636,31 @@ async function deleteContract(id) {
     }
 }
 
+// Show copy notification (global helper)
+function showCopyNotification(message) {
+    const notification = document.createElement('div');
+    notification.textContent = message;
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: #10b981;
+        color: white;
+        padding: 1rem 1.5rem;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        z-index: 10000;
+        font-weight: 600;
+    `;
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.style.transition = 'opacity 0.3s';
+        notification.style.opacity = '0';
+        setTimeout(() => document.body.removeChild(notification), 300);
+    }, 2000);
+}
+
 // Copy contract shareable link
 function copyContractLink(token) {
     const baseUrl = window.location.origin;
@@ -668,30 +693,6 @@ function copyContractLink(token) {
             prompt('Copy this link:', text);
         }
         document.body.removeChild(textarea);
-    }
-    
-    function showCopyNotification(message) {
-        const notification = document.createElement('div');
-        notification.textContent = message;
-        notification.style.cssText = `
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: #10b981;
-            color: white;
-            padding: 1rem 1.5rem;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            z-index: 10000;
-            font-weight: 600;
-        `;
-        document.body.appendChild(notification);
-        
-        setTimeout(() => {
-            notification.style.transition = 'opacity 0.3s';
-            notification.style.opacity = '0';
-            setTimeout(() => document.body.removeChild(notification), 300);
-        }, 2000);
     }
 }
 
