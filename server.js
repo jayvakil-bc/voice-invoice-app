@@ -1858,6 +1858,7 @@ app.get('/api/contracts/:id/pdf', async (req, res) => {
         const brandColor = '#667eea';
         const darkGray = '#333333';
         const mediumGray = '#666666';
+        const lightGray = '#999999';
         
         // Header
         doc.rect(0, 0, 612, 100).fill(brandColor);

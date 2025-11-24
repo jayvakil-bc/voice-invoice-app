@@ -16,15 +16,20 @@ window.addEventListener('DOMContentLoaded', () => {
 
 async function loadContract() {
     try {
+        console.log('[Contract View] Loading contract with token:', token);
         const response = await fetch(`/api/contracts/shared/${token}`);
+        
+        console.log('[Contract View] Response status:', response.status);
         
         if (!response.ok) {
             const error = await response.json();
+            console.error('[Contract View] Error response:', error);
             showError(error.error || 'Failed to load contract');
             return;
         }
         
         contractData = await response.json();
+        console.log('[Contract View] Contract data loaded:', contractData);
         displayContract();
         initializeSignatureCanvas();
         

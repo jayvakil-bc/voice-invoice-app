@@ -611,15 +611,23 @@ const signatureState = {
 
 // Initialize signature canvases
 function initializeSignatureCanvases() {
+    console.log('[Signature Canvas] Initializing signature canvases...');
     ['serviceProvider', 'client'].forEach(party => {
         const canvasId = party === 'serviceProvider' ? 'signatureCanvasSP' : 'signatureCanvasClient';
         const canvas = document.getElementById(canvasId);
         
-        if (!canvas) return;
+        console.log(`[Signature Canvas] ${party} canvas:`, canvas);
+        
+        if (!canvas) {
+            console.warn(`[Signature Canvas] Canvas not found for ${party}`);
+            return;
+        }
         
         const rect = canvas.parentElement.getBoundingClientRect();
         canvas.width = rect.width;
         canvas.height = rect.height;
+        
+        console.log(`[Signature Canvas] ${party} canvas size:`, canvas.width, 'x', canvas.height);
         
         const ctx = canvas.getContext('2d');
         ctx.strokeStyle = '#000000';
@@ -726,12 +734,17 @@ function updateSignatureStatus(party) {
 }
 
 async function saveSignatures() {
+    console.log('[Save Signatures] Starting signature save...');
     const signatures = {};
     
     for (const party of ['serviceProvider', 'client']) {
+        console.log(`[Save Signatures] Checking ${party} signature...`, signatureState[party]);
+        
         if (signatureState[party].hasSignature) {
             const nameInputId = party === 'serviceProvider' ? 'signedBySP' : 'signedByClient';
             const signedBy = document.getElementById(nameInputId).value.trim();
+            
+            console.log(`[Save Signatures] ${party} signed by:`, signedBy);
             
             if (!signedBy) {
                 alert(`Please enter the full name for ${party === 'serviceProvider' ? 'Service Provider' : 'Client'} signature.`);
@@ -739,8 +752,10 @@ async function saveSignatures() {
             }
             
             const signatureData = signatureState[party].canvas.toDataURL('image/png');
+            console.log(`[Save Signatures] ${party} signature data length:`, signatureData.length);
             
             try {
+                console.log(`[Save Signatures] Sending ${party} signature to server...`);
                 const response = await fetch(`/api/contracts/${currentContractId}/sign`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -752,11 +767,16 @@ async function saveSignatures() {
                     })
                 });
                 
+                console.log(`[Save Signatures] ${party} response status:`, response.status);
+                
                 if (!response.ok) {
+                    const errorData = await response.json();
+                    console.error(`[Save Signatures] ${party} error:`, errorData);
                     throw new Error(`Failed to save ${party} signature`);
                 }
                 
-                console.log(`${party} signature saved successfully`);
+                const result = await response.json();
+                console.log(`[Save Signatures] ${party} signature saved successfully:`, result);
             } catch (error) {
                 console.error(`Error saving ${party} signature:`, error);
                 alert(`Failed to save ${party} signature. Please try again.`);
@@ -765,6 +785,7 @@ async function saveSignatures() {
         }
     }
     
+    console.log('[Save Signatures] All signatures saved successfully');
     return true;
 }
 
