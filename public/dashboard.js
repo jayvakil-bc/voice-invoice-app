@@ -689,17 +689,24 @@ function copyContractLink(token) {
 // Share contract from dashboard
 async function shareContractFromDashboard(contractId) {
     try {
+        console.log('[Dashboard] Sharing contract:', contractId);
+        
         const response = await fetch(`/api/contracts/${contractId}/share`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include'
         });
         
+        console.log('[Dashboard] Share response status:', response.status);
+        
         if (!response.ok) {
-            throw new Error('Failed to generate shareable link');
+            const errorData = await response.json();
+            console.error('[Dashboard] Share error:', errorData);
+            throw new Error(errorData.error || 'Failed to generate shareable link');
         }
         
         const result = await response.json();
+        console.log('[Dashboard] Share result:', result);
         
         // Copy the link automatically
         if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -712,8 +719,8 @@ async function shareContractFromDashboard(contractId) {
         setTimeout(() => loadContracts(), 500);
         
     } catch (error) {
-        console.error('Error sharing contract:', error);
-        alert('Failed to generate shareable link. Please try again.');
+        console.error('[Dashboard] Error sharing contract:', error);
+        alert('Failed to generate shareable link: ' + error.message);
     }
 }
 

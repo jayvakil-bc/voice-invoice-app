@@ -1688,11 +1688,19 @@ app.delete('/api/contracts/:id/sign/:party', requireAuth, async (req, res) => {
 // Generate shareable link for contract
 app.post('/api/contracts/:id/share', requireAuth, async (req, res) => {
     try {
+        console.log('[Contract Service] Share request for contract:', req.params.id);
+        
         const contract = await Contract.findById(req.params.id);
-        if (!contract) return res.status(404).json({ error: 'Contract not found' });
+        if (!contract) {
+            console.log('[Contract Service] Contract not found:', req.params.id);
+            return res.status(404).json({ error: 'Contract not found' });
+        }
+        
+        console.log('[Contract Service] Contract found, user:', req.user._id, 'owner:', contract.userId);
         
         // Check if user owns this contract
         if (contract.userId.toString() !== req.user._id.toString()) {
+            console.log('[Contract Service] Unauthorized access attempt');
             return res.status(403).json({ error: 'Unauthorized' });
         }
         
