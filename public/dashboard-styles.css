@@ -223,6 +223,19 @@ body {
     border-color: #059669;
 }
 
+.btn-share {
+    background: #667eea;
+    color: white;
+    border-color: #667eea;
+}
+
+.btn-share:hover {
+    background: #5568d3;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    border-color: #5568d3;
+}
+
 .btn-edit {
     background: #f59e0b;
     color: white;

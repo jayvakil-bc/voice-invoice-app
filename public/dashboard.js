@@ -543,7 +543,15 @@ async function loadContracts() {
             return;
         }
         
-        contractsList.innerHTML = contracts.map(contract => `
+        contractsList.innerHTML = contracts.map(contract => {
+            const hasShareLink = contract.shareableLink && contract.shareableLink.token;
+            const shareButton = hasShareLink ? `
+                <button class="btn-action btn-share" onclick="copyContractLink('${contract.shareableLink.token}')">
+                    🔗 Copy Link
+                </button>
+            ` : '';
+            
+            return `
             <div class="invoice-card">
                 <div class="invoice-info">
                     <h3>${contract.contractTitle || 'Untitled Contract'}</h3>
@@ -551,8 +559,10 @@ async function loadContracts() {
                     <p><strong>Client:</strong> ${contract.parties?.client?.name || 'N/A'}</p>
                     <p><strong>Effective Date:</strong> ${new Date(contract.effectiveDate).toLocaleDateString()}</p>
                     <p><strong>Sections:</strong> ${contract.sections?.length || 0}</p>
+                    ${hasShareLink ? `<p><strong>Status:</strong> <span style="color: #667eea;">🔗 Shared</span></p>` : ''}
                 </div>
                 <div class="invoice-actions">
+                    ${shareButton}
                     <button class="btn-action btn-download" onclick="downloadContract('${contract._id}', '${contract.contractTitle}')">
                         📄 Download
                     </button>
@@ -561,7 +571,8 @@ async function loadContracts() {
                     </button>
                 </div>
             </div>
-        `).join('');
+        `;
+        }).join('');
     } catch (error) {
         console.error('Error loading contracts:', error);
     }
@@ -610,6 +621,65 @@ async function deleteContract(id) {
     } catch (error) {
         console.error('Error deleting contract:', error);
         alert('Failed to delete contract');
+    }
+}
+
+// Copy contract shareable link
+function copyContractLink(token) {
+    const baseUrl = window.location.origin;
+    const shareUrl = `${baseUrl}/contract/view/${token}`;
+    
+    // Try to copy to clipboard
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(shareUrl)
+            .then(() => {
+                showCopyNotification('✅ Link copied to clipboard!');
+            })
+            .catch(() => {
+                fallbackCopy(shareUrl);
+            });
+    } else {
+        fallbackCopy(shareUrl);
+    }
+    
+    function fallbackCopy(text) {
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.select();
+        try {
+            document.execCommand('copy');
+            showCopyNotification('✅ Link copied to clipboard!');
+        } catch (err) {
+            prompt('Copy this link:', text);
+        }
+        document.body.removeChild(textarea);
+    }
+    
+    function showCopyNotification(message) {
+        const notification = document.createElement('div');
+        notification.textContent = message;
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #10b981;
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 10000;
+            font-weight: 600;
+        `;
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.style.transition = 'opacity 0.3s';
+            notification.style.opacity = '0';
+            setTimeout(() => document.body.removeChild(notification), 300);
+        }, 2000);
     }
 }
 
