@@ -1,5 +1,11 @@
 console.log('[Onboarding] Script loaded');
 
+// Skip button handler
+document.getElementById('skipBtn').addEventListener('click', () => {
+    console.log('[Onboarding] User skipped setup');
+    window.location.href = '/dashboard';
+});
+
 document.getElementById('onboardingForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     

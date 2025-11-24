@@ -48,6 +48,27 @@ const userSchema = new mongoose.Schema({
         taxId: String,
         setupCompleted: { type: Boolean, default: false }
     },
+    businessContext: {
+        // AI-learned context about the user's business
+        industry: String, // e.g., "Digital Marketing Agency", "SaaS Company", "Consulting"
+        serviceTypes: [String], // e.g., ["SEO Services", "PPC Management", "Content Marketing"]
+        commonClients: [String], // e.g., ["E-commerce businesses", "Local restaurants"]
+        averageDealSize: Number,
+        typicalProjectDuration: String, // e.g., "3-6 months", "Ongoing retainer"
+        
+        // Extracted from voice transcripts and contracts
+        voicePatterns: {
+            commonPhrases: [String], // Phrases user commonly uses
+            serviceDescriptions: [String], // How they describe their services
+            pricingStructure: String, // "Per-project", "Monthly retainer", "Performance-based"
+        },
+        
+        // Learning metadata
+        totalContracts: { type: Number, default: 0 },
+        totalInvoices: { type: Number, default: 0 },
+        lastUpdated: Date,
+        confidenceScore: { type: Number, default: 0, min: 0, max: 100 } // How confident we are in the context
+    },
     createdAt: { type: Date, default: Date.now }
 });
 
@@ -351,6 +372,29 @@ app.get('/api/user/business-info', requireAuth, async (req, res) => {
     } catch (error) {
         console.error('[Business Info] Error fetching:', error);
         res.status(500).json({ error: 'Failed to fetch business information' });
+    }
+});
+
+// Get AI-learned business context
+app.get('/api/user/business-context', requireAuth, async (req, res) => {
+    try {
+        const user = await User.findById(req.user._id);
+        
+        res.json({
+            businessContext: user.businessContext || null,
+            insights: {
+                hasContext: !!(user.businessContext && user.businessContext.confidenceScore > 0),
+                confidenceScore: user.businessContext?.confidenceScore || 0,
+                totalContracts: user.businessContext?.totalContracts || 0,
+                canAutofill: user.businessContext?.confidenceScore >= 50, // High confidence = auto-suggest
+                summary: user.businessContext ? 
+                    `${user.businessContext.industry || 'Unknown industry'} | ${user.businessContext.totalContracts || 0} contracts` :
+                    'No context learned yet'
+            }
+        });
+    } catch (error) {
+        console.error('[Business Context] Error fetching:', error);
+        res.status(500).json({ error: 'Failed to fetch business context' });
     }
 });
 
@@ -1071,12 +1115,50 @@ app.post('/api/contracts/generate', async (req, res) => {
         
         console.log('[Contract Service] Generating contract for user:', userId);
         
+        // Get user's learned business context for intelligent assistance
+        const user = await User.findById(userId);
+        const businessContext = user?.businessContext || null;
+        
+        let contextEnhancement = '';
+        if (businessContext && businessContext.confidenceScore >= 30) {
+            console.log('[Contract Service] 🧠 Using AI-learned business context (confidence:', businessContext.confidenceScore + ')');
+            contextEnhancement = `
+
+═══════════════════════════════════════════════════════════════════════
+📊 AI-LEARNED BUSINESS CONTEXT (Use this to enhance contract accuracy!)
+═══════════════════════════════════════════════════════════════════════
+
+The system has learned the following about this user's business from ${businessContext.totalContracts || 0} previous contracts:
+
+Industry: ${businessContext.industry || 'Unknown'}
+Services Offered: ${businessContext.serviceTypes?.join(', ') || 'Unknown'}
+Typical Clients: ${businessContext.commonClients?.join(', ') || 'Unknown'}
+Pricing Model: ${businessContext.voicePatterns?.pricingStructure || 'Unknown'}
+Average Deal Size: ${businessContext.averageDealSize ? '$' + businessContext.averageDealSize.toLocaleString() : 'Unknown'}
+Typical Duration: ${businessContext.typicalProjectDuration || 'Unknown'}
+
+Common Phrases/Terminology:
+${businessContext.voicePatterns?.commonPhrases?.map(p => `- "${p}"`).join('\n') || '- None yet'}
+
+Service Descriptions:
+${businessContext.voicePatterns?.serviceDescriptions?.map(d => `- ${d}`).join('\n') || '- None yet'}
+
+💡 USE THIS CONTEXT TO:
+1. Better understand ambiguous terms in the transcript
+2. Fill in missing details with high-probability defaults (if confidence is high)
+3. Recognize patterns in their service offerings
+4. Suggest appropriate contract structures based on their typical deals
+
+⚠️ IMPORTANT: This context is ASSISTIVE ONLY. Always prioritize the actual transcript content.`;
+        }
+        
         // Get today's date
         const today = new Date();
         const todayFormatted = today.toISOString().split('T')[0];
         
         // Professional contract generation prompt based on talk2contract-ai proven methodology
         const prompt = `You are a professional contract generator. Your task is to take spoken/transcribed information and intelligently map it into a structured contract template.
+${contextEnhancement}
 
 ═══════════════════════════════════════════════════════════════════════
 PART A: CRITICAL RULES - READ THIS FIRST
@@ -1561,8 +1643,7 @@ Generate the comprehensive contract JSON now using ONLY information from the tra
             contractData.effectiveDate = todayFormatted;
         }
         
-        // Get user's business info for auto-filling service provider details
-        const user = await User.findById(userId);
+        // Get user's business info for auto-filling service provider details (already fetched above)
         let serviceProviderInfo = {
             name: 'Service Provider',
             address: 'To be determined',
@@ -1610,6 +1691,12 @@ Generate the comprehensive contract JSON now using ONLY information from the tra
         const contract = await Contract.create(contractToSave);
         
         console.log('[Contract Service] Contract created:', contract._id);
+        
+        // 🧠 AI LEARNING AGENT - Learn from this contract!
+        learnFromContract(userId, transcript, contractToSave).catch(err => {
+            console.error('[AI Learning] Error learning from contract:', err);
+            // Don't block the response if learning fails
+        });
         
         // Return the properly structured contract data for the frontend
         res.json({ 
@@ -2588,6 +2675,129 @@ app.post('/api/generate-contract', requireAuth, async (req, res) => {
         res.status(500).json({ error: 'Failed to generate contract' });
     }
 });
+
+
+// ========== AI LEARNING AGENT - THE MAGIC! ==========
+/**
+ * 🧠 AI LEARNING AGENT
+ * 
+ * This agent learns about the user's business from EVERY interaction:
+ * - Voice transcripts (what they say, how they say it)
+ * - Contract data (services offered, pricing structures, client types)
+ * - Patterns over time (typical deal sizes, project durations)
+ * 
+ * The more they use the system, the SMARTER it gets!
+ */
+async function learnFromContract(userId, transcript, contractData) {
+    try {
+        console.log('[AI Learning Agent] 🧠 Starting to learn from contract for user:', userId);
+        
+        const user = await User.findById(userId);
+        if (!user) {
+            console.log('[AI Learning Agent] User not found');
+            return;
+        }
+        
+        // Prepare learning prompt for GPT-4
+        const learningPrompt = `You are an AI business intelligence agent. Analyze this contract and voice transcript to extract key business insights about the user's business.
+
+VOICE TRANSCRIPT:
+${transcript}
+
+CONTRACT DATA:
+- Title: ${contractData.contractTitle}
+- Service Provider: ${contractData.parties?.serviceProvider?.name || 'N/A'}
+- Client: ${contractData.parties?.client?.name || 'N/A'}
+- Sections: ${contractData.sections?.map(s => s.title).join(', ') || 'N/A'}
+
+CURRENT BUSINESS CONTEXT (what we already know):
+${JSON.stringify(user.businessContext || {}, null, 2)}
+
+YOUR TASK:
+Extract and update the following information. If you can't determine something with high confidence, leave it as null.
+
+Return a JSON object with:
+{
+    "industry": "string - What industry/sector is this business in? (e.g., 'Digital Marketing Agency', 'SaaS Company', 'IT Consulting')",
+    "serviceTypes": ["array", "of", "services"] - What specific services do they offer? Extract from transcript and contract sections,
+    "commonClients": ["array", "of", "client", "types"] - What type of clients do they serve? (e.g., 'E-commerce businesses', 'Small businesses'),
+    "averageDealSize": number - Estimated average contract value in dollars (extract from payment terms),
+    "typicalProjectDuration": "string - How long are typical projects/contracts? (e.g., '3-6 months', 'Ongoing monthly', '1 year')",
+    "commonPhrases": ["array", "of", "phrases"] - Extract 3-5 common phrases or terminology the user uses in their transcript,
+    "serviceDescriptions": ["array", "of", "descriptions"] - How do they describe their services? Extract natural language descriptions,
+    "pricingStructure": "string - What's their pricing model? (e.g., 'Monthly retainer', 'Per-project flat fee', 'Performance-based + retainer', 'Hourly rate')",
+    "confidenceScore": number - Rate your confidence in these insights from 0-100
+}
+
+IMPORTANT: 
+- Be conservative. Only extract what's CLEARLY stated or strongly implied.
+- Merge with existing context intelligently (add new items to arrays, don't duplicate)
+- If analyzing multiple contracts over time, identify PATTERNS not one-offs
+- Focus on insights that help AUTO-FILL future contracts`;
+
+        console.log('[AI Learning Agent] 📡 Calling OpenAI for business intelligence...');
+        
+        const response = await openai.chat.completions.create({
+            model: 'gpt-4o',
+            messages: [
+                { 
+                    role: 'system', 
+                    content: 'You are a business intelligence AI that learns about users\' businesses from their contracts and transcripts. Always return valid JSON.' 
+                },
+                { role: 'user', content: learningPrompt }
+            ],
+            temperature: 0.3, // Lower temperature for more consistent extraction
+            response_format: { type: "json_object" }
+        });
+        
+        const insights = JSON.parse(response.choices[0].message.content);
+        console.log('[AI Learning Agent] 🎯 Insights extracted:', insights);
+        
+        // Merge insights with existing context
+        const currentContext = user.businessContext || {};
+        
+        // Smart merging - add new items, don't duplicate
+        const mergeArrays = (existing, newItems) => {
+            const combined = [...(existing || []), ...(newItems || [])];
+            return [...new Set(combined)].slice(0, 10); // Keep max 10 unique items
+        };
+        
+        const updatedContext = {
+            industry: insights.industry || currentContext.industry,
+            serviceTypes: mergeArrays(currentContext.serviceTypes, insights.serviceTypes),
+            commonClients: mergeArrays(currentContext.commonClients, insights.commonClients),
+            averageDealSize: insights.averageDealSize || currentContext.averageDealSize,
+            typicalProjectDuration: insights.typicalProjectDuration || currentContext.typicalProjectDuration,
+            voicePatterns: {
+                commonPhrases: mergeArrays(currentContext.voicePatterns?.commonPhrases, insights.commonPhrases),
+                serviceDescriptions: mergeArrays(currentContext.voicePatterns?.serviceDescriptions, insights.serviceDescriptions),
+                pricingStructure: insights.pricingStructure || currentContext.voicePatterns?.pricingStructure
+            },
+            totalContracts: (currentContext.totalContracts || 0) + 1,
+            totalInvoices: currentContext.totalInvoices || 0,
+            lastUpdated: new Date(),
+            confidenceScore: Math.min(
+                (currentContext.confidenceScore || 0) + (insights.confidenceScore || 10), 
+                100
+            ) // Confidence increases with each contract, capped at 100
+        };
+        
+        // Update user's business context
+        user.businessContext = updatedContext;
+        await user.save();
+        
+        console.log('[AI Learning Agent] ✅ Business context updated! Confidence:', updatedContext.confidenceScore);
+        console.log('[AI Learning Agent] 📊 Learned:', {
+            industry: updatedContext.industry,
+            serviceCount: updatedContext.serviceTypes?.length || 0,
+            totalContracts: updatedContext.totalContracts
+        });
+        
+    } catch (error) {
+        console.error('[AI Learning Agent] ❌ Error:', error.message);
+        // Don't throw - learning is non-critical
+    }
+}
 
 
 // ========== START SERVER ==========

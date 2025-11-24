@@ -109,6 +109,25 @@
             cursor: not-allowed;
             transform: none;
         }
+        
+        .skip-btn {
+            width: 100%;
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+            padding: 0.8rem;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 1rem;
+        }
+        
+        .skip-btn:hover {
+            background: #f0f3ff;
+            transform: translateY(-1px);
+        }
 
         .progress-dots {
             display: flex;
@@ -182,6 +201,10 @@
 
                 <button type="submit" class="submit-btn" id="submitBtn">
                     🚀 Complete Setup
+                </button>
+                
+                <button type="button" class="skip-btn" id="skipBtn">
+                    ⏭️ Skip for Now (Setup Later)
                 </button>
             </form>
         </div>
