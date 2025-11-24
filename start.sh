@@ -12,6 +12,9 @@ if [ ! -d "node_modules" ]; then
     npm install
 fi
 
+# Create logs directory if it doesn't exist
+mkdir -p logs
+
 # Start backend
 node server.js > logs/server.log 2>&1 &
 SERVER_PID=$!
