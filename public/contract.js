@@ -363,6 +363,14 @@ function showPreviewModal(contractData) {
     
     modal.classList.remove('hidden');
     modal.classList.add('active');
+    
+    // Initialize signature canvases after modal is shown
+    setTimeout(() => {
+        console.log('[Preview Modal] Modal opened, initializing signature canvases...');
+        initializeSignatureCanvases();
+        updateSignatureStatus('serviceProvider');
+        updateSignatureStatus('client');
+    }, 300);
 }
 
 // Auto-detect uncertain fields that need user confirmation
@@ -820,7 +828,7 @@ showContractPreview = function(data) {
     // and modal is visible (so canvas can get proper dimensions)
     setTimeout(() => {
         console.log('[Contract Preview] Initializing signatures...');
-        const modal = document.getElementById('previewModal');
+        const modal = document.getElementById('contractPreviewModal');
         if (modal && !modal.classList.contains('hidden')) {
             initializeSignatureCanvases();
             updateSignatureStatus('serviceProvider');
