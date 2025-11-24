@@ -521,24 +521,21 @@ async function saveContract() {
         }
         
         console.log('Contract saved successfully');
-        
-        // Show success message and enable sharing/download
-        alert('✅ Contract saved successfully!\n\nYou can now:\n• Share it with your client for signature\n• Download the PDF');
-        
-        // Show share and download buttons
-        document.getElementById('shareBtn').style.display = 'inline-block';
-        document.getElementById('downloadBtn').style.display = 'inline-block';
-        
-        // Update save button to show it's saved
-        const saveBtnElements = document.querySelectorAll('button[onclick="saveContract()"]');
-        saveBtnElements.forEach(btn => {
-            btn.innerHTML = '<span style="margin-right: 0.5rem;">✅</span> Saved';
-            btn.disabled = true;
-        });
+        return true;
         
     } catch (error) {
         console.error('Error saving contract:', error);
         alert('❌ Failed to save contract. Please try again.');
+        return false;
+    }
+}
+
+// Save and close - redirect to dashboard
+async function saveAndClose() {
+    const saved = await saveContract();
+    if (saved) {
+        closePreviewModal();
+        window.location.href = '/dashboard';
     }
 }
 

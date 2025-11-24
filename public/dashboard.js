@@ -545,11 +545,6 @@ async function loadContracts() {
         
         contractsList.innerHTML = contracts.map(contract => {
             const hasShareLink = contract.shareableLink && contract.shareableLink.token;
-            const shareButton = hasShareLink ? `
-                <button class="btn-action btn-share" onclick="copyContractLink('${contract.shareableLink.token}')">
-                    🔗 Copy Link
-                </button>
-            ` : '';
             
             return `
             <div class="invoice-card">
@@ -562,7 +557,15 @@ async function loadContracts() {
                     ${hasShareLink ? `<p><strong>Status:</strong> <span style="color: #667eea;">🔗 Shared</span></p>` : ''}
                 </div>
                 <div class="invoice-actions">
-                    ${shareButton}
+                    ${hasShareLink ? `
+                        <button class="btn-action btn-share" onclick="copyContractLink('${contract.shareableLink.token}')">
+                            🔗 Copy Link
+                        </button>
+                    ` : `
+                        <button class="btn-action btn-share" onclick="shareContractFromDashboard('${contract._id}')">
+                            🔗 Share
+                        </button>
+                    `}
                     <button class="btn-action btn-download" onclick="downloadContract('${contract._id}', '${contract.contractTitle}')">
                         📄 Download
                     </button>
@@ -680,6 +683,37 @@ function copyContractLink(token) {
             notification.style.opacity = '0';
             setTimeout(() => document.body.removeChild(notification), 300);
         }, 2000);
+    }
+}
+
+// Share contract from dashboard
+async function shareContractFromDashboard(contractId) {
+    try {
+        const response = await fetch(`/api/contracts/${contractId}/share`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include'
+        });
+        
+        if (!response.ok) {
+            throw new Error('Failed to generate shareable link');
+        }
+        
+        const result = await response.json();
+        
+        // Copy the link automatically
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            await navigator.clipboard.writeText(result.shareableUrl);
+        }
+        
+        showCopyNotification('✅ Link created and copied to clipboard!');
+        
+        // Reload contracts to show the updated share status
+        setTimeout(() => loadContracts(), 500);
+        
+    } catch (error) {
+        console.error('Error sharing contract:', error);
+        alert('Failed to generate shareable link. Please try again.');
     }
 }
 
