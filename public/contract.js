@@ -29,6 +29,45 @@ const speechAvailable = initializeSpeechRecognition();
 
 const micBtn = document.getElementById('micBtn');
 const status = document.getElementById('status');
+
+// Check if we're editing an existing contract
+window.addEventListener('DOMContentLoaded', () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const editContractId = urlParams.get('edit');
+    
+    if (editContractId) {
+        console.log('[Contract] Loading contract for editing:', editContractId);
+        loadContractForEditing(editContractId);
+    }
+});
+
+// Load contract for editing
+async function loadContractForEditing(contractId) {
+    try {
+        const response = await fetch(`/api/contracts/${contractId}`, {
+            credentials: 'include'
+        });
+        
+        if (!response.ok) {
+            throw new Error('Failed to load contract');
+        }
+        
+        const contract = await response.json();
+        console.log('[Contract] Contract loaded:', contract);
+        
+        // Set current contract ID and data
+        currentContractId = contract._id;
+        currentContractData = contract;
+        
+        // Show preview modal with the contract data
+        showPreviewModal(contract);
+        
+    } catch (error) {
+        console.error('[Contract] Error loading contract:', error);
+        alert('Failed to load contract for editing. Please try again.');
+    }
+}
+
 const loading = document.getElementById('loading');
 const toggleGuide = document.getElementById('toggleGuide');
 const guideContent = document.getElementById('guideContent');

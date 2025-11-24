@@ -566,6 +566,9 @@ async function loadContracts() {
                             🔗 Share
                         </button>
                     `}
+                    <button class="btn-action btn-edit" onclick="editContract('${contract._id}')">
+                        ✏️ Edit
+                    </button>
                     <button class="btn-action btn-download" onclick="downloadContract('${contract._id}', '${contract.contractTitle}')">
                         📄 Download
                     </button>
@@ -608,6 +611,12 @@ async function downloadContract(id, contractTitle) {
         console.error('Error downloading contract:', error);
         alert('Failed to download contract: ' + error.message);
     }
+}
+
+// Edit contract
+function editContract(id) {
+    // Redirect to contract page with the contract ID
+    window.location.href = `/contract.html?edit=${id}`;
 }
 
 // Delete contract
