@@ -623,9 +623,13 @@ function initializeSignatureCanvases() {
             return;
         }
         
-        const rect = canvas.parentElement.getBoundingClientRect();
-        canvas.width = rect.width;
-        canvas.height = rect.height;
+        // Get the wrapper dimensions instead of the canvas parent
+        const wrapper = canvas.parentElement;
+        const rect = wrapper.getBoundingClientRect();
+        
+        // Set explicit dimensions - canvas needs explicit width/height
+        canvas.width = rect.width || 400; // fallback to 400px if rect is 0
+        canvas.height = rect.height || 150; // fallback to 150px if rect is 0
         
         console.log(`[Signature Canvas] ${party} canvas size:`, canvas.width, 'x', canvas.height);
         
@@ -674,6 +678,7 @@ function initializeSignatureCanvases() {
 }
 
 function startDrawing(e, party) {
+    console.log(`[Signature Draw] Starting drawing for ${party}`, signatureState[party]);
     signatureState[party].isDrawing = true;
     const rect = signatureState[party].canvas.getBoundingClientRect();
     signatureState[party].ctx.beginPath();
@@ -701,6 +706,7 @@ function draw(e, party) {
 
 function stopDrawing(party) {
     if (signatureState[party].isDrawing) {
+        console.log(`[Signature Draw] Stopped drawing for ${party}`);
         signatureState[party].isDrawing = false;
         updateSignatureStatus(party);
     }
@@ -810,12 +816,25 @@ const originalShowPreview = showContractPreview;
 showContractPreview = function(data) {
     originalShowPreview(data);
     
-    // Initialize signature canvases after a short delay to ensure DOM is ready
+    // Initialize signature canvases after a delay to ensure DOM is fully rendered
+    // and modal is visible (so canvas can get proper dimensions)
     setTimeout(() => {
-        initializeSignatureCanvases();
-        updateSignatureStatus('serviceProvider');
-        updateSignatureStatus('client');
-    }, 100);
+        console.log('[Contract Preview] Initializing signatures...');
+        const modal = document.getElementById('previewModal');
+        if (modal && !modal.classList.contains('hidden')) {
+            initializeSignatureCanvases();
+            updateSignatureStatus('serviceProvider');
+            updateSignatureStatus('client');
+        } else {
+            console.warn('[Contract Preview] Modal not visible, retrying...');
+            // Retry after another delay
+            setTimeout(() => {
+                initializeSignatureCanvases();
+                updateSignatureStatus('serviceProvider');
+                updateSignatureStatus('client');
+            }, 200);
+        }
+    }, 200);
 };
 
 // ==================== SHARE CONTRACT FUNCTIONALITY ====================
