@@ -892,8 +892,35 @@ function copyShareLink() {
     input.select();
     input.setSelectionRange(0, 99999); // For mobile devices
     
-    navigator.clipboard.writeText(input.value).then(() => {
-        // Show copied feedback
+    // Try modern clipboard API first
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(input.value).then(() => {
+            showCopySuccess();
+        }).catch(err => {
+            // Fallback to document.execCommand
+            console.log('Clipboard API failed, using fallback:', err);
+            copyFallback();
+        });
+    } else {
+        // Use fallback for older browsers
+        copyFallback();
+    }
+    
+    function copyFallback() {
+        try {
+            const successful = document.execCommand('copy');
+            if (successful) {
+                showCopySuccess();
+            } else {
+                alert('Please press Cmd+C (Mac) or Ctrl+C (Windows) to copy the link.');
+            }
+        } catch (err) {
+            console.error('Copy fallback failed:', err);
+            alert('Please press Cmd+C (Mac) or Ctrl+C (Windows) to copy the link.');
+        }
+    }
+    
+    function showCopySuccess() {
         const btn = event.target;
         const originalText = btn.textContent;
         btn.textContent = '✅ Copied!';
@@ -903,9 +930,6 @@ function copyShareLink() {
             btn.textContent = originalText;
             btn.style.background = '#667eea';
         }, 2000);
-    }).catch(err => {
-        console.error('Failed to copy:', err);
-        alert('Failed to copy link. Please copy manually.');
-    });
+    }
 }
 
