@@ -585,7 +585,7 @@ async function loadContracts() {
 async function downloadContract(id, contractTitle) {
     try {
         console.log('[Dashboard] Downloading contract:', id);
-        const response = await fetch(`/api/contracts/${id}/download`, {
+        const response = await fetch(`/api/contracts/${id}/pdf`, {
             credentials: 'include'
         });
         
