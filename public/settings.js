@@ -14,37 +14,36 @@ async function checkAuth() {
         document.getElementById('userName').textContent = data.user.name;
         document.getElementById('userAvatar').src = data.user.picture;
         
-        loadBusinessContext();
+        loadBusinessInfo();
     } catch (error) {
         console.error('Error checking auth:', error);
         window.location.href = '/';
     }
 }
 
-// Load business context
-async function loadBusinessContext() {
+// Load business info
+async function loadBusinessInfo() {
     try {
-        const response = await fetch('/api/business-context', {
+        const response = await fetch('/api/user/business-info', {
             credentials: 'include'
         });
         
-        const context = await response.json();
+        const data = await response.json();
+        const info = data.businessInfo;
         
-        // Fill form fields
-        document.getElementById('companyName').value = context.companyName || '';
-        document.getElementById('address').value = context.address || '';
-        document.getElementById('phone').value = context.phone || '';
-        document.getElementById('email').value = context.email || '';
-        document.getElementById('defaultCurrency').value = context.defaultCurrency || 'USD';
-        document.getElementById('defaultPaymentTerms').value = context.defaultPaymentTerms || '';
+        if (info) {
+            // Fill form fields with business info
+            document.getElementById('companyName').value = info.businessName || '';
+            document.getElementById('address').value = info.businessAddress || '';
+            document.getElementById('phone').value = info.businessPhone || '';
+            document.getElementById('email').value = info.businessEmail || '';
+        }
         
-        // Display frequent clients
-        displayFrequentClients(context.frequentClients || []);
+        // Note: We're keeping currency/payment terms for backward compatibility
+        // but focusing on the core business info from onboarding
         
-        // Display common services
-        displayCommonServices(context.commonServices || []);
     } catch (error) {
-        console.error('Error loading business context:', error);
+        console.error('Error loading business info:', error);
     }
 }
 
@@ -150,23 +149,21 @@ async function removeService(index) {
 document.getElementById('businessForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     
-    const settings = {
-        companyName: document.getElementById('companyName').value,
-        address: document.getElementById('address').value,
-        phone: document.getElementById('phone').value,
-        email: document.getElementById('email').value,
-        defaultCurrency: document.getElementById('defaultCurrency').value,
-        defaultPaymentTerms: document.getElementById('defaultPaymentTerms').value
+    const businessInfo = {
+        businessName: document.getElementById('companyName').value.trim(),
+        businessAddress: document.getElementById('address').value.trim(),
+        businessPhone: document.getElementById('phone').value.trim(),
+        businessEmail: document.getElementById('email').value.trim()
     };
     
     try {
-        const response = await fetch('/api/business-context', {
-            method: 'PUT',
+        const response = await fetch('/api/user/business-info', {
+            method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
             credentials: 'include',
-            body: JSON.stringify(settings)
+            body: JSON.stringify(businessInfo)
         });
         
         if (response.ok) {
@@ -176,7 +173,8 @@ document.getElementById('businessForm').addEventListener('submit', async (e) => 
                 successMsg.classList.remove('show');
             }, 3000);
         } else {
-            alert('Failed to save settings');
+            const error = await response.json();
+            alert(error.error || 'Failed to save settings');
         }
     } catch (error) {
         console.error('Error saving settings:', error);

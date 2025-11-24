@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome - Setup Your Business</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .onboarding-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 2rem;
+        }
+
+        .onboarding-card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+            width: 100%;
+            padding: 3rem;
+        }
+
+        .onboarding-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .onboarding-header h1 {
+            color: #667eea;
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .onboarding-header p {
+            color: #6b7280;
+            font-size: 1rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            color: #374151;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            font-size: 0.95rem;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .form-group small {
+            display: block;
+            color: #6b7280;
+            margin-top: 0.25rem;
+            font-size: 0.85rem;
+        }
+
+        .required {
+            color: #ef4444;
+        }
+
+        .submit-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 1rem;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 2rem;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .progress-dots {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #e5e7eb;
+        }
+
+        .dot.active {
+            background: #667eea;
+        }
+    </style>
+</head>
+<body>
+    <div class="onboarding-container">
+        <div class="onboarding-card">
+            <div class="progress-dots">
+                <div class="dot active"></div>
+                <div class="dot"></div>
+                <div class="dot"></div>
+            </div>
+
+            <div class="onboarding-header">
+                <h1>🎉 Welcome!</h1>
+                <p>Let's set up your business information. This will be used for all your invoices and contracts.</p>
+            </div>
+
+            <form id="onboardingForm">
+                <div class="form-group">
+                    <label for="businessName">Business Name <span class="required">*</span></label>
+                    <input type="text" id="businessName" name="businessName" required>
+                    <small>Your company or business name</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="businessAddress">Business Address <span class="required">*</span></label>
+                    <textarea id="businessAddress" name="businessAddress" required></textarea>
+                    <small>Street address, city, state, ZIP code</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="businessEmail">Business Email <span class="required">*</span></label>
+                    <input type="email" id="businessEmail" name="businessEmail" required>
+                    <small>Primary contact email for your business</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="businessPhone">Business Phone <span class="required">*</span></label>
+                    <input type="tel" id="businessPhone" name="businessPhone" required>
+                    <small>Phone number for client contact</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="website">Website</label>
+                    <input type="url" id="website" name="website" placeholder="https://yourwebsite.com">
+                    <small>Optional - Your business website</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="taxId">Tax ID / EIN</label>
+                    <input type="text" id="taxId" name="taxId" placeholder="XX-XXXXXXX">
+                    <small>Optional - For invoices and tax purposes</small>
+                </div>
+
+                <button type="submit" class="submit-btn" id="submitBtn">
+                    🚀 Complete Setup
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script src="onboarding.js"></script>
+</body>
+</html>

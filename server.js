@@ -39,6 +39,15 @@ const userSchema = new mongoose.Schema({
     email: { type: String, required: true, unique: true },
     name: String,
     picture: String,
+    businessInfo: {
+        businessName: String,
+        businessAddress: String,
+        businessEmail: String,
+        businessPhone: String,
+        website: String,
+        taxId: String,
+        setupCompleted: { type: Boolean, default: false }
+    },
     createdAt: { type: Date, default: Date.now }
 });
 
@@ -254,7 +263,14 @@ app.get('/auth/google',
 app.get('/auth/google/callback',
     passport.authenticate('google', { failureRedirect: clientURL || 'http://localhost:3000/' }),
     (req, res) => {
-        res.redirect((clientURL || 'http://localhost:3000') + '/dashboard');
+        // Check if user needs onboarding
+        if (!req.user.businessInfo || !req.user.businessInfo.setupCompleted) {
+            console.log('[Auth] New user detected, redirecting to onboarding');
+            res.redirect((clientURL || 'http://localhost:3000') + '/onboarding.html');
+        } else {
+            console.log('[Auth] Existing user, redirecting to dashboard');
+            res.redirect((clientURL || 'http://localhost:3000') + '/dashboard');
+        }
     }
 );
 
@@ -278,11 +294,63 @@ app.get('/auth/user', (req, res) => {
                 id: req.user._id,
                 email: req.user.email,
                 name: req.user.name,
-                picture: req.user.picture
+                picture: req.user.picture,
+                businessInfo: req.user.businessInfo
             }
         });
     } else {
         res.status(401).json({ authenticated: false });
+    }
+});
+
+// Business info setup endpoint
+app.post('/api/user/business-info', requireAuth, async (req, res) => {
+    try {
+        console.log('[Onboarding] Saving business info for user:', req.user._id);
+        console.log('[Onboarding] Business info:', req.body);
+        
+        const { businessName, businessAddress, businessEmail, businessPhone, website, taxId } = req.body;
+        
+        // Validate required fields
+        if (!businessName || !businessAddress || !businessEmail || !businessPhone) {
+            return res.status(400).json({ error: 'Missing required business information' });
+        }
+        
+        // Update user with business info
+        req.user.businessInfo = {
+            businessName,
+            businessAddress,
+            businessEmail,
+            businessPhone,
+            website: website || null,
+            taxId: taxId || null,
+            setupCompleted: true
+        };
+        
+        await req.user.save();
+        
+        console.log('[Onboarding] Business info saved successfully');
+        
+        res.json({
+            success: true,
+            message: 'Business information saved successfully',
+            businessInfo: req.user.businessInfo
+        });
+    } catch (error) {
+        console.error('[Onboarding] Error saving business info:', error);
+        res.status(500).json({ error: 'Failed to save business information' });
+    }
+});
+
+// Get business info endpoint
+app.get('/api/user/business-info', requireAuth, async (req, res) => {
+    try {
+        res.json({
+            businessInfo: req.user.businessInfo || null
+        });
+    } catch (error) {
+        console.error('[Business Info] Error fetching:', error);
+        res.status(500).json({ error: 'Failed to fetch business information' });
     }
 });
 
@@ -1493,6 +1561,26 @@ Generate the comprehensive contract JSON now using ONLY information from the tra
             contractData.effectiveDate = todayFormatted;
         }
         
+        // Get user's business info for auto-filling service provider details
+        const user = await User.findById(userId);
+        let serviceProviderInfo = {
+            name: 'Service Provider',
+            address: 'To be determined',
+            email: 'To be determined',
+            phone: 'To be determined'
+        };
+        
+        // Auto-fill service provider from user's business info if available
+        if (user && user.businessInfo && user.businessInfo.setupCompleted) {
+            console.log('[Contract Service] Auto-filling service provider from business info');
+            serviceProviderInfo = {
+                name: user.businessInfo.businessName,
+                address: user.businessInfo.businessAddress,
+                email: user.businessInfo.businessEmail,
+                phone: user.businessInfo.businessPhone
+            };
+        }
+        
         // Map the OpenAI response directly - trust GPT-4o's extraction from the prompt
         const contractToSave = {
             userId,
@@ -1500,12 +1588,7 @@ Generate the comprehensive contract JSON now using ONLY information from the tra
             contractTitle: contractData.title || 'Service Agreement',
             effectiveDate: contractData.effectiveDate,
             parties: contractData.parties || {
-                serviceProvider: {
-                    name: 'Service Provider',
-                    address: 'To be determined',
-                    email: 'To be determined',
-                    phone: 'To be determined'
-                },
+                serviceProvider: serviceProviderInfo,
                 client: {
                     name: 'Client',
                     signingAuthority: '',
@@ -1516,6 +1599,12 @@ Generate the comprehensive contract JSON now using ONLY information from the tra
             },
             sections: contractData.sections || []
         };
+        
+        // If parties were extracted from OpenAI but service provider is generic, use business info
+        if (contractToSave.parties.serviceProvider.name === 'Service Provider' && 
+            user && user.businessInfo && user.businessInfo.setupCompleted) {
+            contractToSave.parties.serviceProvider = serviceProviderInfo;
+        }
         
         // Save to database
         const contract = await Contract.create(contractToSave);
