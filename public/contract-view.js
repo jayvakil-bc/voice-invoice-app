@@ -9,8 +9,13 @@ let hasSignature = false;
 const pathParts = window.location.pathname.split('/');
 token = pathParts[pathParts.length - 1];
 
+console.log('[Contract View] URL pathname:', window.location.pathname);
+console.log('[Contract View] Path parts:', pathParts);
+console.log('[Contract View] Extracted token:', token);
+
 // Initialize on page load
 window.addEventListener('DOMContentLoaded', () => {
+    console.log('[Contract View] DOM loaded, loading contract...');
     loadContract();
 });
 

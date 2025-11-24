@@ -1739,14 +1739,20 @@ app.get('/contract/view/:token', async (req, res) => {
 // Get contract data via shareable link (no auth required)
 app.get('/api/contracts/shared/:token', async (req, res) => {
     try {
+        console.log('[Contract Service] Attempting to load shared contract with token:', req.params.token);
+        
         const contract = await Contract.findOne({ 'shareableLink.token': req.params.token });
         
         if (!contract) {
+            console.log('[Contract Service] Contract not found for token:', req.params.token);
             return res.status(404).json({ error: 'Contract not found or link expired' });
         }
         
+        console.log('[Contract Service] Contract found:', contract._id);
+        
         // Check if link is expired
         if (contract.shareableLink.expiresAt < new Date()) {
+            console.log('[Contract Service] Link expired for contract:', contract._id);
             return res.status(410).json({ error: 'This link has expired' });
         }
         

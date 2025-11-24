@@ -892,31 +892,35 @@ function copyShareLink() {
     input.select();
     input.setSelectionRange(0, 99999); // For mobile devices
     
+    let copied = false;
+    
     // Try modern clipboard API first
     if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(input.value).then(() => {
-            showCopySuccess();
-        }).catch(err => {
-            // Fallback to document.execCommand
-            console.log('Clipboard API failed, using fallback:', err);
-            copyFallback();
-        });
+        navigator.clipboard.writeText(input.value)
+            .then(() => {
+                showCopySuccess();
+            })
+            .catch(err => {
+                // Fallback to document.execCommand
+                console.log('Clipboard API failed, trying fallback');
+                try {
+                    document.execCommand('copy');
+                    showCopySuccess();
+                } catch (e) {
+                    console.error('All copy methods failed');
+                    // Show help message
+                    alert('Link selected! Press Cmd+C (Mac) or Ctrl+C (Windows) to copy.');
+                }
+            });
     } else {
         // Use fallback for older browsers
-        copyFallback();
-    }
-    
-    function copyFallback() {
         try {
-            const successful = document.execCommand('copy');
-            if (successful) {
-                showCopySuccess();
-            } else {
-                alert('Please press Cmd+C (Mac) or Ctrl+C (Windows) to copy the link.');
-            }
+            document.execCommand('copy');
+            showCopySuccess();
         } catch (err) {
             console.error('Copy fallback failed:', err);
-            alert('Please press Cmd+C (Mac) or Ctrl+C (Windows) to copy the link.');
+            // Link is already selected, just tell user to copy manually
+            alert('Link selected! Press Cmd+C (Mac) or Ctrl+C (Windows) to copy.');
         }
     }
     
