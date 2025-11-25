@@ -43,20 +43,51 @@ CLIENT_URL=http://localhost:3000
 NODE_ENV=development
 ```
 
-3. **Start server:**
-```bash
-./start.sh
-# OR
-npm start
-```
+3. **Start the application:**
+   
+   Open your terminal (Terminal on Mac, Command Prompt on Windows) and navigate to the project folder:
+   ```bash
+   cd voice-invoice-app
+   ```
+   
+   Then run:
+   ```bash
+   ./start.sh
+   ```
+   
+   You should see:
+   ```
+   ✅ Backend started
+   🎉 Voice Invoice App Running!
+   🌐 Server: http://localhost:3000
+   ```
 
-4. **Open app:**
-Visit http://localhost:3000
+4. **Open the app in your browser:**
+   
+   Visit: **http://localhost:3000**
+   
+   You'll see the login page. Click "Continue with Google" to sign in.
 
-### Stop Server
+### Stop the Application
+
+When you're done, stop the server by running:
 ```bash
 ./stop.sh
 ```
+
+**That's it!** The server will stop and you'll see "✅ Backend stopped"
+
+### Troubleshooting
+
+**If `./start.sh` doesn't work:**
+- Make sure you're in the `voice-invoice-app` folder
+- Try: `chmod +x start.sh` then run `./start.sh` again
+- Or use: `npm start` instead
+
+**If the app won't start:**
+- Check `logs/server.log` for error messages
+- Make sure your `.env` file has all required keys
+- Verify MongoDB, Google OAuth, and OpenAI API keys are correct
 
 ## Project Structure
 

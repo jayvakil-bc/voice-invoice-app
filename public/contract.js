@@ -69,8 +69,6 @@ async function loadContractForEditing(contractId) {
 }
 
 const loading = document.getElementById('loading');
-const toggleGuide = document.getElementById('toggleGuide');
-const guideContent = document.getElementById('guideContent');
 const textInput = document.getElementById('textInput');
 const generateBtn = document.getElementById('generateBtn');
 const clearBtn = document.getElementById('clearBtn');
@@ -96,7 +94,7 @@ audioFileInput.addEventListener('change', async (e) => {
     // Show transcribing loader
     transcribingLoader.classList.remove('hidden');
     uploadAudioBtn.disabled = true;
-    status.textContent = '🎵 Transcribing audio...';
+    status.textContent = 'Transcribing audio...';
     
     try {
         // Create FormData to send file
@@ -119,11 +117,11 @@ audioFileInput.addEventListener('change', async (e) => {
         // Set transcribed text in textarea
         textInput.value = data.transcription;
         transcript = data.transcription;
-        status.textContent = '✅ Audio transcribed! Review and edit if needed, then generate contract.';
+        status.textContent = 'Audio transcribed! Review and edit if needed, then generate contract.';
         
     } catch (error) {
         console.error('Transcription error:', error);
-        status.textContent = '❌ Failed to transcribe audio. Please try again.';
+        status.textContent = 'Failed to transcribe audio. Please try again.';
         alert('Failed to transcribe audio file. Please try again or use voice input instead.');
     } finally {
         transcribingLoader.classList.add('hidden');
@@ -136,16 +134,8 @@ audioFileInput.addEventListener('change', async (e) => {
 navigator.permissions.query({ name: 'microphone' }).then((result) => {
     console.log('Microphone permission:', result.state);
     if (result.state === 'denied') {
-        status.textContent = '⚠️ Microphone access denied. Please enable it in browser settings.';
+        status.textContent = 'Microphone access denied. Please enable it in browser settings.';
     }
-});
-
-// Toggle guidelines
-toggleGuide.addEventListener('click', () => {
-    guideContent.classList.toggle('hidden');
-    toggleGuide.textContent = guideContent.classList.contains('hidden') 
-        ? '📋 Speaking Guidelines' 
-        : '✕ Hide Guidelines';
 });
 
 // Clear button
@@ -159,7 +149,7 @@ clearBtn.addEventListener('click', () => {
 generateBtn.addEventListener('click', () => {
     const text = textInput.value.trim();
     if (text) {
-        status.textContent = '⏳ Processing your contract...';
+        status.textContent = 'Processing your contract...';
         loading.classList.remove('hidden');
         generateBtn.disabled = true;
         
@@ -172,7 +162,18 @@ generateBtn.addEventListener('click', () => {
     }
 });
 
-micBtn.addEventListener('click', toggleRecording);
+micBtn.addEventListener('click', function(e) {
+    // Add clicked class for dark grey state
+    micBtn.classList.add('clicked');
+    toggleRecording();
+    
+    // Remove clicked class after a short delay to allow visual feedback
+    setTimeout(() => {
+        if (!isRecording) {
+            micBtn.classList.remove('clicked');
+        }
+    }, 200);
+});
 
 function toggleRecording() {
     if (!recognition) {
@@ -200,12 +201,12 @@ function startRecording() {
         recognition.start();
         isRecording = true;
         micBtn.classList.add('recording');
-        status.textContent = '🎙️ Listening... Speak now!';
+        status.textContent = 'Listening... Speak now!';
         status.classList.add('listening');
         
         recognitionTimeout = setTimeout(() => {
             if (isRecording) {
-                status.textContent = '🎙️ Still listening... Keep going!';
+                status.textContent = 'Still listening... Keep going!';
             }
         }, 30000);
         
@@ -230,7 +231,7 @@ function stopRecording() {
         if (recognitionTimeout) clearTimeout(recognitionTimeout);
         
         if (transcript) {
-            status.textContent = '✅ Processing your contract...';
+            status.textContent = 'Processing your contract...';
             loading.classList.remove('hidden');
             generateContract(transcript);
         } else {
@@ -265,7 +266,7 @@ if (recognition) {
         textInput.value = transcript + interimTranscript;
         
         if (transcript) {
-            status.textContent = '🎙️ Listening... (Click mic again when done)';
+            status.textContent = 'Listening... (Click mic again when done)';
         }
     };
     
@@ -331,7 +332,7 @@ async function generateContract(transcriptText) {
         
         loading.classList.add('hidden');
         generateBtn.disabled = false;
-        status.textContent = '✅ Contract generated! Review and edit below.';
+        status.textContent = 'Contract generated! Review and edit below.';
         
         // Store contract ID and data
         currentContractId = data.contractId;
@@ -344,7 +345,7 @@ async function generateContract(transcriptText) {
         console.error('Error:', error);
         loading.classList.add('hidden');
         generateBtn.disabled = false;
-        status.textContent = '❌ Error generating contract. Please try again.';
+        status.textContent = 'Error generating contract. Please try again.';
         setTimeout(() => {
             status.textContent = 'Press to speak';
         }, 3000);
@@ -564,7 +565,7 @@ async function saveContract() {
         
     } catch (error) {
         console.error('Error saving contract:', error);
-        alert('❌ Failed to save contract. Please try again.');
+        alert('Failed to save contract. Please try again.');
         return false;
     }
 }
@@ -589,7 +590,7 @@ async function downloadPDF() {
         const downloadBtn = document.getElementById('downloadBtn');
         if (downloadBtn) {
             downloadBtn.disabled = true;
-            downloadBtn.textContent = '⏳ Generating PDF...';
+            downloadBtn.textContent = 'Generating PDF...';
         }
         
         // Download PDF
@@ -619,18 +620,18 @@ async function downloadPDF() {
         
         if (downloadBtn) {
             downloadBtn.disabled = false;
-            downloadBtn.textContent = '✅ Downloaded';
+            downloadBtn.textContent = 'Downloaded';
         }
         
-        alert('✅ PDF downloaded successfully!');
+        alert('PDF downloaded successfully!');
         
     } catch (error) {
         console.error('Error downloading PDF:', error);
-        alert('❌ Failed to download PDF. Please try again.');
+        alert('Failed to download PDF. Please try again.');
         
         if (downloadBtn) {
             downloadBtn.disabled = false;
-            downloadBtn.textContent = '📄 Download PDF';
+            downloadBtn.textContent = 'Download PDF';
         }
     }
 }
@@ -778,7 +779,7 @@ function updateSignatureStatus(party) {
         statusEl.textContent = '✓ Signature captured';
         statusEl.className = 'signature-status signed';
     } else {
-        statusEl.textContent = '⚠ Not signed';
+        statusEl.textContent = 'Not signed';
         statusEl.className = 'signature-status unsigned';
     }
 }
@@ -915,7 +916,7 @@ async function shareContract() {
         alert('Failed to generate shareable link. Please try again.');
     } finally {
         shareBtn.disabled = false;
-        shareBtn.textContent = '🔗 Share with Client';
+        shareBtn.textContent = 'Share with Client';
     }
 }
 
@@ -962,7 +963,7 @@ function copyShareLink() {
     function showCopySuccess() {
         const btn = event.target;
         const originalText = btn.textContent;
-        btn.textContent = '✅ Copied!';
+        btn.textContent = 'Copied!';
         btn.style.background = '#10b981';
         
         setTimeout(() => {

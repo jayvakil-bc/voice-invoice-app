@@ -11,8 +11,11 @@ async function checkAuth() {
         }
         
         const data = await response.json();
-        document.getElementById('userName').textContent = data.user.name;
-        document.getElementById('userAvatar').src = data.user.picture;
+        // Set user name in menu
+        const menuUserName = document.getElementById('menuUserName');
+        if (menuUserName) {
+            menuUserName.textContent = data.user.name;
+        }
         
         loadInvoices();
         loadContracts();
@@ -38,10 +41,10 @@ async function loadInvoices() {
         if (invoices.length === 0) {
             invoicesList.innerHTML = `
                 <div class="empty-state">
-                    <div class="empty-state-icon">📄</div>
+                    <div class="empty-state-icon"></div>
                     <h3>No invoices yet</h3>
                     <p>Create your first invoice to get started!</p>
-                    <a href="/create" class="create-btn">+ Create Invoice</a>
+                    <a href="/create" class="create-btn">New Invoice</a>
                 </div>
             `;
             return;
@@ -49,27 +52,32 @@ async function loadInvoices() {
         
         invoicesList.innerHTML = invoices.map(invoice => `
             <div class="invoice-card">
-                <div class="invoice-info">
-                    <h3>${invoice.invoiceNumber}</h3>
-                    <p><strong>Service:</strong> ${invoice.serviceName || 'N/A'}</p>
-                    <p><strong>To:</strong> ${invoice.to?.name || 'N/A'} ${invoice.to?.company ? '(' + invoice.to.company + ')' : ''}</p>
-                    <p><strong>Amount:</strong> $${invoice.total?.toFixed(2) || '0.00'}</p>
-                    <p><strong>Date:</strong> ${new Date(invoice.date).toLocaleDateString()}</p>
-                    <p><strong>Due:</strong> ${new Date(invoice.dueDate).toLocaleDateString()}</p>
+                <div class="invoice-card-header">
+                    <h3 class="invoice-card-title">${invoice.invoiceNumber}</h3>
                 </div>
-                <div class="invoice-actions">
-                    <button class="btn-action btn-download" onclick="previewInvoice('${invoice._id}', '${invoice.invoiceNumber}')">
-                        �️ Preview
-                    </button>
-                    <button class="btn-action btn-edit" onclick="editInvoice('${invoice._id}')">
-                        ✏️ Edit
-                    </button>
-                    <button class="btn-action btn-drive" onclick="saveToGoogleDrive('${invoice._id}', '${invoice.invoiceNumber}')">
-                        💾 Save to Drive
-                    </button>
-                    <button class="btn-action btn-delete" onclick="deleteInvoice('${invoice._id}')">
-                        🗑️ Delete
-                    </button>
+                <div class="invoice-card-info">
+                    <div class="invoice-card-info-item">
+                        <span class="invoice-card-info-label">Client</span>
+                        <span class="invoice-card-info-value">${invoice.to?.name || 'N/A'}</span>
+                    </div>
+                    <div class="invoice-card-info-item">
+                        <span class="invoice-card-info-label">Service</span>
+                        <span class="invoice-card-info-value">${invoice.serviceName || 'N/A'}</span>
+                    </div>
+                </div>
+                <div class="invoice-card-amount">$${invoice.total?.toFixed(2) || '0.00'}</div>
+                <div class="invoice-card-date">Due: ${new Date(invoice.dueDate).toLocaleDateString()}</div>
+                <div class="invoice-card-footer" onclick="event.stopPropagation()">
+                    <button class="card-icon-btn" onclick="downloadInvoice('${invoice._id}', '${invoice.invoiceNumber}')" title="Download" style="font-size: 1.2rem;">↓</button>
+                    <div class="card-menu">
+                        <button class="card-icon-btn" onclick="toggleCardMenu(this)" title="More options" style="font-size: 1.2rem; font-weight: bold;">⋯</button>
+                        <div class="card-menu-dropdown">
+                            <button class="card-menu-item" onclick="previewInvoice('${invoice._id}', '${invoice.invoiceNumber}')">Preview</button>
+                            <button class="card-menu-item" onclick="editInvoice('${invoice._id}')">Edit</button>
+                            <button class="card-menu-item" onclick="saveToGoogleDrive('${invoice._id}', '${invoice.invoiceNumber}')">Save to Drive</button>
+                            <button class="card-menu-item" onclick="deleteInvoice('${invoice._id}')" style="color: #ef4444;">Delete</button>
+                        </div>
+                    </div>
                 </div>
             </div>
         `).join('');
@@ -93,7 +101,7 @@ function getCurrencySymbol(currency) {
 async function downloadInvoice(id, invoiceNumber) {
     try {
         console.log('[Dashboard] Downloading invoice:', id);
-        const response = await fetch(`/api/invoices/${id}/download`, {
+        const response = await fetch(`/api/invoices/${id}/pdf`, {
             credentials: 'include'
         });
         
@@ -204,7 +212,7 @@ async function saveAndRegenerate() {
 async function saveToGoogleDrive(id, invoiceNumber) {
     try {
         // First, get the PDF blob
-        const response = await fetch(`/api/invoices/${id}/download`, {
+        const response = await fetch(`/api/invoices/${id}/pdf`, {
             credentials: 'include'
         });
         
@@ -240,7 +248,7 @@ async function saveToGoogleDrive(id, invoiceNumber) {
         });
         
         if (uploadResponse.ok) {
-            alert('✅ Invoice saved to Google Drive successfully!');
+            alert('Invoice saved to Google Drive successfully!');
         } else {
             throw new Error('Upload failed');
         }
@@ -341,7 +349,7 @@ async function previewInvoice(id, invoiceNumber) {
                     <input type="number" value="${item.quantity || 1}" placeholder="Qty" data-item="${index}" data-field="quantity" min="1" step="1">
                     <input type="number" value="${item.rate || 0}" placeholder="Rate" data-item="${index}" data-field="rate" min="0" step="0.01">
                     <input type="number" value="${item.amount || 0}" placeholder="Amount" data-item="${index}" data-field="amount" min="0" step="0.01" readonly style="background: #f5f5f5;">
-                    <button class="btn-remove-item" onclick="removePreviewItem(${index})">✕</button>
+                    <button class="btn-remove-item" onclick="removePreviewItem(${index})">×</button>
                 `;
                 itemsList.appendChild(itemDiv);
             });
@@ -475,7 +483,7 @@ async function savePreviewChanges() {
             throw new Error('Failed to save changes');
         }
         
-        alert('✅ Changes saved successfully!');
+        alert('Changes saved successfully!');
         loadInvoices(); // Refresh the list
     } catch (error) {
         console.error('Error saving changes:', error);
@@ -494,6 +502,30 @@ async function downloadFromPreview() {
     
     // Close modal
     closePreviewModal();
+}
+
+// Toggle sidebar menu
+function toggleMenu() {
+    const sidebar = document.getElementById('sidebarMenu');
+    const overlay = document.getElementById('sidebarOverlay');
+    
+    const isHidden = sidebar.classList.contains('hidden');
+    
+    sidebar.classList.toggle('hidden');
+    overlay.classList.toggle('hidden');
+    
+    // Prevent body scroll when sidebar is open
+    if (!isHidden) {
+        document.body.style.overflow = '';
+    } else {
+        document.body.style.overflow = 'hidden';
+    }
+}
+
+// Go to profile (placeholder - can be customized)
+function goToProfile() {
+    // You can add navigation to a profile page here if needed
+    // Menu will be closed by the onclick handler
 }
 
 // Logout
@@ -534,10 +566,10 @@ async function loadContracts() {
         if (contracts.length === 0) {
             contractsList.innerHTML = `
                 <div class="empty-state">
-                    <div class="empty-state-icon">📜</div>
+                    <div class="empty-state-icon"></div>
                     <h3>No contracts yet</h3>
                     <p>Create your first contract to get started!</p>
-                    <a href="/create-contract" class="create-btn" style="background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);">+ Create Contract</a>
+                    <a href="/create-contract" class="create-btn create-btn-contract">New Contract</a>
                 </div>
             `;
             return;
@@ -548,33 +580,39 @@ async function loadContracts() {
             
             return `
             <div class="invoice-card">
-                <div class="invoice-info">
-                    <h3>${contract.contractTitle || 'Untitled Contract'}</h3>
-                    <p><strong>Service Provider:</strong> ${contract.parties?.serviceProvider?.name || 'N/A'}</p>
-                    <p><strong>Client:</strong> ${contract.parties?.client?.name || 'N/A'}</p>
-                    <p><strong>Effective Date:</strong> ${new Date(contract.effectiveDate).toLocaleDateString()}</p>
-                    <p><strong>Sections:</strong> ${contract.sections?.length || 0}</p>
-                    ${hasShareLink ? `<p><strong>Status:</strong> <span style="color: #667eea;">🔗 Shared</span></p>` : ''}
+                <div class="invoice-card-header">
+                    <h3 class="invoice-card-title">${contract.contractTitle || 'Untitled Contract'}</h3>
                 </div>
-                <div class="invoice-actions">
-                    ${hasShareLink ? `
-                        <button class="btn-action btn-share" onclick="copyContractLink('${contract.shareableLink.token}')">
-                            🔗 Copy Link
-                        </button>
-                    ` : `
-                        <button class="btn-action btn-share" onclick="shareContractFromDashboard('${contract._id}')">
-                            🔗 Share
-                        </button>
-                    `}
-                    <button class="btn-action btn-edit" onclick="editContract('${contract._id}')">
-                        ✏️ Edit
-                    </button>
-                    <button class="btn-action btn-download" onclick="downloadContract('${contract._id}', '${contract.contractTitle}')">
-                        📄 Download
-                    </button>
-                    <button class="btn-action btn-delete" onclick="deleteContract('${contract._id}')">
-                        🗑️ Delete
-                    </button>
+                <div class="invoice-card-info">
+                    <div class="invoice-card-info-item">
+                        <span class="invoice-card-info-label">Client</span>
+                        <span class="invoice-card-info-value">${contract.parties?.client?.name || 'N/A'}</span>
+                    </div>
+                    <div class="invoice-card-info-item">
+                        <span class="invoice-card-info-label">Provider</span>
+                        <span class="invoice-card-info-value">${contract.parties?.serviceProvider?.name || 'N/A'}</span>
+                    </div>
+                    <div class="invoice-card-info-item">
+                        <span class="invoice-card-info-label">Sections</span>
+                        <span class="invoice-card-info-value">${contract.sections?.length || 0}</span>
+                    </div>
+                </div>
+                <div class="invoice-card-date">Effective: ${new Date(contract.effectiveDate).toLocaleDateString()}</div>
+                ${hasShareLink ? `<div style="margin-top: 0.5rem; font-size: 0.8rem; color: #667eea; text-align: right; margin-bottom: 0;">Shared</div>` : ''}
+                <div class="invoice-card-footer" onclick="event.stopPropagation()">
+                    <button class="card-icon-btn" onclick="downloadContract('${contract._id}', '${contract.contractTitle}')" title="Download" style="font-size: 1.2rem;">↓</button>
+                    <div class="card-menu">
+                        <button class="card-icon-btn" onclick="toggleCardMenu(this)" title="More options" style="font-size: 1.2rem; font-weight: bold;">⋯</button>
+                        <div class="card-menu-dropdown">
+                            ${hasShareLink ? `
+                                <button class="card-menu-item" onclick="copyContractLink('${contract.shareableLink.token}')">Copy Link</button>
+                            ` : `
+                                <button class="card-menu-item" onclick="shareContractFromDashboard('${contract._id}')">Share</button>
+                            `}
+                            <button class="card-menu-item" onclick="editContract('${contract._id}')">Edit</button>
+                            <button class="card-menu-item" onclick="deleteContract('${contract._id}')" style="color: #ef4444;">Delete</button>
+                        </div>
+                    </div>
                 </div>
             </div>
         `;
@@ -670,7 +708,7 @@ function copyContractLink(token) {
     if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(shareUrl)
             .then(() => {
-                showCopyNotification('✅ Link copied to clipboard!');
+                showCopyNotification('Link copied to clipboard!');
             })
             .catch(() => {
                 fallbackCopy(shareUrl);
@@ -688,7 +726,7 @@ function copyContractLink(token) {
         textarea.select();
         try {
             document.execCommand('copy');
-            showCopyNotification('✅ Link copied to clipboard!');
+            showCopyNotification('Link copied to clipboard!');
         } catch (err) {
             prompt('Copy this link:', text);
         }
@@ -723,7 +761,7 @@ async function shareContractFromDashboard(contractId) {
             await navigator.clipboard.writeText(result.shareableUrl);
         }
         
-        showCopyNotification('✅ Link created and copied to clipboard!');
+        showCopyNotification('Link created and copied to clipboard!');
         
         // Reload contracts to show the updated share status
         setTimeout(() => loadContracts(), 500);
@@ -733,6 +771,63 @@ async function shareContractFromDashboard(contractId) {
         alert('Failed to generate shareable link: ' + error.message);
     }
 }
+
+// Toggle card menu
+function toggleCardMenu(btn) {
+    const dropdown = btn.nextElementSibling;
+    const allDropdowns = document.querySelectorAll('.card-menu-dropdown');
+    
+    // Close all other dropdowns
+    allDropdowns.forEach(d => {
+        if (d !== dropdown) {
+            d.classList.remove('show');
+        }
+    });
+    
+    // Toggle current dropdown
+    dropdown.classList.toggle('show');
+}
+
+// Close dropdowns when clicking outside
+document.addEventListener('click', function(event) {
+    if (!event.target.closest('.card-menu')) {
+        document.querySelectorAll('.card-menu-dropdown').forEach(dropdown => {
+            dropdown.classList.remove('show');
+        });
+    }
+});
+
+// Tab switching
+function switchTab(tabName) {
+    // Remove active class from all tabs and content
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+    
+    // Add active class to selected tab
+    event.target.classList.add('active');
+    
+    // Show corresponding content
+    if (tabName === 'invoices') {
+        document.getElementById('invoicesTab').classList.add('active');
+    } else if (tabName === 'contracts') {
+        document.getElementById('contractsTab').classList.add('active');
+    }
+}
+
+// Toggle New menu dropdown
+function toggleNewMenu() {
+    const dropdown = document.getElementById('newMenuDropdown');
+    dropdown.classList.toggle('hidden');
+}
+
+// Close New menu when clicking outside
+document.addEventListener('click', function(event) {
+    const newMenu = document.querySelector('.new-menu');
+    const dropdown = document.getElementById('newMenuDropdown');
+    if (newMenu && !newMenu.contains(event.target)) {
+        dropdown.classList.add('hidden');
+    }
+});
 
 // Initialize
 checkAuth();

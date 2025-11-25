@@ -11,7 +11,7 @@ document.getElementById('onboardingForm').addEventListener('submit', async (e) =
     
     const submitBtn = document.getElementById('submitBtn');
     submitBtn.disabled = true;
-    submitBtn.textContent = '⏳ Setting up...';
+    submitBtn.textContent = 'Setting up...';
     
     const businessInfo = {
         businessName: document.getElementById('businessName').value.trim(),
@@ -40,7 +40,7 @@ document.getElementById('onboardingForm').addEventListener('submit', async (e) =
             console.log('[Onboarding] Setup successful:', data);
             
             // Show success animation
-            submitBtn.textContent = '✅ Success!';
+            submitBtn.textContent = 'Success!';
             submitBtn.style.background = 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
             
             // Redirect to dashboard after short delay
@@ -52,7 +52,7 @@ document.getElementById('onboardingForm').addEventListener('submit', async (e) =
             console.error('[Onboarding] Setup failed:', error);
             alert(error.error || 'Failed to save business information. Please try again.');
             submitBtn.disabled = false;
-            submitBtn.textContent = '🚀 Complete Setup';
+            submitBtn.textContent = 'Complete Setup';
         }
     } catch (error) {
         console.error('[Onboarding] Error:', error);

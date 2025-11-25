@@ -242,7 +242,7 @@ async function signContract() {
         console.error('Error signing contract:', error);
         alert(`Failed to sign contract: ${error.message}`);
         signButton.disabled = false;
-        signButton.textContent = '✍️ Sign Contract';
+        signButton.textContent = 'Sign Contract';
     }
 }
 

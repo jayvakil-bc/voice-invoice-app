@@ -10,7 +10,7 @@
     <!-- Navigation Header -->
     <nav class="nav-header">
         <div class="nav-content">
-            <h2 class="nav-logo">📜 VoiceBiz Contracts</h2>
+            <h2 class="nav-logo">VoiceBiz Contracts</h2>
             <div class="nav-links">
                 <a href="/dashboard" class="nav-link">← Back to Dashboard</a>
                 <button onclick="logout()" class="nav-link logout-link">Logout</button>
@@ -19,31 +19,12 @@
     </nav>
 
     <div class="container">
-        <h1>📜 Create New Contract</h1>
+        <h1>Create New Contract</h1>
         <p class="subtitle">Press the mic and describe your contract terms, or type them directly below</p>
         
-        <!-- Guidelines Section -->
-        <div class="guidelines">
-            <button id="toggleGuide" class="guide-toggle">📋 Speaking Guidelines</button>
-            <div id="guideContent" class="guide-content hidden">
-                <h3>What to include in your recording:</h3>
-                <ul>
-                    <li><strong>Service Provider:</strong> Your name/company, address, email, phone</li>
-                    <li><strong>Client:</strong> Client name, company, address, email, phone</li>
-                    <li><strong>Services:</strong> Detailed scope of work, deliverables, timeline</li>
-                    <li><strong>Payment Terms:</strong> Total fee, payment schedule, payment method</li>
-                    <li><strong>Responsibilities:</strong> Who does what, response times, requirements</li>
-                    <li><strong>Special Terms:</strong> Confidentiality, ownership, termination, liability</li>
-                    <li><strong>Duration:</strong> Start date, end date, renewal terms</li>
-                </ul>
-                <div class="example">
-                    <strong>Example:</strong> "Contract between ABC Marketing Agency at 123 Main Street, New York, contact@abc.com, and XYZ Corporation at 456 Oak Avenue, Los Angeles, john@xyz.com. We will provide social media marketing services including content creation, 3 posts per week, monthly analytics reports, for 6 months starting January 1st 2024. Payment is $5000 per month, due on the first of each month. We retain rights to strategy documents, client owns all published content. Either party can terminate with 30 days notice. Performance-based bonus of 10% if ROAS exceeds 4x. Client provides access to ad accounts showing actual spend."
-                </div>
-            </div>
-        </div>
         
         <button id="micBtn" class="mic-button">
-            <span class="mic-icon">🎤</span>
+            <span class="mic-icon"></span>
         </button>
         
         <p id="status" class="status">Press to speak</p>
@@ -53,7 +34,7 @@
             <div class="file-upload-section">
                 <input type="file" id="audioFileInput" accept="audio/*,.m4a,.mp3,.wav,.mp4,.mpeg,.mpga,.webm" style="display: none;">
                 <button id="uploadAudioBtn" class="upload-button">
-                    <span>🎵 Upload Audio Recording</span>
+                    <span>Upload Audio Recording</span>
                 </button>
                 <p class="upload-info">Supports: MP3, WAV, M4A, MP4, WebM (Max 25MB)</p>
             </div>
@@ -92,7 +73,7 @@
     <div id="contractPreviewModal" class="preview-modal hidden">
         <div class="preview-modal-content contract-preview-content">
             <div class="preview-modal-header">
-                <h2>📜 Review Your Contract</h2>
+                <h2>Review Your Contract</h2>
                 <p style="margin: 0.5rem 0 0 0; opacity: 0.9; font-size: 0.95rem;">Edit any field by clicking on it</p>
             </div>
             <div class="preview-modal-body">
@@ -220,7 +201,7 @@
     <div id="shareLinkModal" class="preview-modal hidden">
         <div class="preview-modal-content" style="max-width: 600px;">
             <div class="preview-modal-header">
-                <h2>🔗 Share Contract with Client</h2>
+                <h2>Share Contract with Client</h2>
                 <p style="margin: 0.5rem 0 0 0; opacity: 0.9; font-size: 0.95rem;">Send this link to your client for review and signature</p>
             </div>
             <div class="preview-modal-body">
@@ -229,12 +210,12 @@
                     <div style="display: flex; gap: 0.5rem;">
                         <input type="text" id="shareableLink" readonly style="flex: 1; padding: 0.75rem; border: 2px solid #d1d5db; border-radius: 6px; font-size: 0.95rem; background: white;">
                         <button onclick="copyShareLink()" style="background: #667eea; color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 6px; font-weight: 600; cursor: pointer; white-space: nowrap;">
-                            📋 Copy
+                            Copy
                         </button>
                     </div>
                     <p style="margin: 1rem 0 0 0; font-size: 0.9rem; color: #6b7280;">
                         ⏰ Link expires in 30 days<br>
-                        ✅ Client can view and sign without creating an account
+                        Client can view and sign without creating an account
                     </p>
                 </div>
             </div>

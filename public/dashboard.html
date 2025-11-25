@@ -10,30 +10,51 @@
 <body>
     <div class="dashboard-header">
         <div class="header-left">
-            <h2>🎤 Voice Invoice Generator</h2>
+            <button class="hamburger-menu" onclick="toggleMenu()">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <h2>Voice Invoice Generator</h2>
         </div>
         <div class="header-right">
-            <div class="user-info">
-                <img id="userAvatar" class="user-avatar" src="" alt="User">
-                <span id="userName" class="user-name"></span>
+            <div class="new-menu">
+                <button class="new-btn" onclick="toggleNewMenu()">+ New</button>
+                <div id="newMenuDropdown" class="new-menu-dropdown hidden">
+                    <a href="/create" class="new-menu-item">New Invoice</a>
+                    <a href="/create-contract" class="new-menu-item">New Contract</a>
+                </div>
             </div>
-            <a href="/settings" style="text-decoration: none;">
-                <button class="logout-btn" style="margin-right: 0.5rem;">⚙️ Settings</button>
-            </a>
-            <button class="logout-btn" onclick="logout()">Logout</button>
+        </div>
+    </div>
+    
+    <!-- Sidebar Overlay -->
+    <div id="sidebarOverlay" class="sidebar-overlay hidden" onclick="toggleMenu()"></div>
+    
+    <!-- Sidebar Menu -->
+    <div id="sidebarMenu" class="sidebar-menu hidden">
+        <div class="sidebar-header">
+            <h3>Menu</h3>
+            <button class="sidebar-close" onclick="toggleMenu()">×</button>
+        </div>
+        <div class="sidebar-content">
+            <div class="sidebar-item" onclick="goToProfile(); toggleMenu();">
+                <span id="menuUserName"></span>
+            </div>
+            <div class="sidebar-item" onclick="toggleMenu(); window.location.href='/settings';">
+                Settings
+            </div>
+            <div class="sidebar-item" onclick="toggleMenu(); logout();">
+                Logout
+            </div>
         </div>
     </div>
     
     <div class="dashboard-content">
-        <div class="actions">
-            <a href="/create" class="create-btn">+ Create New Invoice</a>
-            <a href="/create-contract" class="create-btn create-btn-contract">+ Create New Contract</a>
-        </div>
-        
         <!-- Tabs for Invoices and Contracts -->
         <div class="dashboard-tabs">
-            <button class="tab-btn active" onclick="switchTab('invoices')">📄 Invoices</button>
-            <button class="tab-btn" onclick="switchTab('contracts')">📜 Contracts</button>
+            <button class="tab-btn active" onclick="switchTab('invoices')">Your Invoices</button>
+            <button class="tab-btn" onclick="switchTab('contracts')">Your Contracts</button>
         </div>
         
         <!-- Invoices Section -->
@@ -64,7 +85,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h2>Edit Invoice</h2>
-                <button onclick="closeEditModal()" class="close-btn">✕</button>
+                <button onclick="closeEditModal()" class="close-btn">×</button>
             </div>
             <div class="modal-body">
                 <textarea id="editTranscript" rows="10" class="edit-textarea"></textarea>
@@ -81,8 +102,8 @@
     <div id="previewModal" class="modal hidden">
         <div class="modal-content" style="max-width: 900px;">
             <div class="modal-header">
-                <h2>📄 Invoice Preview</h2>
-                <button onclick="closePreviewModal()" class="close-btn">✕</button>
+                <h2>Invoice Preview</h2>
+                <button onclick="closePreviewModal()" class="close-btn">×</button>
             </div>
             <div class="modal-body" style="max-height: 70vh; overflow-y: auto;">
                 <div class="preview-section">
@@ -146,8 +167,8 @@
             </div>
             <div class="modal-footer">
                 <button onclick="closePreviewModal()" class="btn-secondary">Cancel</button>
-                <button onclick="savePreviewChanges()" class="btn-primary">💾 Save Changes</button>
-                <button onclick="downloadFromPreview()" class="btn-primary" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%);">📥 Download PDF</button>
+                <button onclick="savePreviewChanges()" class="btn-primary">Save Changes</button>
+                <button onclick="downloadFromPreview()" class="btn-primary" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%);">Download PDF</button>
             </div>
         </div>
     </div>
