@@ -489,9 +489,9 @@ body {
 }
 
 .btn-download:hover {
-    background: #dc5704
+    background: var(--primary-dark);
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+    box-shadow: 0 4px 12px rgba(167, 139, 250, 0.3);
     border-color: transparent;
 }
 
