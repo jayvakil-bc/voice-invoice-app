@@ -560,6 +560,7 @@ async function loadContracts() {
                     <div class="card-menu">
                         <button class="card-icon-btn" onclick="toggleCardMenu(this)" title="More options" style="font-size: 1.2rem; font-weight: bold;">⋯</button>
                         <div class="card-menu-dropdown">
+                            <button class="card-menu-item" onclick="saveContractToDrive('${contract._id}', '${contract.contractTitle}')">Save to Drive</button>
                             ${hasShareLink ? `
                                 <button class="card-menu-item" onclick="copyContractLink('${contract.shareableLink.token}')">Copy Link</button>
                             ` : `
@@ -604,6 +605,43 @@ async function downloadContract(id, contractTitle) {
     } catch (error) {
         console.error('Error downloading contract:', error);
         alert('Failed to download contract: ' + error.message);
+    }
+}
+
+// Save contract to Google Drive
+async function saveContractToDrive(id, contractTitle) {
+    try {
+        console.log('[Drive] Saving contract to Drive:', id);
+        
+        const response = await fetch(`/api/contracts/${id}/save-to-drive`, {
+            method: 'POST',
+            credentials: 'include'
+        });
+        
+        const result = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(result.error || 'Failed to save to Drive');
+        }
+        
+        console.log('[Drive] Success:', result);
+        alert(`✅ Saved to Google Drive!\n\nFile: ${result.drive.fileName}\n\nYou can view it in your Drive under the "Contracts" folder.`);
+        
+        // Optionally open Drive link
+        if (result.drive.viewLink) {
+            const openDrive = confirm('Open in Google Drive?');
+            if (openDrive) {
+                window.open(result.drive.viewLink, '_blank');
+            }
+        }
+        
+    } catch (error) {
+        console.error('[Drive] Error:', error);
+        if (error.message.includes('Google Drive access not available')) {
+            alert('❌ Google Drive access not available.\n\nPlease log out and log in again to grant Drive permissions.');
+        } else {
+            alert('Failed to save to Google Drive: ' + error.message);
+        }
     }
 }
 
