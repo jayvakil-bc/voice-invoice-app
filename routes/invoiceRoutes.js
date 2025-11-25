@@ -13,6 +13,7 @@ router.get('/api/invoices/:id', invoiceController.getInvoice);
 router.put('/api/invoices/:id', invoiceController.updateInvoice);
 router.delete('/api/invoices/:id', invoiceController.deleteInvoice);
 router.get('/api/invoices/:id/pdf', invoiceController.generateInvoicePDF);
+router.get('/api/invoices/:id/download', invoiceController.generateInvoicePDF); // Alias for compatibility
 
 // Tier 1 feature routes
 router.post('/api/invoices/:id/send-email', invoiceController.sendInvoiceWithEmail);
