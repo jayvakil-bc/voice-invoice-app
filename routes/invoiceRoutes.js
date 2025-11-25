@@ -22,6 +22,9 @@ router.put('/api/invoices/:id/payment-status', invoiceController.updatePaymentSt
 router.post('/api/invoices/:id/recurring/setup', invoiceController.setupRecurring);
 router.delete('/api/invoices/:id/recurring/cancel', invoiceController.cancelRecurring);
 
+// Google Drive integration
+router.post('/api/invoices/:id/save-to-drive', requireAuth, invoiceController.saveToGoogleDrive);
+
 // Compatibility alias for frontend
 router.get('/api/invoices', requireAuth, async (req, res) => {
     try {

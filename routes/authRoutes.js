@@ -18,7 +18,11 @@ router.get('/api/health', (req, res) => {
 
 // OAuth routes
 router.get('/auth/google', 
-    passport.authenticate('google', { scope: ['profile', 'email'] })
+    passport.authenticate('google', { 
+        scope: ['profile', 'email', 'https://www.googleapis.com/auth/drive.file'],
+        accessType: 'offline',
+        prompt: 'consent'
+    })
 );
 
 router.get('/auth/google/callback',

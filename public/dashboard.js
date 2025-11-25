@@ -211,82 +211,38 @@ async function saveAndRegenerate() {
 // Save to Google Drive
 async function saveToGoogleDrive(id, invoiceNumber) {
     try {
-        // First, get the PDF blob
-        const response = await fetch(`/api/invoices/${id}/pdf`, {
+        console.log('[Drive] Saving invoice to Drive:', id);
+        
+        const response = await fetch(`/api/invoices/${id}/save-to-drive`, {
+            method: 'POST',
             credentials: 'include'
         });
         
+        const result = await response.json();
+        
         if (!response.ok) {
-            throw new Error('Failed to get invoice');
+            throw new Error(result.error || 'Failed to save to Drive');
         }
         
-        const blob = await response.blob();
+        console.log('[Drive] Success:', result);
+        alert(`✅ Saved to Google Drive!\n\nFile: ${result.drive.fileName}\n\nYou can view it in your Drive under the "Invoices" folder.`);
         
-        // Check if Google Drive API is available
-        if (!window.gapi) {
-            alert('Loading Google Drive... Please try again in a moment.');
-            loadGoogleDriveAPI();
-            return;
-        }
-        
-        // Upload to Google Drive
-        const metadata = {
-            name: `${invoiceNumber}.pdf`,
-            mimeType: 'application/pdf'
-        };
-        
-        const form = new FormData();
-        form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
-        form.append('file', blob);
-        
-        const uploadResponse = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
-            method: 'POST',
-            headers: {
-                Authorization: `Bearer ${await getGoogleAccessToken()}`
-            },
-            body: form
-        });
-        
-        if (uploadResponse.ok) {
-            alert('Invoice saved to Google Drive successfully!');
-        } else {
-            throw new Error('Upload failed');
-        }
-    } catch (error) {
-        console.error('Error saving to Google Drive:', error);
-        alert('Failed to save to Google Drive. Please make sure you\'ve granted the necessary permissions.');
-    }
-}
-
-// Google Drive API helpers
-function loadGoogleDriveAPI() {
-    const script = document.createElement('script');
-    script.src = 'https://apis.google.com/js/api.js';
-    script.onload = () => {
-        gapi.load('client:auth2', () => {
-            console.log('Google Drive API loaded');
-        });
-    };
-    document.body.appendChild(script);
-}
-
-async function getGoogleAccessToken() {
-    // This would need proper OAuth implementation
-    // For now, we'll use the session token from Google OAuth
-    return new Promise((resolve, reject) => {
-        if (gapi.auth2) {
-            const authInstance = gapi.auth2.getAuthInstance();
-            if (authInstance && authInstance.isSignedIn.get()) {
-                const user = authInstance.currentUser.get();
-                const token = user.getAuthResponse().access_token;
-                resolve(token);
-            } else {
-                reject(new Error('Not signed in to Google'));
+        // Optionally open Drive link
+        if (result.drive.viewLink) {
+            const openDrive = confirm('Open in Google Drive?');
+            if (openDrive) {
+                window.open(result.drive.viewLink, '_blank');
             }
-        } else {
-            reject(new Error('Google API not loaded'));
         }
-    });
+        
+    } catch (error) {
+        console.error('[Drive] Error:', error);
+        if (error.message.includes('Google Drive access not available')) {
+            alert('❌ Google Drive access not available.\n\nPlease log out and log in again to grant Drive permissions.');
+        } else {
+            alert('Failed to save to Google Drive: ' + error.message);
+        }
+    }
 }
 
 // Delete invoice

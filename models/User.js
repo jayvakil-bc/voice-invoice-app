@@ -5,6 +5,11 @@ const userSchema = new mongoose.Schema({
     email: { type: String, required: true, unique: true },
     name: String,
     picture: String,
+    
+    // Google OAuth tokens for Drive access
+    googleAccessToken: String,
+    googleRefreshToken: String,
+    
     businessInfo: {
         businessName: String,
         businessAddress: String,

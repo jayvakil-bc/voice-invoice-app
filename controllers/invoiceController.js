@@ -6,6 +6,7 @@ const fs = require('fs');
 const { sendInvoiceEmail } = require('../utils/emailService');
 const { createPaymentLink } = require('../utils/paymentService');
 const { setupRecurringInvoice, cancelRecurringInvoice } = require('../utils/recurringService');
+const { saveInvoiceToDrive, hasDriveAccess } = require('../utils/driveService');
 
 const generateInvoice = async (req, res) => {
     try {
@@ -596,6 +597,149 @@ const cancelRecurring = async (req, res) => {
     }
 };
 
+// Save invoice to Google Drive
+const saveToGoogleDrive = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const user = req.user;
+
+        // Check if user has Drive access
+        if (!hasDriveAccess(user)) {
+            return res.status(403).json({ 
+                error: 'Google Drive access not available. Please re-login to grant permissions.' 
+            });
+        }
+
+        const invoice = await Invoice.findById(id);
+        if (!invoice) {
+            return res.status(404).json({ error: 'Invoice not found' });
+        }
+
+        // Generate PDF to temp file
+        const tempDir = path.join(__dirname, '../uploads/temp');
+        if (!fs.existsSync(tempDir)) {
+            fs.mkdirSync(tempDir, { recursive: true });
+        }
+        
+        const pdfPath = path.join(tempDir, `invoice-${invoice.invoiceNumber}-${Date.now()}.pdf`);
+        const writeStream = fs.createWriteStream(pdfPath);
+        
+        const doc = new PDFDocument({ margin: 50, size: 'A4' });
+        doc.pipe(writeStream);
+
+        // Generate PDF (simplified version)
+        const brandColor = '#667eea';
+        const darkGray = '#333333';
+        const mediumGray = '#666666';
+        
+        doc.rect(0, 0, 612, 120).fill(brandColor);
+        doc.fontSize(32).font('Helvetica-Bold').fillColor('white').text('INVOICE', 50, 40);
+        doc.fontSize(11).font('Helvetica').fillColor('white')
+           .text(`Invoice #: ${invoice.invoiceNumber}`, 380, 45)
+           .text(`Date: ${invoice.date}`, 380, 62)
+           .text(`Due Date: ${invoice.dueDate}`, 380, 79);
+        
+        let yPos = 160;
+        doc.fontSize(10).font('Helvetica-Bold').fillColor(darkGray).text('FROM', 50, yPos);
+        yPos += 20;
+        doc.fontSize(12).font('Helvetica-Bold').fillColor(darkGray);
+        if (invoice.from.name) doc.text(invoice.from.name, 50, yPos);
+        yPos += 18;
+        doc.fontSize(10).font('Helvetica').fillColor(mediumGray);
+        if (invoice.from.address) {
+            const addressLines = doc.splitTextToFit(invoice.from.address, 220);
+            addressLines.forEach(line => { doc.text(line, 50, yPos); yPos += 14; });
+        }
+        if (invoice.from.phone) { doc.text(invoice.from.phone, 50, yPos); yPos += 14; }
+        if (invoice.from.email) doc.text(invoice.from.email, 50, yPos);
+        
+        yPos = 160;
+        doc.fontSize(10).font('Helvetica-Bold').fillColor(darkGray).text('BILL TO', 320, yPos);
+        yPos += 20;
+        doc.fontSize(12).font('Helvetica-Bold').fillColor(darkGray);
+        if (invoice.to.name) doc.text(invoice.to.name, 320, yPos);
+        yPos += 18;
+        doc.fontSize(10).font('Helvetica').fillColor(mediumGray);
+        if (invoice.to.address) {
+            const addressLines = doc.splitTextToFit(invoice.to.address, 220);
+            addressLines.forEach(line => { doc.text(line, 320, yPos); yPos += 14; });
+        }
+        if (invoice.to.phone) { doc.text(invoice.to.phone, 320, yPos); yPos += 14; }
+        if (invoice.to.email) doc.text(invoice.to.email, 320, yPos);
+        
+        yPos = 340;
+        doc.rect(50, yPos - 5, 512, 25).fill('#f5f7fa');
+        doc.fontSize(10).font('Helvetica-Bold').fillColor(darkGray);
+        doc.text('Description', 60, yPos + 5);
+        doc.text('Qty', 360, yPos + 5, { width: 40, align: 'center' });
+        doc.text('Unit Price', 410, yPos + 5, { width: 70, align: 'right' });
+        doc.text('Amount', 490, yPos + 5, { width: 62, align: 'right' });
+        yPos += 30;
+        doc.strokeColor('#e0e0e0').lineWidth(1).moveTo(50, yPos).lineTo(562, yPos).stroke();
+        yPos += 15;
+        
+        doc.font('Helvetica').fillColor(darkGray);
+        if (invoice.items && invoice.items.length > 0) {
+            invoice.items.forEach(item => {
+                const currency = invoice.currency || 'USD';
+                const symbol = currency === 'USD' ? '$' : currency === 'EUR' ? '€' : currency === 'GBP' ? '£' : currency;
+                doc.fontSize(10).text(item.description || '', 60, yPos, { width: 290 });
+                doc.text((item.quantity || 0).toString(), 360, yPos, { width: 40, align: 'center' });
+                doc.text(`${symbol}${(item.rate || 0).toFixed(2)}`, 410, yPos, { width: 70, align: 'right' });
+                doc.text(`${symbol}${(item.amount || 0).toFixed(2)}`, 490, yPos, { width: 62, align: 'right' });
+                yPos += 20;
+            });
+        }
+        
+        yPos += 10;
+        const currency = invoice.currency || 'USD';
+        const symbol = currency === 'USD' ? '$' : currency === 'EUR' ? '€' : currency === 'GBP' ? '£' : currency;
+        
+        doc.strokeColor('#e0e0e0').lineWidth(1).moveTo(380, yPos).lineTo(562, yPos).stroke();
+        yPos += 15;
+        doc.fontSize(10).font('Helvetica').fillColor(mediumGray)
+           .text('Subtotal:', 410, yPos, { width: 70, align: 'right' })
+           .text(`${symbol}${(invoice.subtotal || 0).toFixed(2)}`, 490, yPos, { width: 62, align: 'right' });
+        yPos += 20;
+        
+        doc.rect(380, yPos - 5, 182, 30).fill(brandColor);
+        doc.fontSize(12).font('Helvetica-Bold').fillColor('white')
+           .text('TOTAL:', 410, yPos + 5, { width: 70, align: 'right' })
+           .text(`${symbol}${(invoice.total || 0).toFixed(2)}`, 490, yPos + 5, { width: 62, align: 'right' });
+        
+        doc.end();
+
+        // Wait for PDF to finish writing
+        await new Promise((resolve, reject) => {
+            writeStream.on('finish', resolve);
+            writeStream.on('error', reject);
+        });
+
+        // Upload to Drive
+        const driveResult = await saveInvoiceToDrive(user, invoice, pdfPath);
+
+        // Cleanup temp file
+        setTimeout(() => {
+            try {
+                if (fs.existsSync(pdfPath)) {
+                    fs.unlinkSync(pdfPath);
+                }
+            } catch (err) {
+                console.error('Error cleaning up temp PDF:', err);
+            }
+        }, 5000);
+
+        res.json({
+            success: true,
+            drive: driveResult
+        });
+
+    } catch (error) {
+        console.error('[Invoice] Drive save error:', error);
+        res.status(500).json({ error: error.message || 'Failed to save to Google Drive' });
+    }
+};
+
 module.exports = {
     generateInvoice,
     getInvoicesByUser,
@@ -607,5 +751,6 @@ module.exports = {
     createInvoicePaymentLink,
     updatePaymentStatus,
     setupRecurring,
-    cancelRecurring
+    cancelRecurring,
+    saveToGoogleDrive
 };
