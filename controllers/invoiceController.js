@@ -1,6 +1,11 @@
 const { Invoice } = require('../models');
 const { getOpenAIClient } = require('../utils/openai');
 const PDFDocument = require('pdfkit');
+const path = require('path');
+const fs = require('fs');
+const { sendInvoiceEmail } = require('../utils/emailService');
+const { createPaymentLink } = require('../utils/paymentService');
+const { setupRecurringInvoice, cancelRecurringInvoice } = require('../utils/recurringService');
 
 const generateInvoice = async (req, res) => {
     try {
@@ -322,11 +327,285 @@ const generateInvoicePDF = async (req, res) => {
     }
 };
 
+// Send invoice via email with PDF attachment
+const sendInvoiceWithEmail = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { recipientEmail, includePaymentLink } = req.body;
+
+        const invoice = await Invoice.findById(id);
+        if (!invoice) {
+            return res.status(404).json({ error: 'Invoice not found' });
+        }
+
+        // Generate PDF to temp file
+        const tempDir = path.join(__dirname, '../uploads/temp');
+        if (!fs.existsSync(tempDir)) {
+            fs.mkdirSync(tempDir, { recursive: true });
+        }
+        
+        const pdfPath = path.join(tempDir, `invoice-${invoice.invoiceNumber}-${Date.now()}.pdf`);
+        const writeStream = fs.createWriteStream(pdfPath);
+        
+        const doc = new PDFDocument({ margin: 50, size: 'A4' });
+        doc.pipe(writeStream);
+
+        // Generate PDF (reuse logic from generateInvoicePDF)
+        const brandColor = '#667eea';
+        const darkGray = '#333333';
+        const mediumGray = '#666666';
+        const lightGray = '#999999';
+        
+        doc.rect(0, 0, 612, 120).fill(brandColor);
+        doc.fontSize(32).font('Helvetica-Bold').fillColor('white').text('INVOICE', 50, 40);
+        doc.fontSize(11).font('Helvetica').fillColor('white')
+           .text(`Invoice #: ${invoice.invoiceNumber}`, 380, 45)
+           .text(`Date: ${invoice.date}`, 380, 62)
+           .text(`Due Date: ${invoice.dueDate}`, 380, 79);
+        
+        let yPos = 160;
+        doc.fontSize(10).font('Helvetica-Bold').fillColor(darkGray).text('FROM', 50, yPos);
+        yPos += 20;
+        doc.fontSize(12).font('Helvetica-Bold').fillColor(darkGray);
+        if (invoice.from.name) doc.text(invoice.from.name, 50, yPos);
+        yPos += 18;
+        doc.fontSize(10).font('Helvetica').fillColor(mediumGray);
+        if (invoice.from.address) {
+            const addressLines = doc.splitTextToFit(invoice.from.address, 220);
+            addressLines.forEach(line => { doc.text(line, 50, yPos); yPos += 14; });
+        }
+        if (invoice.from.phone) { doc.text(invoice.from.phone, 50, yPos); yPos += 14; }
+        if (invoice.from.email) doc.text(invoice.from.email, 50, yPos);
+        
+        yPos = 160;
+        doc.fontSize(10).font('Helvetica-Bold').fillColor(darkGray).text('BILL TO', 320, yPos);
+        yPos += 20;
+        doc.fontSize(12).font('Helvetica-Bold').fillColor(darkGray);
+        if (invoice.to.name) doc.text(invoice.to.name, 320, yPos);
+        yPos += 18;
+        doc.fontSize(10).font('Helvetica').fillColor(mediumGray);
+        if (invoice.to.address) {
+            const addressLines = doc.splitTextToFit(invoice.to.address, 220);
+            addressLines.forEach(line => { doc.text(line, 320, yPos); yPos += 14; });
+        }
+        if (invoice.to.phone) { doc.text(invoice.to.phone, 320, yPos); yPos += 14; }
+        if (invoice.to.email) doc.text(invoice.to.email, 320, yPos);
+        
+        yPos = 340;
+        doc.rect(50, yPos - 5, 512, 25).fill('#f5f7fa');
+        doc.fontSize(10).font('Helvetica-Bold').fillColor(darkGray);
+        doc.text('Description', 60, yPos + 5);
+        doc.text('Qty', 360, yPos + 5, { width: 40, align: 'center' });
+        doc.text('Unit Price', 410, yPos + 5, { width: 70, align: 'right' });
+        doc.text('Amount', 490, yPos + 5, { width: 62, align: 'right' });
+        yPos += 30;
+        doc.strokeColor('#e0e0e0').lineWidth(1).moveTo(50, yPos).lineTo(562, yPos).stroke();
+        yPos += 15;
+        
+        doc.font('Helvetica').fillColor(darkGray);
+        if (invoice.items && invoice.items.length > 0) {
+            invoice.items.forEach(item => {
+                if (yPos > 680) { doc.addPage(); yPos = 50; }
+                const descHeight = doc.heightOfString(item.description || '', { width: 290 });
+                const currency = invoice.currency || 'USD';
+                const symbol = currency === 'USD' ? '$' : currency === 'EUR' ? '€' : currency === 'GBP' ? '£' : currency;
+                doc.fontSize(10).text(item.description || '', 60, yPos, { width: 290 });
+                doc.text((item.quantity || 0).toString(), 360, yPos, { width: 40, align: 'center' });
+                doc.text(`${symbol}${(item.rate || 0).toFixed(2)}`, 410, yPos, { width: 70, align: 'right' });
+                doc.text(`${symbol}${(item.amount || 0).toFixed(2)}`, 490, yPos, { width: 62, align: 'right' });
+                yPos += Math.max(descHeight, 15) + 10;
+            });
+        }
+        
+        yPos += 10;
+        doc.strokeColor('#e0e0e0').lineWidth(1).moveTo(380, yPos).lineTo(562, yPos).stroke();
+        yPos += 15;
+        
+        const currency = invoice.currency || 'USD';
+        const symbol = currency === 'USD' ? '$' : currency === 'EUR' ? '€' : currency === 'GBP' ? '£' : currency;
+        
+        doc.fontSize(10).font('Helvetica').fillColor(mediumGray)
+           .text('Subtotal:', 410, yPos, { width: 70, align: 'right' })
+           .text(`${symbol}${(invoice.subtotal || 0).toFixed(2)}`, 490, yPos, { width: 62, align: 'right' });
+        yPos += 20;
+        
+        if (invoice.tax && invoice.tax > 0) {
+            doc.text('Tax:', 410, yPos, { width: 70, align: 'right' })
+               .text(`${symbol}${invoice.tax.toFixed(2)}`, 490, yPos, { width: 62, align: 'right' });
+            yPos += 20;
+        }
+        
+        doc.rect(380, yPos - 5, 182, 30).fill(brandColor);
+        doc.fontSize(12).font('Helvetica-Bold').fillColor('white')
+           .text('TOTAL:', 410, yPos + 5, { width: 70, align: 'right' })
+           .text(`${symbol}${(invoice.total || 0).toFixed(2)}`, 490, yPos + 5, { width: 62, align: 'right' });
+        yPos += 45;
+        
+        if (invoice.notes) {
+            yPos += 10;
+            doc.fontSize(10).font('Helvetica-Bold').fillColor(darkGray).text('Payment Terms & Notes:', 50, yPos);
+            yPos += 18;
+            doc.fontSize(9).font('Helvetica').fillColor(mediumGray).text(invoice.notes, 50, yPos, { width: 512, align: 'left' });
+        }
+        
+        doc.fontSize(9).fillColor(lightGray).text('Thank you for your business!', 50, 750, { width: 512, align: 'center' });
+        doc.end();
+
+        // Wait for PDF to finish writing
+        await new Promise((resolve, reject) => {
+            writeStream.on('finish', resolve);
+            writeStream.on('error', reject);
+        });
+
+        // Optionally create payment link
+        let paymentLink = null;
+        if (includePaymentLink) {
+            try {
+                paymentLink = await createPaymentLink(invoice);
+                invoice.paymentLink = paymentLink;
+                await invoice.save();
+            } catch (error) {
+                console.warn('⚠️  Could not create payment link:', error.message);
+            }
+        }
+
+        // Send email
+        const emailResult = await sendInvoiceEmail({
+            to: recipientEmail,
+            invoice,
+            pdfPath,
+            paymentLink
+        });
+
+        // Cleanup temp file
+        setTimeout(() => {
+            try {
+                if (fs.existsSync(pdfPath)) {
+                    fs.unlinkSync(pdfPath);
+                }
+            } catch (err) {
+                console.error('Error cleaning up temp PDF:', err);
+            }
+        }, 5000);
+
+        res.json({
+            success: true,
+            messageId: emailResult.messageId,
+            paymentLink: paymentLink
+        });
+
+    } catch (error) {
+        console.error('[Invoice] Email send error:', error);
+        res.status(500).json({ error: error.message || 'Failed to send invoice email' });
+    }
+};
+
+// Create Stripe payment link for invoice
+const createInvoicePaymentLink = async (req, res) => {
+    try {
+        const { id } = req.params;
+        
+        const invoice = await Invoice.findById(id);
+        if (!invoice) {
+            return res.status(404).json({ error: 'Invoice not found' });
+        }
+
+        const paymentLink = await createPaymentLink(invoice);
+        
+        invoice.paymentLink = paymentLink;
+        await invoice.save();
+
+        res.json({
+            success: true,
+            paymentLink,
+            invoiceId: invoice._id
+        });
+
+    } catch (error) {
+        console.error('[Invoice] Payment link error:', error);
+        res.status(500).json({ error: error.message || 'Failed to create payment link' });
+    }
+};
+
+// Update payment status (called by Stripe webhook or manually)
+const updatePaymentStatus = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { status, paymentDate, stripePaymentId } = req.body;
+
+        const invoice = await Invoice.findById(id);
+        if (!invoice) {
+            return res.status(404).json({ error: 'Invoice not found' });
+        }
+
+        invoice.paymentStatus = status;
+        if (paymentDate) invoice.paymentDate = paymentDate;
+        if (stripePaymentId) invoice.stripePaymentId = stripePaymentId;
+
+        await invoice.save();
+
+        res.json({
+            success: true,
+            invoice
+        });
+
+    } catch (error) {
+        console.error('[Invoice] Payment status update error:', error);
+        res.status(500).json({ error: 'Failed to update payment status' });
+    }
+};
+
+// Setup recurring schedule for invoice
+const setupRecurring = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { frequency, endDate } = req.body;
+
+        if (!['weekly', 'bi-weekly', 'monthly', 'quarterly', 'yearly'].includes(frequency)) {
+            return res.status(400).json({ error: 'Invalid frequency' });
+        }
+
+        const invoice = await setupRecurringInvoice(id, { frequency, endDate });
+
+        res.json({
+            success: true,
+            invoice
+        });
+
+    } catch (error) {
+        console.error('[Invoice] Setup recurring error:', error);
+        res.status(500).json({ error: error.message || 'Failed to setup recurring invoice' });
+    }
+};
+
+// Cancel recurring schedule
+const cancelRecurring = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const invoice = await cancelRecurringInvoice(id);
+
+        res.json({
+            success: true,
+            invoice
+        });
+
+    } catch (error) {
+        console.error('[Invoice] Cancel recurring error:', error);
+        res.status(500).json({ error: error.message || 'Failed to cancel recurring invoice' });
+    }
+};
+
 module.exports = {
     generateInvoice,
     getInvoicesByUser,
     getInvoice,
     updateInvoice,
     deleteInvoice,
-    generateInvoicePDF
+    generateInvoicePDF,
+    sendInvoiceWithEmail,
+    createInvoicePaymentLink,
+    updatePaymentStatus,
+    setupRecurring,
+    cancelRecurring
 };

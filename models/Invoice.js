@@ -28,6 +28,31 @@ const invoiceSchema = new mongoose.Schema({
     tax: Number,
     total: Number,
     notes: String,
+    
+    // Payment fields (Tier 1)
+    currency: { type: String, default: 'USD' },
+    paymentStatus: { 
+        type: String, 
+        enum: ['pending', 'paid', 'overdue', 'cancelled'],
+        default: 'pending'
+    },
+    paymentLink: String,
+    paymentDate: Date,
+    stripePaymentId: String,
+    
+    // Recurring invoice fields (Tier 1)
+    isRecurring: { type: Boolean, default: false },
+    recurringSchedule: {
+        frequency: {
+            type: String,
+            enum: ['weekly', 'bi-weekly', 'monthly', 'quarterly', 'yearly']
+        },
+        nextInvoiceDate: Date,
+        endDate: Date,
+        lastGeneratedDate: Date
+    },
+    parentInvoiceId: { type: mongoose.Schema.Types.ObjectId, ref: 'Invoice' }, // For recurring invoices
+    
     createdAt: { type: Date, default: Date.now }
 });
 

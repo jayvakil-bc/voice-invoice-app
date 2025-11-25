@@ -14,6 +14,13 @@ router.put('/api/invoices/:id', invoiceController.updateInvoice);
 router.delete('/api/invoices/:id', invoiceController.deleteInvoice);
 router.get('/api/invoices/:id/pdf', invoiceController.generateInvoicePDF);
 
+// Tier 1 feature routes
+router.post('/api/invoices/:id/send-email', invoiceController.sendInvoiceWithEmail);
+router.post('/api/invoices/:id/payment-link', invoiceController.createInvoicePaymentLink);
+router.put('/api/invoices/:id/payment-status', invoiceController.updatePaymentStatus);
+router.post('/api/invoices/:id/recurring/setup', invoiceController.setupRecurring);
+router.delete('/api/invoices/:id/recurring/cancel', invoiceController.cancelRecurring);
+
 // Compatibility alias for frontend
 router.get('/api/invoices', requireAuth, async (req, res) => {
     try {
