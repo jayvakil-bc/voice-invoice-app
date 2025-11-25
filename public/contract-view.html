@@ -250,7 +250,7 @@
         </div>
         
         <div id="errorState" class="error-message" style="display: none;">
-            <h3>⚠️ Unable to Load Contract</h3>
+            <h3>Unable to Load Contract</h3>
             <p id="errorMessage"></p>
         </div>
         
@@ -310,7 +310,7 @@
             
             <!-- Signature area -->
             <div class="signature-area" id="signatureArea">
-                <h2>📝 Client Signature Required</h2>
+                <h2>Client Signature Required</h2>
                 
                 <div id="notSignedYet">
                     <div class="signature-instructions">
@@ -338,12 +338,12 @@
                     </div>
                     
                     <button class="sign-button" onclick="signContract()" id="signButton">
-                        ✍️ Sign Contract
+                        Sign Contract
                     </button>
                 </div>
                 
                 <div id="alreadySigned" class="already-signed" style="display: none;">
-                    <h3>✅ This Contract Has Been Signed</h3>
+                    <h3>This Contract Has Been Signed</h3>
                     <p>Signed by: <strong id="signedByName"></strong></p>
                     <p>Signed on: <strong id="signedDate"></strong></p>
                     <div class="signature-display">
@@ -353,14 +353,14 @@
             </div>
             
             <div id="successMessage" class="success-message" style="display: none;">
-                <h3>🎉 Contract Signed Successfully!</h3>
+                <h3>Contract Signed Successfully!</h3>
                 <p>Thank you for signing. The service provider will be notified.</p>
                 <p>You can download a copy of the signed contract below.</p>
             </div>
             
             <div style="text-align: center;">
                 <a href="#" id="downloadPdfBtn" class="download-pdf" onclick="downloadPDF(event)">
-                    📄 Download Signed Contract PDF
+                    Download Signed Contract PDF
                 </a>
             </div>
         </div>

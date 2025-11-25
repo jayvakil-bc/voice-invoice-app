@@ -19,7 +19,7 @@ async function loadBusinessContext() {
             hint.className = 'business-hint';
             hint.innerHTML = `
                 <p style="background: #e7f3ff; padding: 1rem; border-radius: 8px; margin-bottom: 1rem; border-left: 4px solid #667eea;">
-                    💡 <strong>Tip:</strong> Your business info is saved! You can just say: 
+                    <strong>Tip:</strong> Your business info is saved! You can just say: 
                     "Invoice to [client name] at [client company] for [service/product], [amount], due in [days]"
                     <br><br>
                     <strong>Your business:</strong> ${businessContext.companyName}
@@ -57,8 +57,6 @@ const speechAvailable = initializeSpeechRecognition();
 const micBtn = document.getElementById('micBtn');
 const status = document.getElementById('status');
 const loading = document.getElementById('loading');
-const toggleGuide = document.getElementById('toggleGuide');
-const guideContent = document.getElementById('guideContent');
 const textInput = document.getElementById('textInput');
 const generateBtn = document.getElementById('generateBtn');
 const clearBtn = document.getElementById('clearBtn');
@@ -84,7 +82,7 @@ audioFileInput.addEventListener('change', async (e) => {
     // Show transcribing loader
     transcribingLoader.classList.remove('hidden');
     uploadAudioBtn.disabled = true;
-    status.textContent = '🎵 Transcribing audio...';
+    status.textContent = 'Transcribing audio...';
     
     try {
         // Create FormData to send file
@@ -107,11 +105,11 @@ audioFileInput.addEventListener('change', async (e) => {
         // Set transcribed text in textarea
         textInput.value = data.transcription;
         transcript = data.transcription;
-        status.textContent = '✅ Audio transcribed! Review and edit if needed, then generate invoice.';
+        status.textContent = 'Audio transcribed! Review and edit if needed, then generate invoice.';
         
     } catch (error) {
         console.error('Transcription error:', error);
-        status.textContent = '❌ Failed to transcribe audio. Please try again.';
+        status.textContent = 'Failed to transcribe audio. Please try again.';
         alert('Failed to transcribe audio file. Please try again or use voice input instead.');
     } finally {
         transcribingLoader.classList.add('hidden');
@@ -124,16 +122,8 @@ audioFileInput.addEventListener('change', async (e) => {
 navigator.permissions.query({ name: 'microphone' }).then((result) => {
     console.log('Microphone permission:', result.state);
     if (result.state === 'denied') {
-        status.textContent = '⚠️ Microphone access denied. Please enable it in browser settings.';
+        status.textContent = 'Microphone access denied. Please enable it in browser settings.';
     }
-});
-
-// Toggle guidelines
-toggleGuide.addEventListener('click', () => {
-    guideContent.classList.toggle('hidden');
-    toggleGuide.textContent = guideContent.classList.contains('hidden') 
-        ? '📋 Speaking Guidelines' 
-        : '✕ Hide Guidelines';
 });
 
 // Clear button
@@ -147,7 +137,7 @@ clearBtn.addEventListener('click', () => {
 generateBtn.addEventListener('click', () => {
     const text = textInput.value.trim();
     if (text) {
-        status.textContent = '⏳ Processing your invoice...';
+        status.textContent = 'Processing your invoice...';
         loading.classList.remove('hidden');
         generateBtn.disabled = true;
         
@@ -174,7 +164,18 @@ generateBtn.addEventListener('click', () => {
     }
 });
 
-micBtn.addEventListener('click', toggleRecording);
+micBtn.addEventListener('click', function(e) {
+    // Add clicked class for dark grey state
+    micBtn.classList.add('clicked');
+    toggleRecording();
+    
+    // Remove clicked class after a short delay to allow visual feedback
+    setTimeout(() => {
+        if (!isRecording) {
+            micBtn.classList.remove('clicked');
+        }
+    }, 200);
+});
 
 function toggleRecording() {
     if (!recognition) {
@@ -202,13 +203,13 @@ function startRecording() {
         recognition.start();
         isRecording = true;
         micBtn.classList.add('recording');
-        status.textContent = '🎙️ Listening... Speak now!';
+        status.textContent = 'Listening... Speak now!';
         status.classList.add('listening');
         
         // Safety timeout - if no results after 30 seconds, remind user
         recognitionTimeout = setTimeout(() => {
             if (isRecording && transcript.length === 0) {
-                status.textContent = '🎙️ Still listening... Make sure your microphone is on';
+                status.textContent = 'Still listening... Make sure your microphone is on';
             }
         }, 30000);
         
@@ -225,7 +226,7 @@ function startRecording() {
             // Try to reinitialize
             isRecording = false;
             micBtn.classList.remove('recording');
-            status.textContent = '🔄 Reinitializing... Click mic again';
+            status.textContent = 'Reinitializing... Click mic again';
             
             setTimeout(() => {
                 if (initializeSpeechRecognition()) {
@@ -250,7 +251,7 @@ function stopRecording() {
     if (transcript.trim()) {
         // Fill the text input with the transcript so user can edit
         textInput.value = transcript;
-        status.textContent = '✏️ Review and edit above, then click "Generate Invoice"';
+        status.textContent = 'Review and edit above, then click "Generate Invoice"';
         // Scroll to text input
         textInput.focus();
     } else {
@@ -294,13 +295,13 @@ recognition.onerror = (event) => {
         console.warn(`Network error ${networkErrorCount} - attempting recovery`);
         
         if (networkErrorCount <= 3) {
-            status.textContent = `🔄 Network hiccup... Retrying (${networkErrorCount}/3)`;
+            status.textContent = `Network hiccup... Retrying (${networkErrorCount}/3)`;
             
             // Aggressive retry after brief delay
             setTimeout(() => {
                 console.log('Reinitializing speech recognition after network error');
                 if (initializeSpeechRecognition()) {
-                    status.textContent = '✅ Reconnected! Click mic to speak';
+                    status.textContent = 'Reconnected! Click mic to speak';
                     networkErrorCount = 0; // Reset counter on successful init
                 }
             }, 1000);
@@ -317,9 +318,9 @@ recognition.onerror = (event) => {
     if (event.error === 'no-speech') {
         status.textContent = 'No speech detected. Click mic to try again!';
     } else if (event.error === 'audio-capture') {
-        status.textContent = '🎤 Microphone not detected. Check connection and try again.';
+        status.textContent = 'Microphone not detected. Check connection and try again.';
     } else if (event.error === 'not-allowed') {
-        status.textContent = '🚫 Microphone blocked! Allow access in browser settings.';
+        status.textContent = 'Microphone blocked! Allow access in browser settings.';
         setTimeout(() => {
             alert('Microphone Permission Required:\n\n' +
                   '1. Click the 🔒 lock icon in the address bar\n' +
@@ -330,7 +331,7 @@ recognition.onerror = (event) => {
     } else if (event.error === 'aborted') {
         status.textContent = 'Recording stopped. Click mic to start again!';
     } else {
-        status.textContent = `⚠️ ${event.error} - Click mic to retry`;
+        status.textContent = `${event.error} - Click mic to retry`;
     }
     
     setTimeout(() => {
@@ -401,13 +402,13 @@ async function generateInvoice(text) {
         // Show preview modal with the invoice data
         showPreviewModal(result.invoiceId, result.invoiceData);
         
-        status.textContent = '✅ Review your invoice below';
+        status.textContent = 'Review your invoice below';
         loading.classList.add('hidden');
         generateBtn.disabled = false;
 
     } catch (error) {
         console.error('Error generating invoice:', error);
-        status.textContent = '❌ Error generating invoice. Please try again.';
+        status.textContent = 'Error generating invoice. Please try again.';
         loading.classList.add('hidden');
         generateBtn.disabled = false;
     }
@@ -468,7 +469,7 @@ function addItemRow(description = '', quantity = 1, rate = 0, amount = 0) {
         <td><div contenteditable="true" class="preview-item-qty" data-type="number">${quantity}</div></td>
         <td><div contenteditable="true" class="preview-item-rate" data-type="currency">$${rate.toFixed(2)}</div></td>
         <td><div class="preview-item-amount">$${amount.toFixed(2)}</div></td>
-        <td><button class="preview-btn-remove-item" onclick="removeItemRow(this)">✕</button></td>
+        <td><button class="preview-btn-remove-item" onclick="removeItemRow(this)">×</button></td>
     `;
     tbody.appendChild(row);
 }
@@ -613,7 +614,7 @@ async function saveAndDownloadInvoice() {
         closePreviewModal();
         
         // Show success message
-        status.textContent = '✅ Invoice saved and downloaded!';
+        status.textContent = 'Invoice saved and downloaded!';
         setTimeout(() => {
             status.textContent = 'Press to speak';
         }, 3000);

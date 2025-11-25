@@ -10,7 +10,7 @@
     <!-- Navigation Header -->
     <nav class="nav-header">
         <div class="nav-content">
-            <h2 class="nav-logo">🎤 Voice Invoice</h2>
+            <h2 class="nav-logo">Voice Invoice</h2>
             <div class="nav-links">
                 <a href="/dashboard" class="nav-link">← Back to Dashboard</a>
                 <button onclick="logout()" class="nav-link logout-link">Logout</button>
@@ -19,30 +19,12 @@
     </nav>
 
     <div class="container">
-        <h1>🎤 Create New Invoice</h1>
+        <h1>Create New Invoice</h1>
         <p class="subtitle">Press the mic and describe your invoice, or type it directly below</p>
         
-        <!-- Guidelines Section -->
-        <div class="guidelines">
-            <button id="toggleGuide" class="guide-toggle">📋 Speaking Guidelines</button>
-            <div id="guideContent" class="guide-content hidden">
-                <h3>What to include in your recording:</h3>
-                <ul>
-                    <li><strong>Your Details:</strong> Your name/company, email, phone (optional)</li>
-                    <li><strong>Client Details:</strong> Client name, company, email</li>
-                    <li><strong>Service/Product:</strong> What you're billing for</li>
-                    <li><strong>Amount:</strong> Price, quantity, rate per unit</li>
-                    <li><strong>Due Date:</strong> When payment is due (e.g., "due in 30 days", "NET 15")</li>
-                    <li><strong>Notes:</strong> Payment terms, future installments (optional)</li>
-                </ul>
-                <div class="example">
-                    <strong>Example:</strong> "Invoice from ABC Design Studio, email contact@abc.com, phone 555-1234, to John Smith at XYZ Corporation, email john@xyz.com, for website development services, 20 hours at 150 dollars per hour, total 3000 dollars, due in 30 days"
-                </div>
-            </div>
-        </div>
         
         <button id="micBtn" class="mic-button">
-            <span class="mic-icon">🎤</span>
+            <span class="mic-icon"></span>
         </button>
         
         <p id="status" class="status">Press to speak</p>
@@ -52,7 +34,7 @@
             <div class="file-upload-section">
                 <input type="file" id="audioFileInput" accept="audio/*,.m4a,.mp3,.wav,.mp4,.mpeg,.mpga,.webm" style="display: none;">
                 <button id="uploadAudioBtn" class="upload-button">
-                    <span>🎵 Upload Audio Recording</span>
+                    <span>Upload Audio Recording</span>
                 </button>
                 <p class="upload-info">Supports: MP3, WAV, M4A, MP4, WebM (Max 25MB)</p>
             </div>
@@ -91,7 +73,7 @@
     <div id="invoicePreviewModal" class="preview-modal hidden">
         <div class="preview-modal-content">
             <div class="preview-modal-header">
-                <h2>📄 Review Your Invoice</h2>
+                <h2>Review Your Invoice</h2>
                 <p style="margin: 0.5rem 0 0 0; opacity: 0.9; font-size: 0.95rem;">Edit any field by clicking on it</p>
             </div>
             <div class="preview-modal-body">
@@ -182,8 +164,8 @@
                 </div>
             </div>
             <div class="preview-modal-footer">
-                <button onclick="closePreviewModal()" class="preview-btn-cancel">✕ Cancel</button>
-                <button onclick="saveAndDownloadInvoice()" class="preview-btn-save">💾 Save & Download PDF</button>
+                <button onclick="closePreviewModal()" class="preview-btn-cancel">× Cancel</button>
+                <button onclick="saveAndDownloadInvoice()" class="preview-btn-save">Save & Download PDF</button>
             </div>
         </div>
     </div>
