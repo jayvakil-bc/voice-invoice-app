@@ -1,6 +1,6 @@
 /**
- * Payment Service for Stripe integration
- * Handles payment link generation and payment status tracking
+ * Payment Service for Stripe Connect integration
+ * Each user connects their own Stripe account to receive payments directly
  */
 
 // Initialize Stripe lazily to avoid errors when API key is not set
@@ -14,11 +14,12 @@ const getStripeClient = () => {
 };
 
 /**
- * Create a Stripe payment link for an invoice
- * @param {Object} invoice - Invoice object with amount and details
- * @returns {Promise<string>} Stripe payment link URL
+ * Create a Stripe Connect account link for onboarding
+ * @param {string} userId - User ID from database
+ * @param {string} email - User's email
+ * @returns {Promise<Object>} Account link URL and account ID
  */
-const createPaymentLink = async (invoice) => {
+const createConnectAccount = async (userId, email) => {
   const stripeClient = getStripeClient();
   
   if (!stripeClient) {
@@ -26,10 +27,114 @@ const createPaymentLink = async (invoice) => {
   }
 
   try {
+    // Create a connected account
+    const account = await stripeClient.accounts.create({
+      type: 'express', // Express account = easy onboarding
+      email: email,
+      capabilities: {
+        card_payments: { requested: true },
+        transfers: { requested: true },
+      },
+      metadata: {
+        userId: userId
+      }
+    });
+
+    // Create account link for onboarding
+    const accountLink = await stripeClient.accountLinks.create({
+      account: account.id,
+      refresh_url: `${process.env.APP_URL || 'http://localhost:3000'}/settings?stripe_refresh=true`,
+      return_url: `${process.env.APP_URL || 'http://localhost:3000'}/settings?stripe_setup=success`,
+      type: 'account_onboarding',
+    });
+
+    console.log(`✅ Created Stripe Connect account for user ${userId}`);
+    return {
+      accountId: account.id,
+      onboardingUrl: accountLink.url
+    };
+  } catch (error) {
+    console.error('❌ Error creating Stripe Connect account:', error);
+    throw error;
+  }
+};
+
+/**
+ * Get account link for existing account (if onboarding incomplete)
+ * @param {string} accountId - Stripe account ID
+ * @returns {Promise<string>} Onboarding URL
+ */
+const getAccountLink = async (accountId) => {
+  const stripeClient = getStripeClient();
+  
+  if (!stripeClient) {
+    throw new Error('Stripe not configured');
+  }
+
+  try {
+    const accountLink = await stripeClient.accountLinks.create({
+      account: accountId,
+      refresh_url: `${process.env.APP_URL || 'http://localhost:3000'}/settings?stripe_refresh=true`,
+      return_url: `${process.env.APP_URL || 'http://localhost:3000'}/settings?stripe_setup=success`,
+      type: 'account_onboarding',
+    });
+
+    return accountLink.url;
+  } catch (error) {
+    console.error('Error creating account link:', error);
+    throw error;
+  }
+};
+
+/**
+ * Check if connected account is fully onboarded
+ * @param {string} accountId - Stripe account ID
+ * @returns {Promise<Object>} Account status
+ */
+const getAccountStatus = async (accountId) => {
+  const stripeClient = getStripeClient();
+  
+  if (!stripeClient) {
+    throw new Error('Stripe not configured');
+  }
+
+  try {
+    const account = await stripeClient.accounts.retrieve(accountId);
+    
+    return {
+      chargesEnabled: account.charges_enabled,
+      detailsSubmitted: account.details_submitted,
+      payoutsEnabled: account.payouts_enabled,
+      requirements: account.requirements
+    };
+  } catch (error) {
+    console.error('Error retrieving account status:', error);
+    throw error;
+  }
+};
+
+/**
+ * Create a Stripe payment link for an invoice (using connected account)
+ * @param {Object} invoice - Invoice object with amount and details
+ * @param {string} connectedAccountId - User's Stripe Connect account ID
+ * @returns {Promise<string>} Stripe payment link URL
+ */
+const createPaymentLink = async (invoice, connectedAccountId) => {
+  const stripeClient = getStripeClient();
+  
+  if (!stripeClient) {
+    throw new Error('Stripe not configured. Please add STRIPE_SECRET_KEY to .env');
+  }
+
+  if (!connectedAccountId) {
+    throw new Error('User has not connected their Stripe account. Please complete Stripe setup in Settings.');
+  }
+
+  try {
     const currency = (invoice.currency || 'USD').toLowerCase();
     const amount = Math.round(invoice.total * 100); // Convert to cents
 
-    // Create a payment link
+    // Create a payment link on the connected account
     const paymentLink = await stripeClient.paymentLinks.create({
       line_items: [
         {
@@ -56,10 +161,14 @@ const createPaymentLink = async (invoice) => {
         redirect: {
           url: `${process.env.APP_URL || 'http://localhost:3000'}/invoice-success?invoice=${invoice.invoiceNumber}`
         }
-      }
+      },
+      // Apply fee (optional - you can take a platform fee)
+      application_fee_amount: Math.round(amount * 0.01), // 1% platform fee (optional)
+    }, {
+      stripeAccount: connectedAccountId // Create on connected account
     });
 
-    console.log(`✅ Created Stripe payment link for invoice ${invoice.invoiceNumber}`);
+    console.log(`✅ Created Stripe payment link for invoice ${invoice.invoiceNumber} on account ${connectedAccountId}`);
     return paymentLink.url;
   } catch (error) {
     console.error('❌ Error creating payment link:', error);
@@ -154,6 +263,9 @@ const testStripeConfig = () => {
 };
 
 module.exports = {
+  createConnectAccount,
+  getAccountLink,
+  getAccountStatus,
   createPaymentLink,
   handlePaymentWebhook,
   getPaymentStatus,

@@ -73,6 +73,8 @@ async function loadInvoices() {
                         <button class="card-icon-btn" onclick="toggleCardMenu(this)" title="More options" style="font-size: 1.2rem; font-weight: bold;">⋯</button>
                         <div class="card-menu-dropdown">
                             <button class="card-menu-item" onclick="previewInvoice('${invoice._id}', '${invoice.invoiceNumber}')">Preview</button>
+                            <button class="card-menu-item" onclick="sendInvoiceEmail('${invoice._id}', '${invoice.invoiceNumber}')">📧 Send via Email</button>
+                            <button class="card-menu-item" onclick="generatePaymentLink('${invoice._id}', '${invoice.invoiceNumber}')">💳 Generate Payment Link</button>
                             <button class="card-menu-item" onclick="editInvoice('${invoice._id}')">Edit</button>
                             <button class="card-menu-item" onclick="saveToGoogleDrive('${invoice._id}', '${invoice.invoiceNumber}')">Save to Drive</button>
                             <button class="card-menu-item" onclick="deleteInvoice('${invoice._id}')" style="color: #ef4444;">Delete</button>
@@ -241,6 +243,87 @@ async function saveToGoogleDrive(id, invoiceNumber) {
             alert('❌ Google Drive access not available.\n\nPlease log out and log in again to grant Drive permissions.');
         } else {
             alert('Failed to save to Google Drive: ' + error.message);
+        }
+    }
+}
+
+// Send invoice via email
+async function sendInvoiceEmail(id, invoiceNumber) {
+    const email = prompt(`📧 Send Invoice ${invoiceNumber} via email\n\nEnter recipient email address:`);
+    
+    if (!email) return;
+    
+    // Basic email validation
+    if (!email.includes('@') || !email.includes('.')) {
+        alert('Please enter a valid email address');
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/api/invoices/${id}/send-email`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ to: email })
+        });
+        
+        const result = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(result.error || 'Failed to send email');
+        }
+        
+        alert(`✅ Invoice sent successfully to ${email}!\n\nThe recipient will receive a professional email with the invoice PDF attached.`);
+        
+    } catch (error) {
+        console.error('[Email] Error:', error);
+        if (error.message.includes('not configured')) {
+            alert('❌ Email not configured.\n\nPlease add SMTP settings to your .env file.\nSee: vibe-coder-bs/STRIPE_EMAIL_SETUP.md');
+        } else {
+            alert('Failed to send email: ' + error.message);
+        }
+    }
+}
+
+// Generate Stripe payment link
+async function generatePaymentLink(id, invoiceNumber) {
+    if (!confirm(`💳 Generate Payment Link for ${invoiceNumber}?\n\nThis will create a Stripe payment link that you can share with your client.`)) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/api/invoices/${id}/payment-link`, {
+            method: 'POST',
+            credentials: 'include'
+        });
+        
+        const result = await response.json();
+        
+        if (!response.ok) {
+            if (result.needsStripeSetup) {
+                const goToSettings = confirm('❌ Stripe not connected.\n\nYou need to connect your Stripe account first to accept payments.\n\nGo to Settings now?');
+                if (goToSettings) {
+                    window.location.href = '/settings';
+                }
+                return;
+            }
+            throw new Error(result.error || 'Failed to create payment link');
+        }
+        
+        // Copy to clipboard
+        await navigator.clipboard.writeText(result.paymentLink);
+        
+        alert(`✅ Payment link created and copied to clipboard!\n\nLink: ${result.paymentLink}\n\nShare this link with your client. They can pay with credit/debit card, and the money goes directly to your Stripe account.`);
+        
+        // Reload to show updated invoice
+        loadInvoices();
+        
+    } catch (error) {
+        console.error('[Payment] Error:', error);
+        if (error.message.includes('not configured')) {
+            alert('❌ Stripe not configured.\n\nPlease add your Stripe credentials or connect your account in Settings.');
+        } else {
+            alert('Failed to create payment link: ' + error.message);
         }
     }
 }

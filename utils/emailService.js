@@ -15,14 +15,14 @@ const createTransporter = () => {
     secure: process.env.SMTP_SECURE === 'true', // true for 465, false for other ports
     auth: {
       user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASSWORD
+      pass: process.env.SMTP_PASS || process.env.SMTP_PASSWORD // Support both names
     }
   };
 
   // If no SMTP configured, log warning and return null
   if (!config.auth.user || !config.auth.pass) {
     console.warn('⚠️  SMTP credentials not configured. Email sending will be disabled.');
-    console.warn('Add SMTP_USER and SMTP_PASSWORD to .env to enable email features.');
+    console.warn('Add SMTP_USER and SMTP_PASS to .env to enable email features.');
     return null;
   }
 
@@ -111,7 +111,7 @@ const sendInvoiceEmail = async ({ to, invoice, pdfPath, paymentLink = null }) =>
 
   // Email options
   const mailOptions = {
-    from: `"${process.env.SMTP_FROM_NAME || 'Invoice System'}" <${process.env.SMTP_USER}>`,
+    from: `"${process.env.EMAIL_FROM_NAME || process.env.SMTP_FROM_NAME || 'Invoice System'}" <${process.env.EMAIL_FROM || process.env.SMTP_USER}>`,
     to,
     subject: `Invoice ${invoiceNumber} - ${currency} ${total}`,
     html: htmlContent,
@@ -192,7 +192,7 @@ const sendContractEmail = async ({ to, contract, pdfPath }) => {
 
   // Email options
   const mailOptions = {
-    from: `"${process.env.SMTP_FROM_NAME || 'Contract System'}" <${process.env.SMTP_USER}>`,
+    from: `"${process.env.EMAIL_FROM_NAME || process.env.SMTP_FROM_NAME || 'Contract System'}" <${process.env.EMAIL_FROM || process.env.SMTP_USER}>`,
     to,
     subject: `Contract: ${contractTitle}`,
     html: htmlContent,

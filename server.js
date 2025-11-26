@@ -86,6 +86,7 @@ app.use(routes.transcriptionRoutes);
 app.use(routes.invoiceRoutes);
 app.use(routes.contractRoutes);
 app.use('/api/analytics', routes.analyticsRoutes);
+app.use('/api/stripe', routes.stripeRoutes);
 
 // Business context compatibility route
 app.get('/api/business-context', requireAuth, async (req, res) => {

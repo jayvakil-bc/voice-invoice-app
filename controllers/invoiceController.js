@@ -511,7 +511,18 @@ const createInvoicePaymentLink = async (req, res) => {
             return res.status(404).json({ error: 'Invoice not found' });
         }
 
-        const paymentLink = await createPaymentLink(invoice);
+        // Get user's Stripe Connect account
+        const User = require('../models/User');
+        const user = await User.findById(req.user.id);
+        
+        if (!user.stripeAccountId || !user.stripeOnboarded) {
+            return res.status(400).json({ 
+                error: 'Please connect your Stripe account in Settings before creating payment links.',
+                needsStripeSetup: true
+            });
+        }
+
+        const paymentLink = await createPaymentLink(invoice, user.stripeAccountId);
         
         invoice.paymentLink = paymentLink;
         await invoice.save();

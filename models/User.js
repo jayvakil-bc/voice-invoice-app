@@ -10,6 +10,12 @@ const userSchema = new mongoose.Schema({
     googleAccessToken: String,
     googleRefreshToken: String,
     
+    // Stripe Connect - Each user has their own Stripe account
+    stripeAccountId: String, // Connected Stripe account ID (acct_xxx)
+    stripeOnboarded: { type: Boolean, default: false }, // Has completed Stripe onboarding
+    stripeChargesEnabled: { type: Boolean, default: false }, // Can accept payments
+    stripeDetailsSubmitted: { type: Boolean, default: false }, // Submitted business details
+    
     businessInfo: {
         businessName: String,
         businessAddress: String,
