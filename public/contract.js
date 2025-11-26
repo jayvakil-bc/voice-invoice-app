@@ -27,17 +27,184 @@ function initializeSpeechRecognition() {
 // Initialize on load
 const speechAvailable = initializeSpeechRecognition();
 
-const micBtn = document.getElementById('micBtn');
-const status = document.getElementById('status');
+// Wait for DOM to be ready
+let micBtn, status, loading, textInput, generateBtn, clearBtn, uploadAudioBtn, audioFileInput, transcribingLoader;
 
-// Check if we're editing an existing contract
 window.addEventListener('DOMContentLoaded', () => {
+    micBtn = document.getElementById('micBtn');
+    status = document.getElementById('status');
+    loading = document.getElementById('loading');
+    textInput = document.getElementById('textInput');
+    generateBtn = document.getElementById('generateBtn');
+    clearBtn = document.getElementById('clearBtn');
+    uploadAudioBtn = document.getElementById('uploadAudioBtn');
+    audioFileInput = document.getElementById('audioFileInput');
+    transcribingLoader = document.getElementById('transcribing');
+    
+    if (!micBtn) {
+        console.error('Mic button not found!');
+        return;
+    }
+    
+    if (!status) {
+        console.error('Status element not found!');
+        return;
+    }
+    
+    if (!generateBtn) {
+        console.error('Generate button not found!');
+    }
+    
+    // Set up mic button click handler
+    micBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        // Add clicked class for dark grey state
+        micBtn.classList.add('clicked');
+        toggleRecording();
+        
+        // Remove clicked class after a short delay to allow visual feedback
+        setTimeout(() => {
+            if (!isRecording) {
+                micBtn.classList.remove('clicked');
+            }
+        }, 200);
+    });
+    
+    console.log('Mic button event listener attached');
+    
+    // Audio file upload handler
+    if (uploadAudioBtn && audioFileInput) {
+        uploadAudioBtn.addEventListener('click', () => {
+            audioFileInput.click();
+        });
+        
+        audioFileInput.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            // Validate file size (25MB limit for Whisper API)
+            if (file.size > 25 * 1024 * 1024) {
+                alert('File too large! Please upload a file smaller than 25MB.');
+                return;
+            }
+            
+            // Show transcribing loader
+            if (transcribingLoader) transcribingLoader.classList.remove('hidden');
+            if (uploadAudioBtn) uploadAudioBtn.disabled = true;
+            if (status) status.textContent = 'Transcribing audio...';
+            
+            try {
+                // Create FormData to send file
+                const formData = new FormData();
+                formData.append('audio', file);
+                
+                // Send to backend for transcription
+                const response = await fetch('/api/transcribe-audio', {
+                    method: 'POST',
+                    body: formData,
+                    credentials: 'include'
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Transcription failed');
+                }
+                
+                const data = await response.json();
+                
+                // Set transcribed text in textarea
+                if (textInput) {
+                    textInput.value = data.transcription;
+                    transcript = data.transcription;
+                }
+                if (status) status.textContent = 'Audio transcribed! Review and edit if needed, then generate contract.';
+                
+            } catch (error) {
+                console.error('Transcription error:', error);
+                if (status) status.textContent = 'Failed to transcribe audio. Please try again.';
+                alert('Failed to transcribe audio file. Please try again or use voice input instead.');
+            } finally {
+                if (transcribingLoader) transcribingLoader.classList.add('hidden');
+                if (uploadAudioBtn) uploadAudioBtn.disabled = false;
+                if (audioFileInput) audioFileInput.value = ''; // Reset file input
+            }
+        });
+    }
+    
+    // Check mic permissions on load
+    if (navigator.permissions && navigator.permissions.query) {
+        navigator.permissions.query({ name: 'microphone' }).then((result) => {
+            console.log('Microphone permission:', result.state);
+            if (result.state === 'denied' && status) {
+                status.textContent = 'Microphone access denied. Please enable it in browser settings.';
+            }
+        }).catch(() => {
+            // Permissions API not supported
+        });
+    }
+    
+    // Clear button
+    if (clearBtn && textInput && status) {
+        clearBtn.addEventListener('click', () => {
+            textInput.value = '';
+            transcript = '';
+            status.textContent = 'Press to speak';
+        });
+    }
+    
+    // Generate contract from text input
+    if (generateBtn && textInput && status && loading) {
+        generateBtn.addEventListener('click', () => {
+            // Get text from either textInput or transcript variable
+            const textFromInput = textInput ? textInput.value.trim() : '';
+            const textToUse = textFromInput || transcript.trim();
+            
+            console.log('Generate button clicked, text:', textToUse);
+            
+            if (textToUse) {
+                status.textContent = 'Processing your contract...';
+                loading.classList.remove('hidden');
+                generateBtn.disabled = true;
+                
+                generateContract(textToUse);
+            } else {
+                status.textContent = 'Please enter contract details first!';
+                setTimeout(() => {
+                    status.textContent = 'Press to speak';
+                }, 2000);
+            }
+        });
+        console.log('Generate button event listener attached');
+    } else {
+        console.error('Generate button or required elements not found:', {
+            generateBtn: !!generateBtn,
+            textInput: !!textInput,
+            status: !!status,
+            loading: !!loading
+        });
+    }
+    
+    // Check if we're editing an existing contract
     const urlParams = new URLSearchParams(window.location.search);
     const editContractId = urlParams.get('edit');
     
     if (editContractId) {
         console.log('[Contract] Loading contract for editing:', editContractId);
         loadContractForEditing(editContractId);
+    }
+    
+    // Set up recognition handlers if available
+    if (recognition) {
+        setupRecognitionHandlers();
+    } else {
+        console.warn('Recognition not available on DOMContentLoaded, will retry...');
+        setTimeout(() => {
+            if (recognition) {
+                setupRecognitionHandlers();
+                console.log('Recognition handlers set up on retry');
+            }
+        }, 100);
     }
 });
 
@@ -68,117 +235,12 @@ async function loadContractForEditing(contractId) {
     }
 }
 
-const loading = document.getElementById('loading');
-const textInput = document.getElementById('textInput');
-const generateBtn = document.getElementById('generateBtn');
-const clearBtn = document.getElementById('clearBtn');
-const uploadAudioBtn = document.getElementById('uploadAudioBtn');
-const audioFileInput = document.getElementById('audioFileInput');
-const transcribingLoader = document.getElementById('transcribing');
-
-// Audio file upload handler
-uploadAudioBtn.addEventListener('click', () => {
-    audioFileInput.click();
-});
-
-audioFileInput.addEventListener('change', async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    
-    // Validate file size (25MB limit for Whisper API)
-    if (file.size > 25 * 1024 * 1024) {
-        alert('File too large! Please upload a file smaller than 25MB.');
-        return;
-    }
-    
-    // Show transcribing loader
-    transcribingLoader.classList.remove('hidden');
-    uploadAudioBtn.disabled = true;
-    status.textContent = 'Transcribing audio...';
-    
-    try {
-        // Create FormData to send file
-        const formData = new FormData();
-        formData.append('audio', file);
-        
-        // Send to backend for transcription
-        const response = await fetch('/api/transcribe-audio', {
-            method: 'POST',
-            body: formData,
-            credentials: 'include'
-        });
-        
-        if (!response.ok) {
-            throw new Error('Transcription failed');
-        }
-        
-        const data = await response.json();
-        
-        // Set transcribed text in textarea
-        textInput.value = data.transcription;
-        transcript = data.transcription;
-        status.textContent = 'Audio transcribed! Review and edit if needed, then generate contract.';
-        
-    } catch (error) {
-        console.error('Transcription error:', error);
-        status.textContent = 'Failed to transcribe audio. Please try again.';
-        alert('Failed to transcribe audio file. Please try again or use voice input instead.');
-    } finally {
-        transcribingLoader.classList.add('hidden');
-        uploadAudioBtn.disabled = false;
-        audioFileInput.value = ''; // Reset file input
-    }
-});
-
-// Check mic permissions on load
-navigator.permissions.query({ name: 'microphone' }).then((result) => {
-    console.log('Microphone permission:', result.state);
-    if (result.state === 'denied') {
-        status.textContent = 'Microphone access denied. Please enable it in browser settings.';
-    }
-});
-
-// Clear button
-clearBtn.addEventListener('click', () => {
-    textInput.value = '';
-    transcript = '';
-    status.textContent = 'Press to speak';
-});
-
-// Generate contract from text input
-generateBtn.addEventListener('click', () => {
-    const text = textInput.value.trim();
-    if (text) {
-        status.textContent = 'Processing your contract...';
-        loading.classList.remove('hidden');
-        generateBtn.disabled = true;
-        
-        generateContract(text);
-    } else {
-        status.textContent = 'Please enter contract details first!';
-        setTimeout(() => {
-            status.textContent = 'Press to speak';
-        }, 2000);
-    }
-});
-
-micBtn.addEventListener('click', function(e) {
-    // Add clicked class for dark grey state
-    micBtn.classList.add('clicked');
-    toggleRecording();
-    
-    // Remove clicked class after a short delay to allow visual feedback
-    setTimeout(() => {
-        if (!isRecording) {
-            micBtn.classList.remove('clicked');
-        }
-    }, 200);
-});
+// Mic button click handler is now set up in DOMContentLoaded
 
 function toggleRecording() {
     if (!recognition) {
-        status.textContent = 'Speech recognition not available. Please type below.';
-        textInput.focus();
+        if (status) status.textContent = 'Speech recognition not available. Please type below.';
+        if (textInput) textInput.focus();
         return;
     }
     
@@ -191,13 +253,19 @@ function toggleRecording() {
 
 function startRecording() {
     if (!recognition) {
-        status.textContent = 'Speech recognition not initialized. Please reload the page.';
+        if (status) status.textContent = 'Speech recognition not initialized. Please reload the page.';
+        console.error('Recognition not available');
+        return;
+    }
+    
+    if (!micBtn || !status) {
+        console.error('Mic button or status element not found');
         return;
     }
     
     try {
         transcript = '';
-        textInput.value = '';
+        if (textInput) textInput.value = '';
         recognition.start();
         isRecording = true;
         micBtn.classList.add('recording');
@@ -205,7 +273,7 @@ function startRecording() {
         status.classList.add('listening');
         
         recognitionTimeout = setTimeout(() => {
-            if (isRecording) {
+            if (isRecording && status) {
                 status.textContent = 'Still listening... Keep going!';
             }
         }, 30000);
@@ -213,15 +281,20 @@ function startRecording() {
         console.log('Started recording');
     } catch (error) {
         console.error('Error starting recognition:', error);
-        status.textContent = `Error: ${error.message}`;
+        if (status) status.textContent = `Error: ${error.message}`;
         isRecording = false;
-        micBtn.classList.remove('recording');
-        status.classList.remove('listening');
+        if (micBtn) micBtn.classList.remove('recording');
+        if (status) status.classList.remove('listening');
     }
 }
 
 function stopRecording() {
     if (!recognition) return;
+    
+    if (!micBtn || !status) {
+        console.error('Mic button or status element not found');
+        return;
+    }
     
     try {
         recognition.stop();
@@ -232,7 +305,7 @@ function stopRecording() {
         
         if (transcript) {
             status.textContent = 'Processing your contract...';
-            loading.classList.remove('hidden');
+            if (loading) loading.classList.remove('hidden');
             generateContract(transcript);
         } else {
             status.textContent = 'No speech detected. Try again or type below.';
@@ -242,13 +315,15 @@ function stopRecording() {
     } catch (error) {
         console.error('Error stopping recognition:', error);
         isRecording = false;
-        micBtn.classList.remove('recording');
-        status.classList.remove('listening');
+        if (micBtn) micBtn.classList.remove('recording');
+        if (status) status.classList.remove('listening');
     }
 }
 
-// Speech recognition event handlers
-if (recognition) {
+// Set up recognition event handlers
+function setupRecognitionHandlers() {
+    if (!recognition) return;
+    
     recognition.onresult = (event) => {
         let interimTranscript = '';
         let finalTranscript = '';
@@ -263,15 +338,17 @@ if (recognition) {
         }
         
         transcript += finalTranscript;
-        textInput.value = transcript + interimTranscript;
+        if (textInput) textInput.value = transcript + interimTranscript;
         
-        if (transcript) {
+        if (transcript && status) {
             status.textContent = 'Listening... (Click mic again when done)';
         }
     };
     
     recognition.onerror = (event) => {
         console.error('Speech recognition error:', event.error);
+        
+        if (!status) return;
         
         if (event.error === 'no-speech') {
             status.textContent = 'No speech detected. Try again or type below.';
@@ -292,7 +369,7 @@ if (recognition) {
         }
         
         isRecording = false;
-        micBtn.classList.remove('recording');
+        if (micBtn) micBtn.classList.remove('recording');
         status.classList.remove('listening');
     };
     
@@ -306,11 +383,13 @@ if (recognition) {
             } catch (error) {
                 console.error('Error restarting recognition:', error);
                 isRecording = false;
-                micBtn.classList.remove('recording');
-                status.classList.remove('listening');
+                if (micBtn) micBtn.classList.remove('recording');
+                if (status) status.classList.remove('listening');
             }
         }
     };
+    
+    console.log('Recognition event handlers set up');
 }
 
 // Generate contract via API
@@ -330,9 +409,9 @@ async function generateContract(transcriptText) {
         const data = await response.json();
         console.log('Contract generated:', data);
         
-        loading.classList.add('hidden');
-        generateBtn.disabled = false;
-        status.textContent = 'Contract generated! Review and edit below.';
+        if (loading) loading.classList.add('hidden');
+        if (generateBtn) generateBtn.disabled = false;
+        if (status) status.textContent = 'Contract generated! Review and edit below.';
         
         // Store contract ID and data
         currentContractId = data.contractId;
@@ -342,13 +421,15 @@ async function generateContract(transcriptText) {
         showPreviewModal(data.contractData);
         
     } catch (error) {
-        console.error('Error:', error);
-        loading.classList.add('hidden');
-        generateBtn.disabled = false;
-        status.textContent = 'Error generating contract. Please try again.';
-        setTimeout(() => {
-            status.textContent = 'Press to speak';
-        }, 3000);
+        console.error('Error generating contract:', error);
+        if (loading) loading.classList.add('hidden');
+        if (generateBtn) generateBtn.disabled = false;
+        if (status) {
+            status.textContent = 'Error generating contract. Please try again.';
+            setTimeout(() => {
+                status.textContent = 'Press to speak';
+            }, 3000);
+        }
     }
 }
 
