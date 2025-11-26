@@ -26,7 +26,7 @@ const createTransporter = () => {
     return null;
   }
 
-  return nodemailer.createTransporter(config);
+  return nodemailer.createTransport(config);
 };
 
 /**
