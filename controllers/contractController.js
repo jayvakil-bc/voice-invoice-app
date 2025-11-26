@@ -11,7 +11,7 @@ const generateContract = async (req, res) => {
         
         console.log('[Contract] Generating contract for user:', userId);
         
-        const user = await User.findById(userId);
+        const user = userId ? await User.findById(userId) : null;
         const businessContext = user?.businessContext || null;
         
         const today = new Date();
@@ -57,7 +57,7 @@ const generateContract = async (req, res) => {
         }
         
         const contractToSave = {
-            userId,
+            userId: userId || null,
             originalTranscript: transcript,
             contractTitle: contractData.title || 'Service Agreement',
             effectiveDate: contractData.effectiveDate,
@@ -83,24 +83,24 @@ const generateContract = async (req, res) => {
         
         console.log('[Contract] Contract created:', contract._id);
         
-        // AI Learning Agent - Learn from this contract
-        learnFromContract(userId, transcript, contractToSave).catch(err => {
-            console.error('[AI Learning] Error:', err);
-        });
+        // AI Learning Agent - Learn from this contract (only for logged-in users)
+        if (userId) {
+            learnFromContract(userId, transcript, contractToSave).catch(err => {
+                console.error('[AI Learning] Error:', err);
+            });
+        }
         
+        // Return full contract object for guest users to enable PDF download
         res.json({ 
+            _id: contract._id,
             contractId: contract._id, 
-            contractData: {
-                contractTitle: contract.contractTitle,
-                effectiveDate: contract.effectiveDate,
-                parties: contract.parties,
-                sections: contract.sections
-            }
+            contractData: contract.toObject()
         });
         
     } catch (error) {
         console.error('[Contract] Generation error:', error);
-        res.status(500).json({ error: 'Failed to generate contract' });
+        console.error('[Contract] Error details:', error.message, error.stack);
+        res.status(500).json({ error: 'Failed to generate contract', details: error.message });
     }
 };
 

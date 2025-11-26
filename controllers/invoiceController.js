@@ -128,18 +128,24 @@ CRITICAL RULES:
         if (!invoiceData.tax) invoiceData.tax = 0;
         
         const invoice = await Invoice.create({
-            userId,
+            userId: userId || null,
             originalTranscript: transcript,
             ...invoiceData
         });
         
         console.log('[Invoice] Invoice created:', invoice._id);
         
-        res.json({ invoiceId: invoice._id, invoiceData });
+        // Return full invoice object for guest users to enable PDF download
+        res.json({ 
+            _id: invoice._id,
+            invoiceId: invoice._id, 
+            invoiceData: invoice.toObject() 
+        });
         
     } catch (error) {
         console.error('[Invoice] Generation error:', error);
-        res.status(500).json({ error: 'Failed to generate invoice' });
+        console.error('[Invoice] Error details:', error.message, error.stack);
+        res.status(500).json({ error: 'Failed to generate invoice', details: error.message });
     }
 };
 

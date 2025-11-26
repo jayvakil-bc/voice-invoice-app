@@ -1048,8 +1048,8 @@ function initColorPicker() {
     const colorPicker = document.getElementById('colorPicker');
     if (!colorPicker) return;
     
-    // Load saved color from localStorage, default to dark purple
-    const savedColor = localStorage.getItem('themeColor') || '#6b21a8';
+    // Load saved color from localStorage, default to brand blue
+    const savedColor = localStorage.getItem('themeColor') || '#4542FF';
     colorPicker.value = savedColor;
     updateThemeColor(savedColor);
     
