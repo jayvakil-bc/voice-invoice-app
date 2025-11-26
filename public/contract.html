@@ -3,22 +3,62 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Create Contract - VoiceBiz</title>
+    <title>Create Contract - Vix.com</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="dashboard-styles.css">
 </head>
-<body>
-    <!-- Navigation Header -->
-    <nav class="nav-header">
-        <div class="nav-content">
-            <h2 class="nav-logo">VoiceBiz Contracts</h2>
-            <div class="nav-links">
-                <a href="/dashboard" class="nav-link">← Back to Dashboard</a>
-                <button onclick="logout()" class="nav-link logout-link">Logout</button>
+<body class="sidebar-closed">
+    <!-- Toggleable Sidebar - Icon Only -->
+    <div class="permanent-sidebar" id="sidebar">
+        <button class="sidebar-toggle" onclick="toggleSidebar()" title="Toggle Sidebar">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M3 12H21M3 6H21M3 18H21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+        </button>
+        <div class="sidebar-content">
+            <div class="sidebar-icon active" onclick="window.location.href='/dashboard';" title="Dashboard">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M14 2V8H20" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M16 13H8" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M16 17H8" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M10 9H9H8" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+            <div class="sidebar-icon" onclick="window.location.href='/settings';" title="Settings">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M14 2V8H20" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M16 13H8" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M16 17H8" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M10 9H9H8" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+            <div class="sidebar-icon" onclick="logout();" title="Logout" style="margin-top: auto;">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M9 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H9M16 17L21 12M21 12L16 7M21 12H9" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
             </div>
         </div>
-    </nav>
+    </div>
+    
+    <!-- Main Content Area -->
+    <div class="main-content-wrapper">
+        <div class="dashboard-header">
+            <div class="header-left">
+                <h2>Vix.com</h2>
+            </div>
+            <div class="header-right">
+                <a href="/dashboard" style="text-decoration: none;">
+                    <button class="new-btn" style="background: var(--primary-dark);">← Dashboard</button>
+                </a>
+            </div>
+        </div>
 
-    <div class="container">
+        <div class="container">
         <h1>Create New Contract</h1>
         <p class="subtitle">Press the mic and describe your contract terms, or type them directly below</p>
         
@@ -29,27 +69,29 @@
         
         <p id="status" class="status">Press to speak</p>
         
-        <div class="input-option">
-            <p class="or-divider"><span>OR UPLOAD AUDIO FILE</span></p>
-            <div class="file-upload-section">
-                <input type="file" id="audioFileInput" accept="audio/*,.m4a,.mp3,.wav,.mp4,.mpeg,.mpga,.webm" style="display: none;">
-                <button id="uploadAudioBtn" class="upload-button">
-                    <span>Upload Audio Recording</span>
-                </button>
-                <p class="upload-info">Supports: MP3, WAV, M4A, MP4, WebM (Max 25MB)</p>
-            </div>
-            
-            <p class="or-divider"><span>OR TYPE/EDIT BELOW</span></p>
-            <textarea 
-                id="textInput" 
-                class="text-input" 
-                placeholder="Type, paste, or speak to fill this box...&#10;&#10;Describe the full contract terms including parties, services, payment, responsibilities, duration, and any special clauses."
-                rows="10"
-            ></textarea>
-            <div class="button-group">
-                <button id="generateBtn" class="generate-button">Generate Contract</button>
-                <button id="clearBtn" class="clear-button">Clear</button>
-            </div>
+        <!-- Hidden text input for transcript -->
+        <textarea 
+            id="textInput" 
+            class="text-input hidden" 
+            placeholder="Type, paste, or speak to fill this box..."
+            rows="10"
+        ></textarea>
+        
+        <!-- Action Buttons - Bottom Right Corner -->
+        <div class="action-buttons-container">
+            <input type="file" id="audioFileInput" accept="audio/*,.m4a,.mp3,.wav,.mp4,.mpeg,.mpga,.webm" style="display: none;">
+            <button id="uploadAudioBtn" class="action-btn upload-btn" title="Upload Transcript">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M7 11L12 6L17 11M12 6V18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span class="action-tooltip">Upload Transcript</span>
+            </button>
+            <button id="generateBtn" class="action-btn generate-btn" title="Generate Contract">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M5 13L9 17L19 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span class="action-tooltip">Generate Contract</span>
+            </button>
         </div>
         
         <div id="loading" class="loading hidden">
@@ -62,10 +104,27 @@
             <p>Transcribing audio file...</p>
         </div>
     </div>
+    </div>
 
     <script>
         function logout() {
             window.location.href = '/auth/logout';
+        }
+        
+        // Toggle Sidebar
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const body = document.body;
+            
+            if (sidebar.classList.contains('closed')) {
+                sidebar.classList.remove('closed');
+                sidebar.classList.add('open');
+                body.classList.remove('sidebar-closed');
+            } else {
+                sidebar.classList.remove('open');
+                sidebar.classList.add('closed');
+                body.classList.add('sidebar-closed');
+            }
         }
     </script>
     
@@ -206,15 +265,15 @@
             </div>
             <div class="preview-modal-body">
                 <div style="background: #f9fafb; padding: 1.5rem; border-radius: 8px; border: 2px solid #e5e7eb;">
-                    <label style="display: block; font-weight: 600; color: #374151; margin-bottom: 0.5rem;">Shareable Link:</label>
+                    <label style="display: block; font-weight: 400; color: #374151; margin-bottom: 0.5rem;">Shareable Link:</label>
                     <div style="display: flex; gap: 0.5rem;">
                         <input type="text" id="shareableLink" readonly style="flex: 1; padding: 0.75rem; border: 2px solid #d1d5db; border-radius: 6px; font-size: 0.95rem; background: white;">
-                        <button onclick="copyShareLink()" style="background: #667eea; color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 6px; font-weight: 600; cursor: pointer; white-space: nowrap;">
+                        <button onclick="copyShareLink()" style="background: #667eea; color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 6px; font-weight: 400; cursor: pointer; white-space: nowrap;">
                             Copy
                         </button>
                     </div>
                     <p style="margin: 1rem 0 0 0; font-size: 0.9rem; color: #6b7280;">
-                        ⏰ Link expires in 30 days<br>
+                        Link expires in 30 days<br>
                         Client can view and sign without creating an account
                     </p>
                 </div>

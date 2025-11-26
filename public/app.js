@@ -54,23 +54,73 @@ function initializeSpeechRecognition() {
 // Initialize on load
 const speechAvailable = initializeSpeechRecognition();
 
-const micBtn = document.getElementById('micBtn');
-const status = document.getElementById('status');
-const loading = document.getElementById('loading');
-const textInput = document.getElementById('textInput');
-const generateBtn = document.getElementById('generateBtn');
-const clearBtn = document.getElementById('clearBtn');
-const uploadAudioBtn = document.getElementById('uploadAudioBtn');
-const audioFileInput = document.getElementById('audioFileInput');
-const transcribingLoader = document.getElementById('transcribing');
+// Wait for DOM to be ready
+let micBtn, status, loading, textInput, generateBtn, clearBtn, uploadAudioBtn, audioFileInput, transcribingLoader;
 
-// Audio file upload handler
-uploadAudioBtn.addEventListener('click', () => {
-    audioFileInput.click();
-});
-
-audioFileInput.addEventListener('change', async (e) => {
-    const file = e.target.files[0];
+window.addEventListener('DOMContentLoaded', () => {
+    micBtn = document.getElementById('micBtn');
+    status = document.getElementById('status');
+    loading = document.getElementById('loading');
+    textInput = document.getElementById('textInput');
+    generateBtn = document.getElementById('generateBtn');
+    clearBtn = document.getElementById('clearBtn');
+    uploadAudioBtn = document.getElementById('uploadAudioBtn');
+    audioFileInput = document.getElementById('audioFileInput');
+    transcribingLoader = document.getElementById('transcribing');
+    
+    if (!micBtn) {
+        console.error('Mic button not found!');
+        return;
+    }
+    
+    if (!status) {
+        console.error('Status element not found!');
+        return;
+    }
+    
+    // Set up mic button click handler
+    micBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        // Add clicked class for dark grey state
+        micBtn.classList.add('clicked');
+        toggleRecording();
+        
+        // Remove clicked class after a short delay to allow visual feedback
+        setTimeout(() => {
+            if (!isRecording) {
+                micBtn.classList.remove('clicked');
+            }
+        }, 200);
+    });
+    
+    console.log('Mic button event listener attached');
+    
+    // Set up recognition event handlers if recognition is available
+    if (recognition) {
+        setupRecognitionHandlers();
+    } else {
+        console.warn('Recognition not available on DOMContentLoaded, will retry...');
+        // Retry after a short delay
+        setTimeout(() => {
+            if (recognition) {
+                setupRecognitionHandlers();
+                console.log('Recognition handlers set up on retry');
+            } else {
+                console.error('Recognition still not available after retry');
+            }
+        }, 100);
+    }
+    
+    // Audio file upload handler
+    if (uploadAudioBtn && audioFileInput) {
+        uploadAudioBtn.addEventListener('click', () => {
+            audioFileInput.click();
+        });
+        
+        audioFileInput.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
     if (!file) return;
     
     // Validate file size (25MB limit for Whisper API)
@@ -112,76 +162,98 @@ audioFileInput.addEventListener('change', async (e) => {
         status.textContent = 'Failed to transcribe audio. Please try again.';
         alert('Failed to transcribe audio file. Please try again or use voice input instead.');
     } finally {
-        transcribingLoader.classList.add('hidden');
-        uploadAudioBtn.disabled = false;
-        audioFileInput.value = ''; // Reset file input
-    }
-});
-
-// Check mic permissions on load
-navigator.permissions.query({ name: 'microphone' }).then((result) => {
-    console.log('Microphone permission:', result.state);
-    if (result.state === 'denied') {
-        status.textContent = 'Microphone access denied. Please enable it in browser settings.';
-    }
-});
-
-// Clear button
-clearBtn.addEventListener('click', () => {
-    textInput.value = '';
-    transcript = '';
-    status.textContent = 'Press to speak';
-});
-
-// Generate invoice from text input
-generateBtn.addEventListener('click', () => {
-    const text = textInput.value.trim();
-    if (text) {
-        status.textContent = 'Processing your invoice...';
-        loading.classList.remove('hidden');
-        generateBtn.disabled = true;
-        
-        // If business context exists and input is short, prepend business info
-        let fullTranscript = text;
-        if (businessContext && businessContext.companyName && text.length < 200 && !text.toLowerCase().includes('from')) {
-            fullTranscript = `Invoice from ${businessContext.companyName}`;
-            if (businessContext.email) fullTranscript += `, email ${businessContext.email}`;
-            if (businessContext.phone) fullTranscript += `, phone ${businessContext.phone}`;
-            if (businessContext.address) fullTranscript += `, address ${businessContext.address}`;
-            fullTranscript += `. ${text}`;
-            
-            if (businessContext.defaultPaymentTerms && !text.toLowerCase().includes('payment')) {
-                fullTranscript += `. ${businessContext.defaultPaymentTerms}`;
-            }
+            if (transcribingLoader) transcribingLoader.classList.add('hidden');
+            if (uploadAudioBtn) uploadAudioBtn.disabled = false;
+            if (audioFileInput) audioFileInput.value = ''; // Reset file input
         }
-        
-        generateInvoice(fullTranscript);
-    } else {
-        status.textContent = 'Please enter invoice details first!';
-        setTimeout(() => {
-            status.textContent = 'Press to speak';
-        }, 2000);
+        });
     }
-});
-
-micBtn.addEventListener('click', function(e) {
-    // Add clicked class for dark grey state
-    micBtn.classList.add('clicked');
-    toggleRecording();
     
-    // Remove clicked class after a short delay to allow visual feedback
-    setTimeout(() => {
-        if (!isRecording) {
-            micBtn.classList.remove('clicked');
-        }
-    }, 200);
+    // Check mic permissions on load
+    if (navigator.permissions && navigator.permissions.query) {
+        navigator.permissions.query({ name: 'microphone' }).then((result) => {
+            console.log('Microphone permission:', result.state);
+            if (result.state === 'denied' && status) {
+                status.textContent = 'Microphone access denied. Please enable it in browser settings.';
+            }
+        }).catch(() => {
+            // Permissions API not supported
+        });
+    }
+    
+    // Clear button
+    if (clearBtn && textInput && status) {
+        clearBtn.addEventListener('click', () => {
+            textInput.value = '';
+            transcript = '';
+            status.textContent = 'Press to speak';
+        });
+    }
+    
+    // Generate invoice from text input
+    if (generateBtn && textInput && status && loading) {
+        generateBtn.addEventListener('click', () => {
+            // Get text from either textInput or transcript variable
+            const textFromInput = textInput ? textInput.value.trim() : '';
+            const textToUse = textFromInput || transcript.trim();
+            
+            console.log('Generate button clicked, text:', textToUse);
+            
+            if (textToUse) {
+                status.textContent = 'Processing your invoice...';
+                loading.classList.remove('hidden');
+                generateBtn.disabled = true;
+                
+                // If business context exists and input is short, prepend business info
+                let fullTranscript = textToUse;
+                if (businessContext && businessContext.companyName && textToUse.length < 200 && !textToUse.toLowerCase().includes('from')) {
+                    fullTranscript = `Invoice from ${businessContext.companyName}`;
+                    if (businessContext.email) fullTranscript += `, email ${businessContext.email}`;
+                    if (businessContext.phone) fullTranscript += `, phone ${businessContext.phone}`;
+                    if (businessContext.address) fullTranscript += `, address ${businessContext.address}`;
+                    fullTranscript += `. ${textToUse}`;
+                    
+                    if (businessContext.defaultPaymentTerms && !textToUse.toLowerCase().includes('payment')) {
+                        fullTranscript += `. ${businessContext.defaultPaymentTerms}`;
+                    }
+                }
+                
+                generateInvoice(fullTranscript);
+            } else {
+                status.textContent = 'Please enter invoice details first!';
+                setTimeout(() => {
+                    status.textContent = 'Press to speak';
+                }, 2000);
+            }
+        });
+        console.log('Generate button event listener attached');
+    } else {
+        console.error('Generate button or required elements not found:', {
+            generateBtn: !!generateBtn,
+            textInput: !!textInput,
+            status: !!status,
+            loading: !!loading
+        });
+    }
 });
+
+// Mic button click handler is now set up in DOMContentLoaded
 
 function toggleRecording() {
+    console.log('toggleRecording called, recognition:', recognition, 'isRecording:', isRecording);
+    
     if (!recognition) {
-        status.textContent = 'Speech recognition not available. Please type below.';
-        textInput.focus();
-        return;
+        console.error('Recognition not available, attempting to reinitialize...');
+        // Try to reinitialize
+        if (initializeSpeechRecognition()) {
+            setupRecognitionHandlers();
+            if (status) status.textContent = 'Ready! Click mic again to start recording.';
+            return;
+        } else {
+            if (status) status.textContent = 'Speech recognition not available. Please type below.';
+            if (textInput) textInput.focus();
+            return;
+        }
     }
     
     if (!isRecording) {
@@ -193,13 +265,19 @@ function toggleRecording() {
 
 function startRecording() {
     if (!recognition) {
-        status.textContent = 'Speech recognition not initialized. Please reload the page.';
+        if (status) status.textContent = 'Speech recognition not initialized. Please reload the page.';
+        console.error('Recognition not available');
+        return;
+    }
+    
+    if (!micBtn || !status) {
+        console.error('Mic button or status element not found');
         return;
     }
     
     try {
         transcript = '';
-        textInput.value = '';
+        if (textInput) textInput.value = '';
         recognition.start();
         isRecording = true;
         micBtn.classList.add('recording');
@@ -208,11 +286,12 @@ function startRecording() {
         
         // Safety timeout - if no results after 30 seconds, remind user
         recognitionTimeout = setTimeout(() => {
-            if (isRecording && transcript.length === 0) {
+            if (isRecording && transcript.length === 0 && status) {
                 status.textContent = 'Still listening... Make sure your microphone is on';
             }
         }, 30000);
         
+        console.log('Started recording');
     } catch (error) {
         console.error('Error starting recognition:', error);
         
@@ -225,12 +304,13 @@ function startRecording() {
         } else {
             // Try to reinitialize
             isRecording = false;
-            micBtn.classList.remove('recording');
-            status.textContent = 'Reinitializing... Click mic again';
+            if (micBtn) micBtn.classList.remove('recording');
+            if (status) status.textContent = 'Reinitializing... Click mic again';
             
             setTimeout(() => {
                 if (initializeSpeechRecognition()) {
-                    status.textContent = 'Press mic to speak';
+                    setupRecognitionHandlers();
+                    if (status) status.textContent = 'Press mic to speak';
                 }
             }, 500);
         }
@@ -238,6 +318,13 @@ function startRecording() {
 }
 
 function stopRecording() {
+    if (!recognition) return;
+    
+    if (!micBtn || !status) {
+        console.error('Mic button or status element not found');
+        return;
+    }
+    
     if (recognitionTimeout) {
         clearTimeout(recognitionTimeout);
         recognitionTimeout = null;
@@ -250,134 +337,155 @@ function stopRecording() {
     
     if (transcript.trim()) {
         // Fill the text input with the transcript so user can edit
-        textInput.value = transcript;
+        if (textInput) {
+            textInput.value = transcript;
+            textInput.focus();
+        }
         status.textContent = 'Review and edit above, then click "Generate Invoice"';
-        // Scroll to text input
-        textInput.focus();
     } else {
         status.textContent = 'No speech detected. Try again or type below!';
-        textInput.focus();
+        if (textInput) textInput.focus();
     }
 }
 
-recognition.onresult = (event) => {
-    let interimTranscript = '';
-    
-    for (let i = event.resultIndex; i < event.results.length; i++) {
-        const transcriptPiece = event.results[i][0].transcript;
-        if (event.results[i].isFinal) {
-            transcript += transcriptPiece + ' ';
-        } else {
-            interimTranscript += transcriptPiece;
-        }
-    }
-    
-    // Update text input in real-time
-    textInput.value = transcript + interimTranscript;
-};
-
-recognition.onerror = (event) => {
-    console.error('Speech recognition error:', event.error, event);
-    
-    // Clear timeout
-    if (recognitionTimeout) {
-        clearTimeout(recognitionTimeout);
-        recognitionTimeout = null;
-    }
-    
-    isRecording = false;
-    micBtn.classList.remove('recording');
-    status.classList.remove('listening');
-    
-    // Handle network errors with aggressive retry
-    if (event.error === 'network') {
-        networkErrorCount++;
-        console.warn(`Network error ${networkErrorCount} - attempting recovery`);
-        
-        if (networkErrorCount <= 3) {
-            status.textContent = `Network hiccup... Retrying (${networkErrorCount}/3)`;
-            
-            // Aggressive retry after brief delay
-            setTimeout(() => {
-                console.log('Reinitializing speech recognition after network error');
-                if (initializeSpeechRecognition()) {
-                    status.textContent = 'Reconnected! Click mic to speak';
-                    networkErrorCount = 0; // Reset counter on successful init
-                }
-            }, 1000);
-        } else {
-            // After 3 tries, show typing option but keep voice available
-            status.textContent = '🌐 Connection unstable. Try clicking mic again or type below';
-            networkErrorCount = 0; // Reset for next attempt
-            textInput.focus();
-        }
+// Set up recognition event handlers
+function setupRecognitionHandlers() {
+    if (!recognition) {
+        console.error('Cannot set up handlers: recognition is null');
         return;
     }
     
-    // Handle other errors
-    if (event.error === 'no-speech') {
-        status.textContent = 'No speech detected. Click mic to try again!';
-    } else if (event.error === 'audio-capture') {
-        status.textContent = 'Microphone not detected. Check connection and try again.';
-    } else if (event.error === 'not-allowed') {
-        status.textContent = 'Microphone blocked! Allow access in browser settings.';
-        setTimeout(() => {
-            alert('Microphone Permission Required:\n\n' +
-                  '1. Click the 🔒 lock icon in the address bar\n' +
-                  '2. Change microphone setting to "Allow"\n' +
-                  '3. Refresh the page (⌘+R or Ctrl+R)\n' +
-                  '4. Try clicking the mic button again');
-        }, 500);
-    } else if (event.error === 'aborted') {
-        status.textContent = 'Recording stopped. Click mic to start again!';
-    } else {
-        status.textContent = `${event.error} - Click mic to retry`;
-    }
+    console.log('Setting up recognition handlers...');
     
-    setTimeout(() => {
-        if (!isRecording) {
-            status.textContent = 'Press to speak (or type below)';
+    recognition.onresult = (event) => {
+        let interimTranscript = '';
+        
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+            const transcriptPiece = event.results[i][0].transcript;
+            if (event.results[i].isFinal) {
+                transcript += transcriptPiece + ' ';
+            } else {
+                interimTranscript += transcriptPiece;
+            }
         }
-    }, 4000);
-};
+        
+        // Update text input in real-time
+        if (textInput) textInput.value = transcript + interimTranscript;
+        
+        console.log('Recognition result:', transcript, interimTranscript);
+    };
 
-recognition.onend = () => {
-    console.log('Recognition ended, isRecording:', isRecording);
-    
-    // Clear timeout
-    if (recognitionTimeout) {
-        clearTimeout(recognitionTimeout);
-        recognitionTimeout = null;
-    }
-    
-    if (isRecording) {
-        // Automatically restart if still in recording mode
-        console.log('Auto-restarting recognition...');
+    recognition.onerror = (event) => {
+        console.error('Speech recognition error:', event.error, event);
+        
+        if (!status) return;
+        
+        // Clear timeout
+        if (recognitionTimeout) {
+            clearTimeout(recognitionTimeout);
+            recognitionTimeout = null;
+        }
+        
+        isRecording = false;
+        if (micBtn) micBtn.classList.remove('recording');
+        status.classList.remove('listening');
+        
+        // Handle network errors with aggressive retry
+        if (event.error === 'network') {
+            networkErrorCount++;
+            console.warn(`Network error ${networkErrorCount} - attempting recovery`);
+            
+            if (networkErrorCount <= 3) {
+                status.textContent = `Network hiccup... Retrying (${networkErrorCount}/3)`;
+                
+                // Aggressive retry after brief delay
+                setTimeout(() => {
+                    console.log('Reinitializing speech recognition after network error');
+                    if (initializeSpeechRecognition()) {
+                        setupRecognitionHandlers();
+                        status.textContent = 'Reconnected! Click mic to speak';
+                        networkErrorCount = 0; // Reset counter on successful init
+                    }
+                }, 1000);
+            } else {
+                // After 3 tries, show typing option but keep voice available
+                status.textContent = 'Connection unstable. Try clicking mic again or type below';
+                networkErrorCount = 0; // Reset for next attempt
+                if (textInput) textInput.focus();
+            }
+            return;
+        }
+        
+        // Handle other errors
+        if (event.error === 'no-speech') {
+            status.textContent = 'No speech detected. Click mic to try again!';
+        } else if (event.error === 'audio-capture') {
+            status.textContent = 'Microphone not detected. Check connection and try again.';
+        } else if (event.error === 'not-allowed') {
+            status.textContent = 'Microphone blocked! Allow access in browser settings.';
+            setTimeout(() => {
+                alert('Microphone Permission Required:\n\n' +
+                      '1. Click the lock icon in the address bar\n' +
+                      '2. Change microphone setting to "Allow"\n' +
+                      '3. Refresh the page (⌘+R or Ctrl+R)\n' +
+                      '4. Try clicking the mic button again');
+            }, 500);
+        } else if (event.error === 'aborted') {
+            status.textContent = 'Recording stopped. Click mic to start again!';
+        } else {
+            status.textContent = `${event.error} - Click mic to retry`;
+        }
+        
         setTimeout(() => {
-            try {
-                recognition.start();
-            } catch (error) {
-                console.error('Error restarting recognition:', error);
-                // Try to reinitialize
-                if (initializeSpeechRecognition()) {
-                    try {
-                        recognition.start();
-                    } catch (e) {
-                        console.error('Failed to restart even after reinit:', e);
-                        isRecording = false;
-                        micBtn.classList.remove('recording');
-                        status.classList.remove('listening');
-                        status.textContent = 'Click mic to start again';
+            if (!isRecording && status) {
+                status.textContent = 'Press to speak (or type below)';
+            }
+        }, 4000);
+    };
+    
+    recognition.onend = () => {
+        console.log('Recognition ended, isRecording:', isRecording);
+        
+        // Clear timeout
+        if (recognitionTimeout) {
+            clearTimeout(recognitionTimeout);
+            recognitionTimeout = null;
+        }
+        
+        if (isRecording) {
+            // Automatically restart if still in recording mode
+            console.log('Auto-restarting recognition...');
+            setTimeout(() => {
+                try {
+                    recognition.start();
+                } catch (error) {
+                    console.error('Error restarting recognition:', error);
+                    // Try to reinitialize
+                    if (initializeSpeechRecognition()) {
+                        setupRecognitionHandlers();
+                        try {
+                            recognition.start();
+                        } catch (e) {
+                            console.error('Failed to restart even after reinit:', e);
+                            isRecording = false;
+                            if (micBtn) micBtn.classList.remove('recording');
+                            if (status) {
+                                status.classList.remove('listening');
+                                status.textContent = 'Click mic to start again';
+                            }
+                        }
                     }
                 }
-            }
-        }, 100);
-    } else {
-        // Recording was intentionally stopped
-        micBtn.classList.remove('recording');
-        status.classList.remove('listening');
-    }
-};
+            }, 100);
+        } else {
+            // Recording was intentionally stopped
+            if (micBtn) micBtn.classList.remove('recording');
+            if (status) status.classList.remove('listening');
+        }
+    };
+    
+    console.log('Recognition event handlers set up');
+}
 
 async function generateInvoice(text) {
     try {
@@ -627,3 +735,4 @@ async function saveAndDownloadInvoice() {
 
 // Initialize
 loadBusinessContext();
+

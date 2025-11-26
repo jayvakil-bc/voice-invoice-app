@@ -50,37 +50,46 @@ async function loadInvoices() {
             return;
         }
         
-        invoicesList.innerHTML = invoices.map(invoice => `
-            <div class="invoice-card">
+        invoicesList.innerHTML = invoices.map(invoice => {
+            const clientName = invoice.to?.name || 'N/A';
+            const truncatedClientName = clientName.length > 12 ? clientName.substring(0, 12) + '...' : clientName;
+            
+            return `
+            <div class="invoice-card" data-invoice-id="${invoice._id}" onclick="showSidePreview('invoice', '${invoice._id}', '${invoice.invoiceNumber}')" style="cursor: pointer;">
                 <div class="invoice-card-header">
-                    <h3 class="invoice-card-title">${invoice.invoiceNumber}</h3>
+                    <h3 class="invoice-card-title">${truncatedClientName}</h3>
                 </div>
                 <div class="invoice-card-info">
                     <div class="invoice-card-info-item">
-                        <span class="invoice-card-info-label">Client</span>
-                        <span class="invoice-card-info-value">${invoice.to?.name || 'N/A'}</span>
+                        <span class="invoice-card-info-label">Number</span>
+                        <span class="invoice-card-info-value">${invoice.invoiceNumber}</span>
                     </div>
                     <div class="invoice-card-info-item">
                         <span class="invoice-card-info-label">Service</span>
                         <span class="invoice-card-info-value">${invoice.serviceName || 'N/A'}</span>
                     </div>
                 </div>
-                <div class="invoice-card-amount">$${invoice.total?.toFixed(2) || '0.00'}</div>
-                <div class="invoice-card-date">Due: ${new Date(invoice.dueDate).toLocaleDateString()}</div>
+                <div class="invoice-card-divider"></div>
+                <div class="invoice-card-amount-section">
+                    <div class="invoice-card-amount">$${invoice.total?.toFixed(2) || '0.00'}</div>
+                    <div class="invoice-card-date">Due: ${new Date(invoice.dueDate).toLocaleDateString()}</div>
+                </div>
+                <div class="invoice-card-divider"></div>
                 <div class="invoice-card-footer" onclick="event.stopPropagation()">
-                    <button class="card-icon-btn" onclick="downloadInvoice('${invoice._id}', '${invoice.invoiceNumber}')" title="Download" style="font-size: 1.2rem;">↓</button>
+                    <button class="card-icon-btn" onclick="event.stopPropagation(); downloadInvoice('${invoice._id}', '${invoice.invoiceNumber}')" title="Download">↓</button>
                     <div class="card-menu">
-                        <button class="card-icon-btn" onclick="toggleCardMenu(this)" title="More options" style="font-size: 1.2rem; font-weight: bold;">⋯</button>
+                        <button class="card-icon-btn" onclick="event.stopPropagation(); toggleCardMenu(this)" title="More options">⋯</button>
                         <div class="card-menu-dropdown">
-                            <button class="card-menu-item" onclick="previewInvoice('${invoice._id}', '${invoice.invoiceNumber}')">Preview</button>
-                            <button class="card-menu-item" onclick="editInvoice('${invoice._id}')">Edit</button>
-                            <button class="card-menu-item" onclick="saveToGoogleDrive('${invoice._id}', '${invoice.invoiceNumber}')">Save to Drive</button>
-                            <button class="card-menu-item" onclick="deleteInvoice('${invoice._id}')" style="color: #ef4444;">Delete</button>
+                            <button class="card-menu-item" onclick="event.stopPropagation(); showSidePreview('invoice', '${invoice._id}', '${invoice.invoiceNumber}')">Preview</button>
+                            <button class="card-menu-item" onclick="event.stopPropagation(); editInvoice('${invoice._id}')">Edit</button>
+                            <button class="card-menu-item" onclick="event.stopPropagation(); saveToGoogleDrive('${invoice._id}', '${invoice.invoiceNumber}')">Save to Drive</button>
+                            <button class="card-menu-item" onclick="event.stopPropagation(); deleteInvoice('${invoice._id}')" style="color: #ef4444;">Delete</button>
                         </div>
                     </div>
                 </div>
             </div>
-        `).join('');
+            `;
+        }).join('');
     } catch (error) {
         console.error('Error loading invoices:', error);
     }
@@ -425,6 +434,209 @@ function closePreviewModal() {
     currentPreviewInvoiceNumber = null;
 }
 
+// Show side preview panel
+async function showSidePreview(type, id, title) {
+    try {
+        const isInvoice = type === 'invoice';
+        const previewPanel = isInvoice 
+            ? document.getElementById('sidePreviewPanel')
+            : document.getElementById('sidePreviewPanelContracts');
+        const previewContent = isInvoice
+            ? document.getElementById('sidePreviewContent')
+            : document.getElementById('sidePreviewContentContracts');
+        const gridContainer = isInvoice
+            ? document.querySelector('#invoicesTab .dashboard-grid-container')
+            : document.querySelector('#contractsTab .dashboard-grid-container');
+        const cardsList = isInvoice
+            ? document.getElementById('invoicesList')
+            : document.getElementById('contractsList');
+        
+        if (!previewPanel || !previewContent || !gridContainer || !cardsList) return;
+        
+        // Hide all cards and mark the selected one
+        const allCards = cardsList.querySelectorAll('.invoice-card');
+        allCards.forEach(card => {
+            card.classList.remove('preview-selected');
+        });
+        
+        // Find and mark the clicked card
+        const clickedCard = Array.from(allCards).find(card => {
+            const cardId = card.getAttribute('data-invoice-id') || card.getAttribute('data-contract-id');
+            return cardId === id;
+        });
+        
+        if (clickedCard) {
+            clickedCard.classList.add('preview-selected');
+        }
+        
+        // Show loading state
+        previewContent.innerHTML = '<div style="padding: 2rem; text-align: center; color: var(--dark-grey);">Loading...</div>';
+        previewPanel.classList.remove('hidden');
+        gridContainer.classList.add('preview-active');
+        
+        if (isInvoice) {
+            // Load invoice data
+            const response = await fetch(`/api/invoices/${id}`, {
+                credentials: 'include'
+            });
+            
+            if (!response.ok) throw new Error('Failed to load invoice');
+            
+            const invoice = await response.json();
+            
+            // Render invoice preview
+            previewContent.innerHTML = `
+                <div class="preview-section">
+                    <div class="preview-header">
+                        <div>
+                            <label>Invoice Number:</label>
+                            <input type="text" class="preview-input" value="${invoice.invoiceNumber || ''}" readonly>
+                        </div>
+                        <div>
+                            <label>Date:</label>
+                            <input type="text" class="preview-input" value="${invoice.date || ''}" readonly>
+                        </div>
+                        <div>
+                            <label>Due Date:</label>
+                            <input type="text" class="preview-input" value="${invoice.dueDate || ''}" readonly>
+                        </div>
+                    </div>
+                    
+                    <div class="preview-parties">
+                        <div class="preview-party">
+                            <h3>From:</h3>
+                            <input type="text" class="preview-input" value="${invoice.from?.name || ''}" readonly>
+                            <textarea class="preview-input" rows="2" readonly>${invoice.from?.address || ''}</textarea>
+                            <input type="text" class="preview-input" value="${invoice.from?.phone || ''}" readonly>
+                            <input type="text" class="preview-input" value="${invoice.from?.email || ''}" readonly>
+                        </div>
+                        <div class="preview-party">
+                            <h3>Bill To:</h3>
+                            <input type="text" class="preview-input" value="${invoice.to?.name || ''}" readonly>
+                            <textarea class="preview-input" rows="2" readonly>${invoice.to?.address || ''}</textarea>
+                            <input type="text" class="preview-input" value="${invoice.to?.phone || ''}" readonly>
+                            <input type="text" class="preview-input" value="${invoice.to?.email || ''}" readonly>
+                        </div>
+                    </div>
+                    
+                    <div class="preview-items">
+                        <h3>Items:</h3>
+                        ${invoice.items && invoice.items.length > 0 ? invoice.items.map(item => `
+                            <div class="preview-item">
+                                <input type="text" class="preview-input" value="${item.description || ''}" readonly>
+                                <input type="text" class="preview-input" value="Qty: ${item.quantity || 1}" readonly>
+                                <input type="text" class="preview-input" value="Rate: $${(item.rate || 0).toFixed(2)}" readonly>
+                                <input type="text" class="preview-input" value="$${(item.amount || 0).toFixed(2)}" readonly>
+                            </div>
+                        `).join('') : '<div style="color: var(--dark-grey); opacity: 0.6;">No items</div>'}
+                    </div>
+                    
+                    <div class="preview-totals">
+                        <div class="total-row">
+                            <span>Subtotal:</span>
+                            <input type="text" class="preview-input" value="$${(invoice.subtotal || 0).toFixed(2)}" readonly style="width: auto; text-align: right;">
+                        </div>
+                        <div class="total-row">
+                            <span>Tax:</span>
+                            <input type="text" class="preview-input" value="$${(invoice.tax || 0).toFixed(2)}" readonly style="width: auto; text-align: right;">
+                        </div>
+                        <div class="total-row total-final">
+                            <span>Total:</span>
+                            <input type="text" class="preview-input" value="$${(invoice.total || 0).toFixed(2)}" readonly style="width: auto; text-align: right; font-weight: 400; color: var(--text-color);">
+                        </div>
+                    </div>
+                    
+                    ${invoice.notes ? `
+                        <div class="preview-notes">
+                            <label>Notes:</label>
+                            <textarea class="preview-input" rows="3" readonly>${invoice.notes}</textarea>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        } else {
+            // Load contract data
+            const response = await fetch(`/api/contracts/${id}`, {
+                credentials: 'include'
+            });
+            
+            if (!response.ok) throw new Error('Failed to load contract');
+            
+            const contract = await response.json();
+            
+            // Render contract preview
+            previewContent.innerHTML = `
+                <div class="preview-section">
+                    <div class="preview-header">
+                        <div>
+                            <label>Contract Title:</label>
+                            <input type="text" class="preview-input" value="${contract.contractTitle || ''}" readonly>
+                        </div>
+                        <div>
+                            <label>Effective Date:</label>
+                            <input type="text" class="preview-input" value="${contract.effectiveDate || ''}" readonly>
+                        </div>
+                    </div>
+                    
+                    <div class="preview-parties">
+                        <div class="preview-party">
+                            <h3>Service Provider:</h3>
+                            <input type="text" class="preview-input" value="${contract.parties?.serviceProvider?.name || ''}" readonly>
+                            <textarea class="preview-input" rows="2" readonly>${contract.parties?.serviceProvider?.address || ''}</textarea>
+                        </div>
+                        <div class="preview-party">
+                            <h3>Client:</h3>
+                            <input type="text" class="preview-input" value="${contract.parties?.client?.name || ''}" readonly>
+                            <textarea class="preview-input" rows="2" readonly>${contract.parties?.client?.address || ''}</textarea>
+                        </div>
+                    </div>
+                    
+                    ${contract.total ? `
+                        <div class="preview-totals">
+                            <div class="total-row total-final">
+                                <span>Total Amount:</span>
+                                <input type="text" class="preview-input" value="$${(contract.total || 0).toFixed(2)}" readonly style="width: auto; text-align: right; font-weight: 400; color: var(--text-color);">
+                            </div>
+                        </div>
+                    ` : ''}
+                    
+                    ${contract.terms ? `
+                        <div class="preview-notes">
+                            <label>Terms:</label>
+                            <textarea class="preview-input" rows="6" readonly>${contract.terms}</textarea>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        }
+    } catch (error) {
+        console.error('Error loading preview:', error);
+        const previewContent = type === 'invoice'
+            ? document.getElementById('sidePreviewContent')
+            : document.getElementById('sidePreviewContentContracts');
+        if (previewContent) {
+            previewContent.innerHTML = '<div style="padding: 2rem; text-align: center; color: #ef4444;">Failed to load preview</div>';
+        }
+    }
+}
+
+// Close side preview
+function closeSidePreview() {
+    const previewPanel = document.getElementById('sidePreviewPanel');
+    const previewPanelContracts = document.getElementById('sidePreviewPanelContracts');
+    const gridContainers = document.querySelectorAll('.dashboard-grid-container');
+    const allCards = document.querySelectorAll('.invoice-card');
+    
+    // Remove preview-selected class from all cards
+    allCards.forEach(card => {
+        card.classList.remove('preview-selected');
+    });
+    
+    if (previewPanel) previewPanel.classList.add('hidden');
+    if (previewPanelContracts) previewPanelContracts.classList.add('hidden');
+    gridContainers.forEach(container => container.classList.remove('preview-active'));
+}
+
 async function savePreviewChanges() {
     if (!currentPreviewId) return;
     
@@ -577,45 +789,43 @@ async function loadContracts() {
         
         contractsList.innerHTML = contracts.map(contract => {
             const hasShareLink = contract.shareableLink && contract.shareableLink.token;
+            const clientName = contract.parties?.client?.name || 'N/A';
+            const truncatedClientName = clientName.length > 12 ? clientName.substring(0, 12) + '...' : clientName;
             
             return `
-            <div class="invoice-card">
+            <div class="invoice-card" data-contract-id="${contract._id}" onclick="showSidePreview('contract', '${contract._id}', '${contract.contractTitle}')" style="cursor: pointer;">
                 <div class="invoice-card-header">
-                    <h3 class="invoice-card-title">${contract.contractTitle || 'Untitled Contract'}</h3>
+                    <h3 class="invoice-card-title">${truncatedClientName}</h3>
                 </div>
                 <div class="invoice-card-info">
-                    <div class="invoice-card-info-item">
-                        <span class="invoice-card-info-label">Client</span>
-                        <span class="invoice-card-info-value">${contract.parties?.client?.name || 'N/A'}</span>
-                    </div>
                     <div class="invoice-card-info-item">
                         <span class="invoice-card-info-label">Provider</span>
                         <span class="invoice-card-info-value">${contract.parties?.serviceProvider?.name || 'N/A'}</span>
                     </div>
-                    <div class="invoice-card-info-item">
-                        <span class="invoice-card-info-label">Sections</span>
-                        <span class="invoice-card-info-value">${contract.sections?.length || 0}</span>
-                    </div>
                 </div>
-                <div class="invoice-card-date">Effective: ${new Date(contract.effectiveDate).toLocaleDateString()}</div>
-                ${hasShareLink ? `<div style="margin-top: 0.5rem; font-size: 0.8rem; color: #667eea; text-align: right; margin-bottom: 0;">Shared</div>` : ''}
+                <div class="invoice-card-divider"></div>
+                <div class="invoice-card-amount-section">
+                    <div class="invoice-card-date">Effective: ${new Date(contract.effectiveDate).toLocaleDateString()}</div>
+                    ${hasShareLink ? `<div style="margin-top: 0.5rem; font-size: 0.85rem; color: var(--primary-color); text-align: right; opacity: 0.8;">Shared</div>` : ''}
+                </div>
+                <div class="invoice-card-divider"></div>
                 <div class="invoice-card-footer" onclick="event.stopPropagation()">
-                    <button class="card-icon-btn" onclick="downloadContract('${contract._id}', '${contract.contractTitle}')" title="Download" style="font-size: 1.2rem;">↓</button>
+                    <button class="card-icon-btn" onclick="event.stopPropagation(); downloadContract('${contract._id}', '${contract.contractTitle}')" title="Download">↓</button>
                     <div class="card-menu">
-                        <button class="card-icon-btn" onclick="toggleCardMenu(this)" title="More options" style="font-size: 1.2rem; font-weight: bold;">⋯</button>
+                        <button class="card-icon-btn" onclick="event.stopPropagation(); toggleCardMenu(this)" title="More options">⋯</button>
                         <div class="card-menu-dropdown">
                             ${hasShareLink ? `
-                                <button class="card-menu-item" onclick="copyContractLink('${contract.shareableLink.token}')">Copy Link</button>
+                                <button class="card-menu-item" onclick="event.stopPropagation(); copyContractLink('${contract.shareableLink.token}')">Copy Link</button>
                             ` : `
-                                <button class="card-menu-item" onclick="shareContractFromDashboard('${contract._id}')">Share</button>
+                                <button class="card-menu-item" onclick="event.stopPropagation(); shareContractFromDashboard('${contract._id}')">Share</button>
                             `}
-                            <button class="card-menu-item" onclick="editContract('${contract._id}')">Edit</button>
-                            <button class="card-menu-item" onclick="deleteContract('${contract._id}')" style="color: #ef4444;">Delete</button>
+                            <button class="card-menu-item" onclick="event.stopPropagation(); editContract('${contract._id}')">Edit</button>
+                            <button class="card-menu-item" onclick="event.stopPropagation(); deleteContract('${contract._id}')" style="color: #ef4444;">Delete</button>
                         </div>
                     </div>
                 </div>
             </div>
-        `;
+            `;
         }).join('');
     } catch (error) {
         console.error('Error loading contracts:', error);
@@ -688,7 +898,7 @@ function showCopyNotification(message) {
         border-radius: 8px;
         box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         z-index: 10000;
-        font-weight: 600;
+        font-weight: 400;
     `;
     document.body.appendChild(notification);
     
@@ -799,6 +1009,8 @@ document.addEventListener('click', function(event) {
 
 // Tab switching
 function switchTab(tabName) {
+    const tabsContainer = document.querySelector('.dashboard-tabs');
+    
     // Remove active class from all tabs and content
     document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
     document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
@@ -806,10 +1018,12 @@ function switchTab(tabName) {
     // Add active class to selected tab
     event.target.classList.add('active');
     
-    // Show corresponding content
+    // Update sliding capsule position
     if (tabName === 'invoices') {
+        tabsContainer.classList.remove('tab-contracts');
         document.getElementById('invoicesTab').classList.add('active');
     } else if (tabName === 'contracts') {
+        tabsContainer.classList.add('tab-contracts');
         document.getElementById('contractsTab').classList.add('active');
     }
 }
@@ -829,5 +1043,97 @@ document.addEventListener('click', function(event) {
     }
 });
 
+// Color picker functionality
+function initColorPicker() {
+    const colorPicker = document.getElementById('colorPicker');
+    if (!colorPicker) return;
+    
+    // Load saved color from localStorage, default to dark purple
+    const savedColor = localStorage.getItem('themeColor') || '#6b21a8';
+    colorPicker.value = savedColor;
+    updateThemeColor(savedColor);
+    
+    // Handle color change
+    colorPicker.addEventListener('input', function(e) {
+        const newColor = e.target.value;
+        updateThemeColor(newColor);
+        localStorage.setItem('themeColor', newColor);
+    });
+}
+
+// Update theme color throughout the app
+function updateThemeColor(color) {
+    const root = document.documentElement;
+    const rgb = hexToRgb(color);
+    
+    // Set primary color
+    root.style.setProperty('--primary-color', color);
+    root.style.setProperty('--text-color', color);
+    
+    // Calculate darker shades
+    const dark = darkenColor(color, 0.15);
+    const darker = darkenColor(color, 0.25);
+    
+    root.style.setProperty('--primary-dark', dark);
+    root.style.setProperty('--primary-darker', darker);
+}
+
+// Helper function to convert hex to RGB
+function hexToRgb(hex) {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return result ? {
+        r: parseInt(result[1], 16),
+        g: parseInt(result[2], 16),
+        b: parseInt(result[3], 16)
+    } : null;
+}
+
+// Helper function to darken a color
+function darkenColor(hex, percent) {
+    const rgb = hexToRgb(hex);
+    if (!rgb) return hex;
+    
+    const r = Math.max(0, Math.floor(rgb.r * (1 - percent)));
+    const g = Math.max(0, Math.floor(rgb.g * (1 - percent)));
+    const b = Math.max(0, Math.floor(rgb.b * (1 - percent)));
+    
+    return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
+}
+
+// Toggle Sidebar
+function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const body = document.body;
+    
+    if (sidebar.classList.contains('closed')) {
+        sidebar.classList.remove('closed');
+        sidebar.classList.add('open');
+        body.classList.remove('sidebar-closed');
+    } else {
+        sidebar.classList.remove('open');
+        sidebar.classList.add('closed');
+        body.classList.add('sidebar-closed');
+    }
+}
+
+// Set active sidebar icon based on current page
+function setActiveSidebarIcon() {
+    const currentPath = window.location.pathname;
+    const icons = document.querySelectorAll('.sidebar-icon');
+    
+    icons.forEach(icon => {
+        icon.classList.remove('active');
+    });
+    
+    if (currentPath === '/dashboard' || currentPath === '/') {
+        const dashboardIcon = document.querySelector('.sidebar-icon[title="Dashboard"]');
+        if (dashboardIcon) dashboardIcon.classList.add('active');
+    } else if (currentPath === '/settings') {
+        const settingsIcon = document.querySelector('.sidebar-icon[title="Settings"]');
+        if (settingsIcon) settingsIcon.classList.add('active');
+    }
+}
+
 // Initialize
 checkAuth();
+setActiveSidebarIcon();

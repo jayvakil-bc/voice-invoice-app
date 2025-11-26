@@ -3,54 +3,66 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - Voice Invoice Generator</title>
+    <title>Dashboard - Vix.com</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="dashboard-styles.css">
 </head>
 <body>
-    <div class="dashboard-header">
-        <div class="header-left">
-            <button class="hamburger-menu" onclick="toggleMenu()">
-                <span></span>
-                <span></span>
-                <span></span>
-            </button>
-            <h2>Voice Invoice Generator</h2>
+    <!-- Toggleable Sidebar - Icon Only -->
+    <div class="permanent-sidebar" id="sidebar">
+        <button class="sidebar-toggle" onclick="toggleSidebar()" title="Toggle Sidebar">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M3 12H21M3 6H21M3 18H21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+        </button>
+        <div class="sidebar-content">
+            <div class="sidebar-icon active" onclick="window.location.href='/dashboard';" title="Dashboard">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M14 2V8H20" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M16 13H8" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M16 17H8" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M10 9H9H8" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+            <div class="sidebar-icon" onclick="window.location.href='/settings';" title="Settings">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M14 2V8H20" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M16 13H8" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M16 17H8" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M10 9H9H8" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+            <div class="sidebar-icon" onclick="logout();" title="Logout" style="margin-top: auto;">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M9 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H9M16 17L21 12M21 12L16 7M21 12H9" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
         </div>
-        <div class="header-right">
-            <div class="new-menu">
-                <button class="new-btn" onclick="toggleNewMenu()">+ New</button>
-                <div id="newMenuDropdown" class="new-menu-dropdown hidden">
-                    <a href="/create" class="new-menu-item">New Invoice</a>
-                    <a href="/create-contract" class="new-menu-item">New Contract</a>
+    </div>
+    
+    <!-- Main Content Area -->
+    <div class="main-content-wrapper">
+        <div class="dashboard-header">
+            <div class="header-left">
+                <h2>Vix.com</h2>
+            </div>
+            <div class="header-right">
+                <div class="new-menu">
+                    <button class="new-btn" onclick="toggleNewMenu()">+ New</button>
+                    <div id="newMenuDropdown" class="new-menu-dropdown hidden">
+                        <a href="/create" class="new-menu-item">New Invoice</a>
+                        <a href="/create-contract" class="new-menu-item">New Contract</a>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
     
-    <!-- Sidebar Overlay -->
-    <div id="sidebarOverlay" class="sidebar-overlay hidden" onclick="toggleMenu()"></div>
-    
-    <!-- Sidebar Menu -->
-    <div id="sidebarMenu" class="sidebar-menu hidden">
-        <div class="sidebar-header">
-            <h3>Menu</h3>
-            <button class="sidebar-close" onclick="toggleMenu()">×</button>
-        </div>
-        <div class="sidebar-content">
-            <div class="sidebar-item" onclick="goToProfile(); toggleMenu();">
-                <span id="menuUserName"></span>
-            </div>
-            <div class="sidebar-item" onclick="toggleMenu(); window.location.href='/settings';">
-                Settings
-            </div>
-            <div class="sidebar-item" onclick="toggleMenu(); logout();">
-                Logout
-            </div>
-        </div>
-    </div>
-    
-    <div class="dashboard-content">
+        <div class="dashboard-content">
         <!-- Tabs for Invoices and Contracts -->
         <div class="dashboard-tabs">
             <button class="tab-btn active" onclick="switchTab('invoices')">Your Invoices</button>
@@ -64,7 +76,19 @@
                     <h2>Your Invoices</h2>
                     <p class="invoice-count">Total: <span id="invoiceCount">0</span></p>
                 </div>
-                <div id="invoicesList"></div>
+                <div class="dashboard-grid-container">
+                    <div id="invoicesList"></div>
+                    <!-- Side Preview Panel -->
+                    <div id="sidePreviewPanel" class="side-preview-panel hidden">
+                        <div class="preview-panel-header">
+                            <h3>Invoice Preview</h3>
+                            <button class="preview-close-btn" onclick="closeSidePreview()">×</button>
+                        </div>
+                        <div class="preview-panel-content" id="sidePreviewContent">
+                            <!-- Preview content will be loaded here -->
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
         
@@ -75,7 +99,19 @@
                     <h2>Your Contracts</h2>
                     <p class="invoice-count">Total: <span id="contractCount">0</span></p>
                 </div>
-                <div id="contractsList"></div>
+                <div class="dashboard-grid-container">
+                    <div id="contractsList"></div>
+                    <!-- Side Preview Panel -->
+                    <div id="sidePreviewPanelContracts" class="side-preview-panel hidden">
+                        <div class="preview-panel-header">
+                            <h3>Contract Preview</h3>
+                            <button class="preview-close-btn" onclick="closeSidePreview()">×</button>
+                        </div>
+                        <div class="preview-panel-content" id="sidePreviewContentContracts">
+                            <!-- Preview content will be loaded here -->
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

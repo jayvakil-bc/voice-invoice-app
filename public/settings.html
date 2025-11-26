@@ -3,7 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Business Settings - Voice Invoice Generator</title>
+    <title>Business Settings - Vix.com</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="dashboard-styles.css">
     <style>
@@ -11,21 +14,24 @@
             max-width: 900px;
             margin: 2rem auto;
             padding: 0 2rem 4rem 2rem;
+            width: 100%;
         }
         
         .settings-card {
-            background: white;
+            background: #ffffff;
             border-radius: 16px;
             padding: 2rem;
             margin-bottom: 2rem;
-            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
         }
         
         .settings-card h2 {
-            color: #333;
+            color: var(--text-color);
             margin-bottom: 1.5rem;
             padding-bottom: 1rem;
             border-bottom: 2px solid #f0f0f0;
+            font-size: 1.5rem;
+            font-weight: 400;
         }
         
         .form-group {
@@ -34,8 +40,8 @@
         
         .form-group label {
             display: block;
-            color: #333;
-            font-weight: 600;
+            color: var(--text-color);
+            font-weight: 400;
             margin-bottom: 0.5rem;
         }
         
@@ -44,20 +50,20 @@
         .form-group select {
             width: 100%;
             padding: 0.75rem;
-            border: 2px solid #e9ecef;
+            border: 2px solid #e5e7eb;
             border-radius: 8px;
             font-size: 1rem;
             font-family: inherit;
             transition: all 0.3s ease;
+            background: #ffffff;
         }
         
         .form-group input:focus,
         .form-group textarea:focus,
         .form-group select:focus {
             outline: none;
-            border-color: #667eea;
-            background: #f0f3ff;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.1);
         }
         
         .form-group textarea {
@@ -67,26 +73,28 @@
         
         .form-hint {
             font-size: 0.85rem;
-            color: #666;
+            color: var(--text-color);
+            opacity: 0.7;
             margin-top: 0.25rem;
         }
         
         .btn-save {
             padding: 1rem 3rem;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: var(--primary-color);
             color: white;
             border: none;
             border-radius: 12px;
             font-size: 1.1rem;
-            font-weight: 600;
+            font-weight: 400;
             cursor: pointer;
             transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+            box-shadow: 0 4px 15px rgba(167, 139, 250, 0.3);
         }
         
         .btn-save:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 25px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 6px 25px rgba(167, 139, 250, 0.4);
+            background: var(--primary-dark);
         }
         
         .saved-items {
@@ -108,12 +116,13 @@
         }
         
         .saved-item-info strong {
-            color: #333;
+            color: var(--text-color);
             display: block;
         }
         
         .saved-item-info span {
-            color: #666;
+            color: var(--text-color);
+            opacity: 0.7;
             font-size: 0.9rem;
         }
         
@@ -125,6 +134,7 @@
             border-radius: 6px;
             cursor: pointer;
             font-size: 0.85rem;
+            transition: all 0.3s ease;
         }
         
         .btn-remove:hover {
@@ -143,41 +153,82 @@
         .success-message.show {
             display: block;
         }
+        
+        .settings-page-title {
+            color: var(--text-color);
+            font-size: 2rem;
+            font-weight: 400;
+            margin-bottom: 0.5rem;
+        }
+        
+        .settings-page-subtitle {
+            color: var(--text-color);
+            opacity: 0.7;
+            margin-bottom: 2rem;
+        }
     </style>
 </head>
 <body>
-    <!-- Navigation Header -->
-    <div class="dashboard-header">
-        <div class="header-content">
+           <!-- Toggleable Sidebar - Icon Only -->
+           <div class="permanent-sidebar" id="sidebar">
+               <button class="sidebar-toggle" onclick="toggleSidebar()" title="Toggle Sidebar">
+                   <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                       <path d="M3 12H21M3 6H21M3 18H21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                   </svg>
+               </button>
+               <div class="sidebar-content">
+                   <div class="sidebar-icon" onclick="window.location.href='/dashboard';" title="Dashboard">
+                       <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                           <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                           <path d="M14 2V8H20" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                           <path d="M16 13H8" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                           <path d="M16 17H8" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                           <path d="M10 9H9H8" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                       </svg>
+                   </div>
+                   <div class="sidebar-icon active" onclick="window.location.href='/settings';" title="Settings">
+                       <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                           <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                           <path d="M14 2V8H20" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                           <path d="M16 13H8" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                           <path d="M16 17H8" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                           <path d="M10 9H9H8" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                       </svg>
+                   </div>
+                   <div class="sidebar-icon" onclick="logout();" title="Logout" style="margin-top: auto;">
+                       <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                           <path d="M9 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H9M16 17L21 12M21 12L16 7M21 12H9" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                       </svg>
+                   </div>
+               </div>
+           </div>
+    
+    <!-- Main Content Area -->
+    <div class="main-content-wrapper">
+        <div class="dashboard-header">
             <div class="header-left">
-                <h2>Voice Invoice</h2>
+                <h2>Vix.com</h2>
             </div>
             <div class="header-right">
-                <div class="user-info">
-                    <img id="userAvatar" class="user-avatar" src="" alt="User">
-                    <span id="userName" class="user-name"></span>
-                </div>
-                <a href="/dashboard" style="text-decoration: none;">
-                    <button class="logout-btn" style="margin-right: 0.5rem;">← Dashboard</button>
+                <a href="/dashboard" style="text-decoration: none; margin-right: 1rem;">
+                    <button class="new-btn" style="background: var(--primary-dark);">← Dashboard</button>
                 </a>
-                <button class="logout-btn" onclick="logout()">Logout</button>
             </div>
         </div>
-    </div>
 
-    <div class="settings-container">
-        <h1 style="color: white; margin-bottom: 1rem;">Business Settings</h1>
-        <p style="color: rgba(255,255,255,0.9); margin-bottom: 2rem;">
-            Save your business information to speed up future invoice creation. This info will be auto-filled next time!
-        </p>
-        
-        <div class="success-message" id="successMessage">
-            Settings saved successfully!
-        </div>
-        
-        <!-- Business Information -->
-        <div class="settings-card">
-            <h2>Your Business Information</h2>
+        <div class="settings-container">
+            <h1 class="settings-page-title">Business Settings</h1>
+            <p class="settings-page-subtitle">
+                Save your business information to speed up future invoice creation. This info will be auto-filled next time!
+            </p>
+            
+            <div class="success-message" id="successMessage">
+                Settings saved successfully!
+            </div>
+            
+            <!-- Business Information -->
+            <div class="settings-card">
+                <h2>Your Business Information</h2>
             <form id="businessForm">
                 <div class="form-group">
                     <label for="companyName">Company/Business Name</label>
@@ -221,28 +272,23 @@
             </form>
         </div>
         
-        <!-- Frequent Clients -->
-        <div class="settings-card">
-            <h2>Frequent Clients</h2>
-            <p style="color: #666; margin-bottom: 1rem;">
-                Clients are automatically saved when you create invoices. You can remove any you no longer need.
-            </p>
-            <div id="frequentClients" class="saved-items"></div>
-        </div>
-        
-        <!-- Common Services -->
-        <div class="settings-card">
-            <h2>Common Services/Items</h2>
-            <p style="color: #666; margin-bottom: 1rem;">
-                Services are automatically saved from your invoices. This helps speed up future invoice creation.
-            </p>
-            <div id="commonServices" class="saved-items"></div>
-        </div>
-        
-        <div style="text-align: center; margin-top: 2rem;">
-            <a href="/dashboard" style="color: white; text-decoration: none; font-size: 1.1rem;">
-                ← Back to Dashboard
-            </a>
+            <!-- Frequent Clients -->
+            <div class="settings-card">
+                <h2>Frequent Clients</h2>
+                <p style="color: var(--text-color); opacity: 0.7; margin-bottom: 1rem;">
+                    Clients are automatically saved when you create invoices. You can remove any you no longer need.
+                </p>
+                <div id="frequentClients" class="saved-items"></div>
+            </div>
+            
+            <!-- Common Services -->
+            <div class="settings-card">
+                <h2>Common Services/Items</h2>
+                <p style="color: var(--text-color); opacity: 0.7; margin-bottom: 1rem;">
+                    Services are automatically saved from your invoices. This helps speed up future invoice creation.
+                </p>
+                <div id="commonServices" class="saved-items"></div>
+            </div>
         </div>
     </div>
     
