@@ -53,39 +53,49 @@ async function loadInvoices() {
             return;
         }
         
-        invoicesList.innerHTML = invoices.map(invoice => `
-            <div class="invoice-card">
+        invoicesList.innerHTML = invoices.map(invoice => {
+            const clientName = invoice.to?.name || 'N/A';
+            const truncatedClientName = clientName.length > 12 ? clientName.substring(0, 12) + '...' : clientName;
+            const currencySymbol = getCurrencySymbol(invoice.currency || 'USD');
+            
+            return `
+            <div class="invoice-card" data-invoice-id="${invoice._id}" onclick="showSidePreview('invoice', '${invoice._id}', '${invoice.invoiceNumber}')" style="cursor: pointer;">
                 <div class="invoice-card-header">
-                    <h3 class="invoice-card-title">${invoice.invoiceNumber}</h3>
+                    <h3 class="invoice-card-title">${truncatedClientName}</h3>
                 </div>
                 <div class="invoice-card-info">
                     <div class="invoice-card-info-item">
-                        <span class="invoice-card-info-label">Client</span>
-                        <span class="invoice-card-info-value">${invoice.to?.name || 'N/A'}</span>
+                        <span class="invoice-card-info-label">Number</span>
+                        <span class="invoice-card-info-value">${invoice.invoiceNumber}</span>
                     </div>
                     <div class="invoice-card-info-item">
                         <span class="invoice-card-info-label">Service</span>
                         <span class="invoice-card-info-value">${invoice.serviceName || 'N/A'}</span>
                     </div>
                 </div>
-                <div class="invoice-card-amount">$${invoice.total?.toFixed(2) || '0.00'}</div>
-                <div class="invoice-card-date">Due: ${new Date(invoice.dueDate).toLocaleDateString()}</div>
+                <div class="invoice-card-divider"></div>
+                <div class="invoice-card-amount-section">
+                    <div class="invoice-card-amount">${currencySymbol}${invoice.total?.toFixed(2) || '0.00'}</div>
+                    <div class="invoice-card-date">Due: ${new Date(invoice.dueDate).toLocaleDateString()}</div>
+                </div>
+                <div class="invoice-card-divider"></div>
                 <div class="invoice-card-footer" onclick="event.stopPropagation()">
-                    <button class="card-icon-btn" onclick="downloadInvoice('${invoice._id}', '${invoice.invoiceNumber}')" title="Download" style="font-size: 1.2rem;">↓</button>
+                    <button class="card-icon-btn" onclick="event.stopPropagation(); downloadInvoice('${invoice._id}', '${invoice.invoiceNumber}')" title="Download">↓</button>
                     <div class="card-menu">
-                        <button class="card-icon-btn" onclick="toggleCardMenu(this)" title="More options" style="font-size: 1.2rem; font-weight: bold;">⋯</button>
+                        <button class="card-icon-btn" onclick="event.stopPropagation(); toggleCardMenu(this)" title="More options">⋯</button>
                         <div class="card-menu-dropdown">
-                            <button class="card-menu-item" onclick="previewInvoice('${invoice._id}', '${invoice.invoiceNumber}')">Preview</button>
-                            <button class="card-menu-item" onclick="sendInvoiceEmail('${invoice._id}', '${invoice.invoiceNumber}')">📧 Send via Email</button>
-                            <button class="card-menu-item" onclick="generatePaymentLink('${invoice._id}', '${invoice.invoiceNumber}')">💳 Generate Payment Link</button>
-                            <button class="card-menu-item" onclick="editInvoice('${invoice._id}')">Edit</button>
-                            <button class="card-menu-item" onclick="saveToGoogleDrive('${invoice._id}', '${invoice.invoiceNumber}')">Save to Drive</button>
-                            <button class="card-menu-item" onclick="deleteInvoice('${invoice._id}')" style="color: #ef4444;">Delete</button>
+                            <button class="card-menu-item" onclick="event.stopPropagation(); showSidePreview('invoice', '${invoice._id}', '${invoice.invoiceNumber}')">Preview</button>
+                            <button class="card-menu-item" onclick="event.stopPropagation(); sendInvoiceEmail('${invoice._id}', '${invoice.invoiceNumber}')">📧 Send via Email</button>
+                            <button class="card-menu-item" onclick="event.stopPropagation(); generatePaymentLink('${invoice._id}', '${invoice.invoiceNumber}')">💳 Generate Payment Link</button>
+                            <button class="card-menu-item" onclick="event.stopPropagation(); editInvoice('${invoice._id}')">Edit</button>
+                            <button class="card-menu-item" onclick="event.stopPropagation(); saveToGoogleDrive('${invoice._id}', '${invoice.invoiceNumber}')">Save to Drive</button>
+                            <button class="card-menu-item" onclick="event.stopPropagation(); deleteInvoice('${invoice._id}')" style="color: #ef4444;">Delete</button>
                         </div>
                     </div>
                 </div>
             </div>
-        `).join('');
+            `;
+        }).join('');
     } catch (error) {
         console.error('Error loading invoices:', error);
     }
@@ -908,6 +918,16 @@ document.addEventListener('click', function(event) {
         dropdown.classList.add('hidden');
     }
 });
+
+// ========== SIDE PREVIEW ==========
+function showSidePreview(type, id, number) {
+    // For now, just use the existing preview function
+    if (type === 'invoice') {
+        previewInvoice(id, number);
+    } else if (type === 'contract') {
+        previewContract(id, number);
+    }
+}
 
 // ========== DARK MODE ==========
 function initDarkMode() {

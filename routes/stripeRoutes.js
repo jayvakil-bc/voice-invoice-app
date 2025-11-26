@@ -8,8 +8,12 @@ const { requireAuth } = require('../middleware/auth');
 const {
     startStripeOnboarding,
     checkStripeStatus,
-    disconnectStripe
+    disconnectStripe,
+    handleWebhook
 } = require('../controllers/stripeController');
+
+// Webhook - must be BEFORE express.json() middleware
+router.post('/webhook', express.raw({ type: 'application/json' }), handleWebhook);
 
 // Start Stripe onboarding
 router.post('/connect/onboard', requireAuth, startStripeOnboarding);

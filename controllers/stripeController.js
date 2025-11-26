@@ -4,7 +4,10 @@
  */
 
 const { createConnectAccount, getAccountLink, getAccountStatus } = require('../utils/paymentService');
+const { sendPaymentConfirmationEmail } = require('../utils/emailService');
 const User = require('../models/User');
+const Invoice = require('../models/Invoice');
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
 /**
  * Start Stripe Connect onboarding
@@ -111,8 +114,82 @@ const disconnectStripe = async (req, res) => {
     }
 };
 
+/**
+ * Handle Stripe webhook events (payment confirmations)
+ */
+const handleWebhook = async (req, res) => {
+    const sig = req.headers['stripe-signature'];
+    const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+
+    let event;
+
+    try {
+        // Verify webhook signature
+        if (webhookSecret) {
+            event = stripe.webhooks.constructEvent(req.body, sig, webhookSecret);
+        } else {
+            // For testing without webhook secret
+            event = req.body;
+        }
+
+        console.log('[Stripe Webhook] Event received:', event.type);
+
+        // Handle successful payment
+        if (event.type === 'checkout.session.completed' || event.type === 'payment_intent.succeeded') {
+            const session = event.data.object;
+            
+            // Extract invoice number from metadata
+            const invoiceNumber = session.metadata?.invoice_number;
+            const userEmail = session.customer_email || session.metadata?.customer_email;
+            
+            console.log('[Stripe Webhook] Payment successful for invoice:', invoiceNumber);
+            
+            if (invoiceNumber) {
+                // Find invoice and update status
+                const invoice = await Invoice.findOne({ invoiceNumber });
+                
+                if (invoice) {
+                    invoice.status = 'paid';
+                    invoice.paidAt = new Date();
+                    await invoice.save();
+                    
+                    console.log('[Stripe Webhook] Invoice marked as paid:', invoiceNumber);
+                    
+                    // Find the user who owns this invoice
+                    const user = await User.findById(invoice.userId);
+                    
+                    if (user) {
+                        // Send payment confirmation email
+                        try {
+                            await sendPaymentConfirmationEmail({
+                                to: user.email,
+                                invoiceNumber: invoice.invoiceNumber,
+                                amount: invoice.total,
+                                currency: invoice.currency || 'USD',
+                                customerName: invoice.billTo?.name || 'Customer',
+                                paymentDate: new Date()
+                            });
+                            
+                            console.log('[Stripe Webhook] ✅ Payment confirmation email sent to:', user.email);
+                        } catch (emailError) {
+                            console.error('[Stripe Webhook] Email error:', emailError);
+                        }
+                    }
+                }
+            }
+        }
+
+        res.json({ received: true });
+
+    } catch (err) {
+        console.error('[Stripe Webhook] Error:', err.message);
+        return res.status(400).send(`Webhook Error: ${err.message}`);
+    }
+};
+
 module.exports = {
     startStripeOnboarding,
     checkStripeStatus,
-    disconnectStripe
+    disconnectStripe,
+    handleWebhook
 };

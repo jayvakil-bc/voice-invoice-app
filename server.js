@@ -80,6 +80,72 @@ app.get('/settings', requireAuth, (req, res) => {
     res.sendFile('settings.html', { root: 'public' });
 });
 
+// Success pages (after Stripe payment)
+app.get('/invoice-success', (req, res) => {
+    res.send(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Payment Successful</title>
+            <style>
+                body {
+                    font-family: Arial, sans-serif;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    min-height: 100vh;
+                    margin: 0;
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                }
+                .success-container {
+                    background: white;
+                    padding: 40px;
+                    border-radius: 12px;
+                    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+                    text-align: center;
+                    max-width: 500px;
+                }
+                .success-icon {
+                    font-size: 64px;
+                    margin-bottom: 20px;
+                }
+                h1 {
+                    color: #10b981;
+                    margin: 0 0 10px 0;
+                }
+                p {
+                    color: #6b7280;
+                    line-height: 1.6;
+                }
+                .btn {
+                    display: inline-block;
+                    margin-top: 20px;
+                    padding: 12px 30px;
+                    background: #667eea;
+                    color: white;
+                    text-decoration: none;
+                    border-radius: 6px;
+                    font-weight: bold;
+                }
+                .btn:hover {
+                    background: #5568d3;
+                }
+            </style>
+        </head>
+        <body>
+            <div class="success-container">
+                <div class="success-icon">✅</div>
+                <h1>Payment Successful!</h1>
+                <p>Thank you for your payment. Your invoice has been marked as paid.</p>
+                <p style="font-size: 14px; color: #9ca3af;">Invoice: ${req.query.invoice || 'N/A'}</p>
+                <p style="font-size: 14px; color: #9ca3af;">A confirmation email has been sent to the invoice owner.</p>
+                <a href="/" class="btn">Return to Home</a>
+            </div>
+        </body>
+        </html>
+    `);
+});
+
 // API routes
 app.use(routes.authRoutes);
 app.use(routes.transcriptionRoutes);

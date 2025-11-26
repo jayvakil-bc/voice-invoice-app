@@ -79,7 +79,7 @@ CRITICAL RULES:
 - If only a total package price is mentioned, create a single line_item for the entire package`;
 
         const completion = await openai.chat.completions.create({
-            model: 'gpt-4o',
+            model: 'gpt-4o-2024-11-20',
             messages: [{ role: 'user', content: prompt }],
             response_format: { type: 'json_object' }
         });

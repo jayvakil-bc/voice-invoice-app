@@ -154,8 +154,10 @@ const createPaymentLink = async (invoice, connectedAccountId) => {
       metadata: {
         invoiceId: invoice._id.toString(),
         invoiceNumber: invoice.invoiceNumber,
-        userId: invoice.userId.toString()
+        userId: invoice.userId.toString(),
+        customer_email: invoice.billTo?.email || ''
       },
+      customer_email: invoice.billTo?.email || undefined,
       after_completion: {
         type: 'redirect',
         redirect: {

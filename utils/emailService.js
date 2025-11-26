@@ -235,8 +235,102 @@ const testEmailConfig = async () => {
   }
 };
 
+/**
+ * Send payment confirmation email after successful Stripe payment
+ * @param {Object} options - Email options
+ * @param {string} options.to - User's email
+ * @param {string} options.invoiceNumber - Invoice number
+ * @param {number} options.amount - Payment amount
+ * @param {string} options.currency - Currency code
+ * @param {string} options.customerName - Customer name
+ * @param {Date} options.paymentDate - Payment date
+ * @returns {Promise<Object>} Email send result
+ */
+const sendPaymentConfirmationEmail = async ({ 
+  to, 
+  invoiceNumber, 
+  amount, 
+  currency = 'USD', 
+  customerName,
+  paymentDate 
+}) => {
+  const transporter = createTransporter();
+  
+  if (!transporter) {
+    throw new Error('Email service not configured. Please add SMTP credentials to .env');
+  }
+
+  const formattedAmount = amount?.toFixed(2) || '0.00';
+  const formattedDate = paymentDate ? new Date(paymentDate).toLocaleString() : new Date().toLocaleString();
+
+  const htmlContent = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+      <div style="background: #10b981; color: white; padding: 20px; border-radius: 8px 8px 0 0; text-align: center;">
+        <h1 style="margin: 0; font-size: 28px;">💰 Payment Received!</h1>
+      </div>
+      
+      <div style="background: #f3f4f6; padding: 30px; border-radius: 0 0 8px 8px;">
+        <p style="font-size: 16px; color: #1f2937;">Great news! A payment has been received for your invoice.</p>
+        
+        <div style="background: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #10b981;">
+          <table style="width: 100%; border-collapse: collapse;">
+            <tr>
+              <td style="padding: 8px 0; color: #6b7280;"><strong>Invoice Number:</strong></td>
+              <td style="text-align: right; color: #1f2937;">${invoiceNumber}</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 0; color: #6b7280;"><strong>Customer:</strong></td>
+              <td style="text-align: right; color: #1f2937;">${customerName}</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 0; color: #6b7280;"><strong>Payment Date:</strong></td>
+              <td style="text-align: right; color: #1f2937;">${formattedDate}</td>
+            </tr>
+            <tr style="border-top: 2px solid #e5e7eb;">
+              <td style="padding: 12px 0; color: #1f2937;"><strong>Amount Paid:</strong></td>
+              <td style="text-align: right; font-size: 24px; color: #10b981;"><strong>${currency} ${formattedAmount}</strong></td>
+            </tr>
+          </table>
+        </div>
+        
+        <div style="background: #dbeafe; padding: 15px; border-radius: 6px; margin: 20px 0;">
+          <p style="margin: 0; color: #1e40af; font-size: 14px;">
+            ✅ The invoice has been automatically marked as <strong>PAID</strong> in your dashboard.
+          </p>
+        </div>
+        
+        <p style="color: #6b7280; font-size: 14px;">
+          You can view the full invoice details in your dashboard at any time.
+        </p>
+      </div>
+      
+      <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 30px 0;">
+      <p style="color: #9ca3af; font-size: 12px; text-align: center;">
+        This is an automated notification from your Voice Invoice system.
+      </p>
+    </div>
+  `;
+
+  const mailOptions = {
+    from: `"${process.env.EMAIL_FROM_NAME || process.env.SMTP_FROM_NAME || 'Voice Invoice'}" <${process.env.EMAIL_FROM || process.env.SMTP_USER}>`,
+    to,
+    subject: `🎉 Payment Received - Invoice ${invoiceNumber}`,
+    html: htmlContent
+  };
+
+  try {
+    const info = await transporter.sendMail(mailOptions);
+    console.log(`✅ Payment confirmation email sent to ${to}: ${info.messageId}`);
+    return { success: true, messageId: info.messageId };
+  } catch (error) {
+    console.error('❌ Error sending payment confirmation email:', error);
+    throw error;
+  }
+};
+
 module.exports = {
   sendInvoiceEmail,
   sendContractEmail,
-  testEmailConfig
+  testEmailConfig,
+  sendPaymentConfirmationEmail
 };
