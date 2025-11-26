@@ -3,38 +3,135 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Voice Invoice Generator - Login</title>
+    <title>Vix.com - Login</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
     <style>
+        body {
+            margin: 0;
+            padding: 0;
+        }
+        
+        .site-name {
+            position: fixed;
+            top: 2rem;
+            left: 2rem;
+            font-size: 1.5rem;
+            font-weight: 400;
+            color: #000000;
+            z-index: 1000;
+        }
+        
         .login-container {
             min-height: 100vh;
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
-            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            background: #ffffff;
             padding: 20px;
         }
         
         .login-box {
-            background: #2d2d2d;
-            padding: 3rem;
+            background: #ffffff;
+            padding: 2rem;
             border-radius: 24px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-            max-width: 450px;
-            width: 100%;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            width: 340px;
+            height: 340px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
             text-align: center;
-            border: 1px solid #444;
+            box-sizing: border-box;
         }
         
-        .login-box h1 {
-            color: #fff;
-            margin-bottom: 0.5rem;
-            font-size: 2rem;
+        .login-actions {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1.5rem;
+            width: 340px;
         }
         
         .login-box p {
-            color: #bbb;
-            margin-bottom: 2rem;
+            color: var(--dark-grey, #4a5568);
+            margin: 0 0 1.5rem 0;
+            font-weight: 500;
+            font-size: 1.518rem;
+        }
+        
+        .mic-section {
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            flex: 1;
+            width: 100%;
+            position: relative;
+        }
+        
+        .mic-button {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 3px solid #e5e7eb;
+            background: #ffffff;
+            cursor: pointer;
+            position: relative;
+            overflow: visible;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            z-index: 1;
+            margin: auto;
+            flex-shrink: 0;
+        }
+        
+        .mic-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            z-index: 2;
+            color: #6b7280;
+            transition: color 0.3s ease;
+            width: 100%;
+            height: 100%;
+        }
+        
+        .mic-icon svg {
+            width: 56px;
+            height: 56px;
+            stroke: currentColor;
+            fill: none;
+        }
+        
+        .mic-button:hover:not(:active):not(.clicked):not(.recording) {
+            border-color: #a78bfa;
+            box-shadow: 0 8px 30px rgba(167, 139, 250, 0.3), 0 0 0 4px rgba(167, 139, 250, 0.1);
+        }
+        
+        .mic-button:active,
+        .mic-button.clicked {
+            background: #a78bfa;
+            border-color: #8b5cf6;
+            animation: none;
+            transform: scale(0.98);
+        }
+        
+        .mic-button.recording {
+            background: #a78bfa;
+            border-color: #8b5cf6;
+        }
+        
+        .mic-button.recording .mic-icon,
+        .mic-button.clicked .mic-icon,
+        .mic-button:active .mic-icon {
+            color: #ffffff;
         }
         
         .google-btn {
@@ -44,21 +141,23 @@
             gap: 1rem;
             width: 100%;
             padding: 1rem 2rem;
-            background: #fff;
-            border: 2px solid #e0e0e0;
+            background: #ffffff;
+            border: 2px solid #e5e7eb;
             border-radius: 12px;
-            font-size: 1.1rem;
-            font-weight: 600;
+            font-size: 1rem;
+            font-weight: 400;
             cursor: pointer;
             transition: all 0.3s ease;
             text-decoration: none;
-            color: #333;
+            color: var(--dark-grey, #4a5568);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
         }
         
         .google-btn:hover {
-            border-color: #333;
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+            border-color: var(--primary-color, #a78bfa);
+            box-shadow: 0 4px 12px rgba(167, 139, 250, 0.2);
             transform: translateY(-2px);
+            color: var(--primary-color, #a78bfa);
         }
         
         .google-icon {
@@ -66,39 +165,43 @@
             height: 24px;
         }
         
-        .features {
-            margin-top: 3rem;
-            text-align: left;
+        .status {
+            margin-top: 0;
+            margin-bottom: 0;
+            font-size: 0.9975rem !important;
+            color: #9ca3af !important;
+            font-weight: 400 !important;
+            min-height: 24px;
+            text-align: center;
+            align-self: center;
         }
         
-        .features h3 {
-            color: #fff;
-            margin-bottom: 1rem;
+        #status {
+            font-size: 0.9975rem !important;
+            color: #9ca3af !important;
+            font-weight: 400 !important;
         }
         
-        .features ul {
-            list-style: none;
-            padding: 0;
-        }
-        
-        .features li {
-            padding: 0.5rem 0;
-            color: #bbb;
-        }
-        
-        .features li::before {
-            content: "✓ ";
-            color: #fff;
-            font-weight: bold;
-            margin-right: 0.5rem;
+        .status.listening {
+            color: #ef4444;
+            font-weight: 400;
         }
     </style>
 </head>
 <body>
+    <div class="site-name">Vix.com</div>
+    
     <div class="login-container">
-        <div class="login-box">
-            <h1>Voice Invoice Generator</h1>
-            <p>Create professional invoices with your voice or text</p>
+        <div class="login-actions">
+            <div class="login-box">
+                <p>Voice to Invoice</p>
+                
+                <div class="mic-section">
+                    <button id="micBtn" class="mic-button">
+                    </button>
+                    <p id="status" class="status">Press to speak</p>
+                </div>
+            </div>
             
             <a href="/auth/google" class="google-btn">
                 <svg class="google-icon" viewBox="0 0 24 24">
@@ -107,20 +210,307 @@
                     <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
                     <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
                 </svg>
-                Continue with Google
+                Login with Google
             </a>
-            
-            <div class="features">
-                <h3>Features:</h3>
-                <ul>
-                    <li>Voice-to-text invoice creation</li>
-                    <li>Save and manage all your invoices</li>
-                    <li>Professional PDF generation</li>
-                    <li>AI-powered data extraction</li>
-                    <li>Access from anywhere</li>
-                </ul>
-            </div>
         </div>
     </div>
+    
+    <script>
+        let recognition;
+        let isRecording = false;
+        let transcript = '';
+        let recognitionTimeout = null;
+        
+        // Initialize speech recognition
+        function initializeSpeechRecognition() {
+            if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                recognition = new SpeechRecognition();
+                recognition.continuous = true;
+                recognition.interimResults = true;
+                recognition.lang = 'en-US';
+                
+                console.log('Speech recognition initialized successfully');
+                return true;
+            } else {
+                console.error('Speech recognition not supported in this browser');
+                return false;
+            }
+        }
+        
+        // Initialize on load
+        const speechAvailable = initializeSpeechRecognition();
+        
+        // Wait for DOM to be ready
+        let micBtn, status;
+        
+        window.addEventListener('DOMContentLoaded', () => {
+            micBtn = document.getElementById('micBtn');
+            status = document.getElementById('status');
+            
+            if (!micBtn) {
+                console.error('Mic button not found!');
+                return;
+            }
+            
+            if (!status) {
+                console.error('Status element not found!');
+                return;
+            }
+            
+            // Set up mic button click handler
+            micBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                // Add clicked class for purple state
+                micBtn.classList.add('clicked');
+                toggleRecording();
+                
+                // Remove clicked class after a short delay to allow visual feedback
+                setTimeout(() => {
+                    if (!isRecording) {
+                        micBtn.classList.remove('clicked');
+                    }
+                }, 200);
+            });
+            
+            console.log('Mic button event listener attached');
+            
+            // Set up recognition handlers if available
+            if (recognition) {
+                setupRecognitionHandlers();
+            } else {
+                console.warn('Recognition not available on DOMContentLoaded, will retry...');
+                setTimeout(() => {
+                    if (recognition) {
+                        setupRecognitionHandlers();
+                        console.log('Recognition handlers set up on retry');
+                    }
+                }, 100);
+            }
+        });
+        
+        function toggleRecording() {
+            console.log('toggleRecording called, recognition:', recognition, 'isRecording:', isRecording);
+            
+            if (!recognition) {
+                console.error('Recognition not available, attempting to reinitialize...');
+                // Try to reinitialize
+                if (initializeSpeechRecognition()) {
+                    setupRecognitionHandlers();
+                    if (status) status.textContent = 'Ready! Click mic again to start recording.';
+                    return;
+                } else {
+                    if (status) status.textContent = 'Speech recognition not available. Please use Chrome or Edge.';
+                    return;
+                }
+            }
+            
+            if (!isRecording) {
+                startRecording();
+            } else {
+                stopRecording();
+            }
+        }
+        
+        function startRecording() {
+            if (!recognition) {
+                if (status) status.textContent = 'Speech recognition not initialized. Please reload the page.';
+                console.error('Recognition not available');
+                return;
+            }
+            
+            if (!micBtn || !status) {
+                console.error('Mic button or status element not found');
+                return;
+            }
+            
+            try {
+                transcript = '';
+                recognition.start();
+                isRecording = true;
+                micBtn.classList.add('recording');
+                status.textContent = 'Listening... Speak now!';
+                status.classList.add('listening');
+                
+                // Safety timeout - if no results after 30 seconds, remind user
+                recognitionTimeout = setTimeout(() => {
+                    if (isRecording && transcript.length === 0 && status) {
+                        status.textContent = 'Still listening... Make sure your microphone is on';
+                    }
+                }, 30000);
+                
+                console.log('Started recording');
+            } catch (error) {
+                console.error('Error starting recognition:', error);
+                
+                // If already started, stop and restart
+                if (error.message && error.message.includes('already started')) {
+                    recognition.stop();
+                    setTimeout(() => {
+                        startRecording();
+                    }, 200);
+                } else {
+                    // Try to reinitialize
+                    isRecording = false;
+                    if (micBtn) micBtn.classList.remove('recording');
+                    if (status) status.textContent = 'Reinitializing... Click mic again';
+                    
+                    setTimeout(() => {
+                        if (initializeSpeechRecognition()) {
+                            setupRecognitionHandlers();
+                            if (status) status.textContent = 'Press mic to speak';
+                        }
+                    }, 500);
+                }
+            }
+        }
+        
+        function stopRecording() {
+            if (!recognition) return;
+            
+            if (!micBtn || !status) {
+                console.error('Mic button or status element not found');
+                return;
+            }
+            
+            if (recognitionTimeout) {
+                clearTimeout(recognitionTimeout);
+                recognitionTimeout = null;
+            }
+            
+            recognition.stop();
+            isRecording = false;
+            micBtn.classList.remove('recording');
+            status.classList.remove('listening');
+            
+            if (transcript.trim()) {
+                status.textContent = 'Recording complete! Please login to continue.';
+                // After recording, redirect to login
+                setTimeout(() => {
+                    window.location.href = '/auth/google';
+                }, 1500);
+            } else {
+                status.textContent = 'No speech detected. Try again or click "Login with Google"';
+            }
+        }
+        
+        // Set up recognition event handlers
+        function setupRecognitionHandlers() {
+            if (!recognition) {
+                console.error('Cannot set up handlers: recognition is null');
+                return;
+            }
+            
+            console.log('Setting up recognition handlers...');
+            
+            recognition.onresult = (event) => {
+                let interimTranscript = '';
+                
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    const transcriptPiece = event.results[i][0].transcript;
+                    if (event.results[i].isFinal) {
+                        transcript += transcriptPiece + ' ';
+                    } else {
+                        interimTranscript += transcriptPiece;
+                    }
+                }
+                
+                console.log('Recognition result:', transcript, interimTranscript);
+                
+                if (transcript) {
+                    if (status) status.textContent = 'Listening... (Click mic again when done)';
+                }
+            };
+            
+            recognition.onerror = (event) => {
+                console.error('Speech recognition error:', event.error, event);
+                
+                if (!status) return;
+                
+                // Clear timeout
+                if (recognitionTimeout) {
+                    clearTimeout(recognitionTimeout);
+                    recognitionTimeout = null;
+                }
+                
+                isRecording = false;
+                if (micBtn) micBtn.classList.remove('recording');
+                status.classList.remove('listening');
+                
+                // Handle network errors with aggressive retry
+                if (event.error === 'network') {
+                    if (status) status.textContent = 'Network error. Please check your connection and try again.';
+                } else if (event.error === 'no-speech') {
+                    status.textContent = 'No speech detected. Click mic to try again!';
+                } else if (event.error === 'audio-capture') {
+                    status.textContent = 'Microphone not detected. Check connection and try again.';
+                } else if (event.error === 'not-allowed') {
+                    status.textContent = 'Microphone blocked! Allow access in browser settings.';
+                    setTimeout(() => {
+                        alert('Microphone Permission Required:\n\n' +
+                              '1. Click the lock icon in the address bar\n' +
+                              '2. Change microphone setting to "Allow"\n' +
+                              '3. Refresh the page (⌘+R or Ctrl+R)\n' +
+                              '4. Try clicking the mic button again');
+                    }, 500);
+                } else if (event.error === 'aborted') {
+                    status.textContent = 'Recording stopped. Click mic to start again!';
+                } else {
+                    status.textContent = `${event.error} - Click mic to retry`;
+                }
+                
+                setTimeout(() => {
+                    if (!isRecording && status) {
+                        status.textContent = 'Press to speak';
+                    }
+                }, 4000);
+            };
+            
+            recognition.onend = () => {
+                console.log('Recognition ended, isRecording:', isRecording);
+                
+                // Clear timeout
+                if (recognitionTimeout) {
+                    clearTimeout(recognitionTimeout);
+                    recognitionTimeout = null;
+                }
+                
+                if (isRecording) {
+                    // Automatically restart if still in recording mode
+                    console.log('Auto-restarting recognition...');
+                    setTimeout(() => {
+                        try {
+                            recognition.start();
+                        } catch (error) {
+                            console.error('Error restarting recognition:', error);
+                            // Try to reinitialize
+                            if (initializeSpeechRecognition()) {
+                                setupRecognitionHandlers();
+                                try {
+                                    recognition.start();
+                                } catch (e) {
+                                    console.error('Failed to restart even after reinit:', e);
+                                    isRecording = false;
+                                    if (micBtn) micBtn.classList.remove('recording');
+                                    if (status) {
+                                        status.classList.remove('listening');
+                                        status.textContent = 'Click mic to start again';
+                                    }
+                                }
+                            }
+                        }
+                    }, 100);
+                } else {
+                    // Recording was intentionally stopped
+                    if (micBtn) micBtn.classList.remove('recording');
+                    if (status) status.classList.remove('listening');
+                }
+            };
+            
+            console.log('Recognition event handlers set up');
+        }
+    </script>
 </body>
 </html>
