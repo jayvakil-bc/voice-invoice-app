@@ -14,6 +14,9 @@ async function checkAuth() {
         document.getElementById('userName').textContent = data.user.name;
         document.getElementById('userAvatar').src = data.user.picture;
         
+        // Initialize dark mode
+        initDarkMode();
+        
         loadBusinessInfo();
         checkStripeStatus();
     } catch (error) {
@@ -321,6 +324,14 @@ async function disconnectStripe() {
 // Add event listeners
 document.getElementById('connectStripeBtn').addEventListener('click', connectStripe);
 document.getElementById('disconnectStripeBtn').addEventListener('click', disconnectStripe);
+
+// ========== DARK MODE ==========
+function initDarkMode() {
+    const darkMode = localStorage.getItem('darkMode');
+    if (darkMode === 'enabled') {
+        document.body.classList.add('dark-mode');
+    }
+}
 
 // Initialize
 checkAuth();

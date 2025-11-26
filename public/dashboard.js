@@ -17,6 +17,9 @@ async function checkAuth() {
             menuUserName.textContent = data.user.name;
         }
         
+        // Initialize dark mode
+        initDarkMode();
+        
         loadInvoices();
         loadContracts();
     } catch (error) {
@@ -905,6 +908,43 @@ document.addEventListener('click', function(event) {
         dropdown.classList.add('hidden');
     }
 });
+
+// ========== DARK MODE ==========
+function initDarkMode() {
+    const darkMode = localStorage.getItem('darkMode');
+    if (darkMode === 'enabled') {
+        document.body.classList.add('dark-mode');
+        updateDarkModeIcon(true);
+    }
+}
+
+function toggleDarkMode() {
+    document.body.classList.toggle('dark-mode');
+    const isDark = document.body.classList.contains('dark-mode');
+    
+    if (isDark) {
+        localStorage.setItem('darkMode', 'enabled');
+    } else {
+        localStorage.setItem('darkMode', 'disabled');
+    }
+    
+    updateDarkModeIcon(isDark);
+}
+
+function updateDarkModeIcon(isDark) {
+    const sunIcon = document.querySelector('.sun-icon');
+    const moonIcon = document.querySelector('.moon-icon');
+    
+    if (sunIcon && moonIcon) {
+        if (isDark) {
+            sunIcon.style.display = 'none';
+            moonIcon.style.display = 'block';
+        } else {
+            sunIcon.style.display = 'block';
+            moonIcon.style.display = 'none';
+        }
+    }
+}
 
 // Initialize
 checkAuth();
