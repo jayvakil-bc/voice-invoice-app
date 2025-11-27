@@ -13,6 +13,9 @@ async function checkAuth() {
         const data = await response.json();
         // User info is now in sidebar, no need to set it here
         
+        // Initialize dark mode
+        initDarkMode();
+        
         loadBusinessInfo();
     } catch (error) {
         console.error('Error checking auth:', error);
@@ -184,6 +187,43 @@ document.getElementById('businessForm').addEventListener('submit', async (e) => 
 // Logout
 function logout() {
     window.location.href = '/auth/logout';
+}
+
+// Dark Mode Functions
+function initDarkMode() {
+    const darkMode = localStorage.getItem('darkMode');
+    if (darkMode === 'enabled') {
+        document.body.classList.add('dark-mode');
+        updateDarkModeIcon(true);
+    }
+}
+
+function toggleDarkMode() {
+    document.body.classList.toggle('dark-mode');
+    const isDark = document.body.classList.contains('dark-mode');
+    
+    if (isDark) {
+        localStorage.setItem('darkMode', 'enabled');
+    } else {
+        localStorage.setItem('darkMode', 'disabled');
+    }
+    
+    updateDarkModeIcon(isDark);
+}
+
+function updateDarkModeIcon(isDark) {
+    const sunIcon = document.querySelector('.sun-icon');
+    const moonIcon = document.querySelector('.moon-icon');
+    
+    if (sunIcon && moonIcon) {
+        if (isDark) {
+            sunIcon.style.display = 'none';
+            moonIcon.style.display = 'block';
+        } else {
+            sunIcon.style.display = 'block';
+            moonIcon.style.display = 'none';
+        }
+    }
 }
 
 // Initialize

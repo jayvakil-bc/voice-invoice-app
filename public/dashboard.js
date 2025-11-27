@@ -17,6 +17,9 @@ async function checkAuth() {
             menuUserName.textContent = data.user.name;
         }
         
+        // Initialize dark mode
+        initDarkMode();
+        
         loadInvoices();
         loadContracts();
     } catch (error) {
@@ -59,6 +62,7 @@ async function loadInvoices() {
         invoicesList.innerHTML = invoices.map(invoice => {
             const clientName = invoice.to?.name || 'N/A';
             const truncatedClientName = clientName.length > 12 ? clientName.substring(0, 12) + '...' : clientName;
+            const currencySymbol = getCurrencySymbol(invoice.currency || 'USD');
             
             return `
             <div class="invoice-card" data-invoice-id="${invoice._id}" onclick="showSidePreview('invoice', '${invoice._id}', '${invoice.invoiceNumber}')" style="cursor: pointer;">
@@ -77,7 +81,7 @@ async function loadInvoices() {
                 </div>
                 <div class="invoice-card-divider"></div>
                 <div class="invoice-card-amount-section">
-                    <div class="invoice-card-amount">$${invoice.total?.toFixed(2) || '0.00'}</div>
+                    <div class="invoice-card-amount">${currencySymbol}${invoice.total?.toFixed(2) || '0.00'}</div>
                     <div class="invoice-card-date">Due: ${new Date(invoice.dueDate).toLocaleDateString()}</div>
                 </div>
                 <div class="invoice-card-divider"></div>
@@ -87,6 +91,8 @@ async function loadInvoices() {
                         <button class="card-icon-btn" onclick="event.stopPropagation(); toggleCardMenu(this)" title="More options">⋯</button>
                         <div class="card-menu-dropdown">
                             <button class="card-menu-item" onclick="event.stopPropagation(); showSidePreview('invoice', '${invoice._id}', '${invoice.invoiceNumber}')">Preview</button>
+                            <button class="card-menu-item" onclick="event.stopPropagation(); sendInvoiceEmail('${invoice._id}', '${invoice.invoiceNumber}')">📧 Send via Email</button>
+                            <button class="card-menu-item" onclick="event.stopPropagation(); generatePaymentLink('${invoice._id}', '${invoice.invoiceNumber}')">💳 Generate Payment Link</button>
                             <button class="card-menu-item" onclick="event.stopPropagation(); editInvoice('${invoice._id}')">Edit</button>
                             <button class="card-menu-item" onclick="event.stopPropagation(); saveToGoogleDrive('${invoice._id}', '${invoice.invoiceNumber}')">Save to Drive</button>
                             <button class="card-menu-item" onclick="event.stopPropagation(); deleteInvoice('${invoice._id}')" style="color: #ef4444;">Delete</button>
@@ -223,26 +229,152 @@ async function saveAndRegenerate() {
     }
 }
 
-// Save to Google Drive
-async function saveToGoogleDrive(id, invoiceNumber) {
+// Get currency symbol
+function getCurrencySymbol(currency) {
+    const symbols = {
+        'USD': '$',
+        'EUR': '€',
+        'GBP': '£',
+        'INR': '₹',
+        'CAD': 'C$',
+        'AUD': 'A$',
+        'JPY': '¥',
+        'CNY': '¥',
+        'CHF': 'Fr',
+        'SGD': 'S$',
+        'HKD': 'HK$',
+        'NZD': 'NZ$',
+        'SEK': 'kr',
+        'NOK': 'kr',
+        'MXN': '$',
+        'BRL': 'R$',
+        'ZAR': 'R',
+        'AED': 'د.إ'
+    };
+    return symbols[currency] || currency;
+}
+
+// Send invoice via email
+async function sendInvoiceEmail(id, invoiceNumber) {
+    const email = prompt(`📧 Send Invoice ${invoiceNumber} via email\n\nEnter recipient email address:`);
+    
+    if (!email) return;
+    
+    // Basic email validation
+    if (!email.includes('@') || !email.includes('.')) {
+        alert('Please enter a valid email address');
+        return;
+    }
+    
+    const includePayment = confirm('Include payment link in email?');
+    
     try {
-        // First, get the PDF blob
-        const response = await fetch(`/api/invoices/${id}/pdf`, {
+        const response = await fetch(`/api/invoices/${id}/send-email`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ 
+                recipientEmail: email,
+                includePaymentLink: includePayment
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(result.error || 'Failed to send email');
+        }
+        
+        alert(`✅ Invoice sent successfully to ${email}!\n\nThe recipient will receive a professional email with the invoice PDF attached.`);
+        
+    } catch (error) {
+        console.error('[Email] Error:', error);
+        if (error.message.includes('not configured')) {
+            alert('❌ Email not configured.\n\nPlease add SMTP settings to your .env file.\nSee: vibe-coder-bs/STRIPE_EMAIL_SETUP.md');
+        } else {
+            alert('Failed to send email: ' + error.message);
+        }
+    }
+}
+
+// Generate Stripe payment link
+async function generatePaymentLink(id, invoiceNumber) {
+    if (!confirm(`💳 Generate Payment Link for ${invoiceNumber}?\n\nThis will create a Stripe payment link that you can share with your client.`)) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/api/invoices/${id}/payment-link`, {
+            method: 'POST',
             credentials: 'include'
         });
         
+        const result = await response.json();
+        
         if (!response.ok) {
-            throw new Error('Failed to get invoice');
+            if (result.needsStripeSetup) {
+                const goToSettings = confirm('❌ Stripe not connected.\n\nYou need to connect your Stripe account first to accept payments.\n\nGo to Settings now?');
+                if (goToSettings) {
+                    window.location.href = '/settings';
+                }
+                return;
+            }
+            throw new Error(result.error || 'Failed to create payment link');
         }
         
-        const blob = await response.blob();
+        // Copy to clipboard
+        await navigator.clipboard.writeText(result.paymentLink);
         
-        // Check if Google Drive API is available
-        if (!window.gapi) {
-            alert('Loading Google Drive... Please try again in a moment.');
-            loadGoogleDriveAPI();
-            return;
+        alert(`✅ Payment link created and copied to clipboard!\n\nLink: ${result.paymentLink}\n\nShare this link with your client. They can pay with credit/debit card, and the money goes directly to your Stripe account.`);
+        
+        // Reload to show updated invoice
+        loadInvoices();
+        
+    } catch (error) {
+        console.error('[Payment] Error:', error);
+        if (error.message.includes('not configured')) {
+            alert('❌ Stripe not configured.\n\nPlease add your Stripe credentials or connect your account in Settings.');
+        } else {
+            alert('Failed to create payment link: ' + error.message);
         }
+    }
+}
+
+// Save to Google Drive
+async function saveToGoogleDrive(id, invoiceNumber) {
+    try {
+        console.log('[Drive] Saving invoice to Drive:', id);
+        
+        const response = await fetch(`/api/invoices/${id}/save-to-drive`, {
+            method: 'POST',
+            credentials: 'include'
+        });
+        
+        const result = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(result.error || 'Failed to save to Drive');
+        }
+        
+        console.log('[Drive] Success:', result);
+        alert(`✅ Saved to Google Drive!\n\nFile: ${result.drive.fileName}\n\nYou can view it in your Drive under the "Invoices" folder.`);
+        
+        // Optionally open Drive link
+        if (result.drive.viewLink) {
+            const openDrive = confirm('Open in Google Drive?');
+            if (openDrive) {
+                window.open(result.drive.viewLink, '_blank');
+            }
+        }
+        
+    } catch (error) {
+        console.error('[Drive] Error:', error);
+        if (error.message.includes('not available')) {
+            alert('❌ Google Drive access not available.\n\nPlease re-login to grant Drive permissions.');
+        } else {
+            alert('Failed to save to Drive: ' + error.message);
+        }
+    }
         
         // Upload to Google Drive
         const metadata = {
@@ -1212,6 +1344,43 @@ function setActiveSidebarIcon() {
     } else if (currentPath === '/settings') {
         const settingsIcon = document.querySelector('.sidebar-icon[title="Settings"]');
         if (settingsIcon) settingsIcon.classList.add('active');
+    }
+}
+
+// Dark Mode Functions
+function initDarkMode() {
+    const darkMode = localStorage.getItem('darkMode');
+    if (darkMode === 'enabled') {
+        document.body.classList.add('dark-mode');
+        updateDarkModeIcon(true);
+    }
+}
+
+function toggleDarkMode() {
+    document.body.classList.toggle('dark-mode');
+    const isDark = document.body.classList.contains('dark-mode');
+    
+    if (isDark) {
+        localStorage.setItem('darkMode', 'enabled');
+    } else {
+        localStorage.setItem('darkMode', 'disabled');
+    }
+    
+    updateDarkModeIcon(isDark);
+}
+
+function updateDarkModeIcon(isDark) {
+    const sunIcon = document.querySelector('.sun-icon');
+    const moonIcon = document.querySelector('.moon-icon');
+    
+    if (sunIcon && moonIcon) {
+        if (isDark) {
+            sunIcon.style.display = 'none';
+            moonIcon.style.display = 'block';
+        } else {
+            sunIcon.style.display = 'block';
+            moonIcon.style.display = 'none';
+        }
     }
 }
 
