@@ -555,7 +555,7 @@ body.sidebar-closed .main-content-wrapper {
 .invoice-card-title {
     margin: 0;
     color: var(--text-color);
-    font-size: 1.0625rem;
+    font-size: 0.9rem;
     font-weight: 400;
     line-height: 1.3;
 }
