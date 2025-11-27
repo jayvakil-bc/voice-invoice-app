@@ -1303,12 +1303,7 @@ body.sidebar-closed .main-content-wrapper {
     box-sizing: border-box;
 }
 
-.contracts-section #contractsList {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 1rem;
-    margin-top: 1.5rem;
-}
+/* Contracts section uses same grid as invoices - defined in #contractsList above */
 
 .actions {
     display: flex;

@@ -858,13 +858,21 @@ async function loadContracts() {
             return;
         }
         
+        // Always update the contractCount element if it exists
         if (contractCount) {
-        contractCount.textContent = contracts.length;
+            contractCount.textContent = contracts.length;
         }
         
         // Update tab count if contracts tab is active
         if (tabCount && document.getElementById('contractsTab') && document.getElementById('contractsTab').classList.contains('active')) {
             tabCount.innerHTML = `Total: <span id="contractCount">${contracts.length}</span>`;
+        } else if (tabCount) {
+            // Even if not active, ensure the count element exists for when switching tabs
+            const existingContractCount = document.getElementById('contractCount');
+            if (!existingContractCount && tabCount.querySelector('span')) {
+                // Store the count in a data attribute or ensure element exists
+                tabCount.setAttribute('data-contract-count', contracts.length);
+            }
         }
         
         if (contracts.length === 0) {
@@ -1166,8 +1174,27 @@ function switchTab(tabName) {
     } else if (tabName === 'contracts') {
         tabsContainer.classList.add('tab-contracts');
         document.getElementById('contractsTab').classList.add('active');
-        if (tabCount && contractCount) {
-            tabCount.innerHTML = `Total: <span id="contractCount">${contractCount.textContent}</span>`;
+        // Get the actual contract count from the contracts list or stored value
+        const contractsList = document.getElementById('contractsList');
+        let contractCountValue = '0';
+        
+        if (contractCount && contractCount.textContent) {
+            contractCountValue = contractCount.textContent;
+        } else if (tabCount && tabCount.getAttribute('data-contract-count')) {
+            contractCountValue = tabCount.getAttribute('data-contract-count');
+        } else if (contractsList) {
+            // Count the actual contract cards rendered
+            const contractCards = contractsList.querySelectorAll('.invoice-card[data-contract-id]');
+            contractCountValue = contractCards.length.toString();
+        }
+        
+        if (tabCount) {
+            tabCount.innerHTML = `Total: <span id="contractCount">${contractCountValue}</span>`;
+        }
+        
+        // Ensure contracts are loaded if not already
+        if (contractsList && contractsList.children.length === 0) {
+            loadContracts();
         }
     }
 }
