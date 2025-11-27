@@ -286,6 +286,38 @@
             </form>
         </div>
         
+        <!-- Stripe Connect -->
+        <div class="settings-card">
+            <h2>💳 Payment Processing (Stripe Connect)</h2>
+            <p style="color: var(--text-color); opacity: 0.7; margin-bottom: 1rem;">
+                Connect your Stripe account to receive payments directly from your clients. Money goes straight to YOUR account!
+            </p>
+            
+            <div id="stripeStatus" style="margin-bottom: 1rem;">
+                <div style="padding: 1rem; background: #f8f9fa; border-radius: 8px; display: flex; align-items: center; justify-content: space-between;">
+                    <div>
+                        <strong id="stripeStatusText">Checking Stripe connection...</strong>
+                        <div id="stripeStatusDetails" style="font-size: 0.9rem; color: var(--text-color); opacity: 0.7; margin-top: 0.25rem;"></div>
+                    </div>
+                    <div id="stripeStatusIcon" style="font-size: 1.5rem; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 8px;">⏳</div>
+                </div>
+            </div>
+            
+            <div id="stripeActions">
+                <button id="connectStripeBtn" class="btn-save" style="display: none;">
+                    Connect Stripe Account
+                </button>
+                <button id="disconnectStripeBtn" class="btn-remove" style="display: none; padding: 1rem 2rem; font-size: 1rem;">
+                    Disconnect Stripe
+                </button>
+            </div>
+            
+            <div style="margin-top: 1rem; padding: 1rem; background: #e7f3ff; border-radius: 8px; font-size: 0.9rem; color: #004085;">
+                <strong>💡 Why Stripe Connect?</strong><br>
+                Each user connects their own Stripe account. Payments go directly to you, not through us. It only takes 2-3 minutes to set up!
+            </div>
+        </div>
+        
         <!-- Frequent Clients -->
         <div class="settings-card">
                 <h2>Frequent Clients</h2>
