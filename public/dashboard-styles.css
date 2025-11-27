@@ -1290,7 +1290,7 @@ body.sidebar-closed .main-content-wrapper {
 .contracts-section {
     background: #ffffff;
     border-radius: 12px;
-    padding: 2rem;
+    padding: 1.5rem;
     padding-top: 1.5rem;
     box-shadow: none;
     border: none;
@@ -1300,12 +1300,13 @@ body.sidebar-closed .main-content-wrapper {
     position: relative;
     border-top: none;
     width: 100%;
+    box-sizing: border-box;
 }
 
 .contracts-section #contractsList {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 1.5rem;
+    gap: 1rem;
     margin-top: 1.5rem;
 }
 
