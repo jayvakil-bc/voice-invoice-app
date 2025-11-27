@@ -107,17 +107,6 @@ async function loadInvoices() {
     }
 }
 
-function getCurrencySymbol(currency) {
-    const symbols = {
-        'USD': '$',
-        'EUR': '€',
-        'GBP': '£',
-        'CAD': 'CA$',
-        'AUD': 'A$'
-    };
-    return symbols[currency] || currency;
-}
-
 // Download invoice
 async function downloadInvoice(id, invoiceNumber) {
     try {
@@ -374,34 +363,6 @@ async function saveToGoogleDrive(id, invoiceNumber) {
         } else {
             alert('Failed to save to Drive: ' + error.message);
         }
-    }
-        
-        // Upload to Google Drive
-        const metadata = {
-            name: `${invoiceNumber}.pdf`,
-            mimeType: 'application/pdf'
-        };
-        
-        const form = new FormData();
-        form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
-        form.append('file', blob);
-        
-        const uploadResponse = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
-            method: 'POST',
-            headers: {
-                Authorization: `Bearer ${await getGoogleAccessToken()}`
-            },
-            body: form
-        });
-        
-        if (uploadResponse.ok) {
-            alert('Invoice saved to Google Drive successfully!');
-        } else {
-            throw new Error('Upload failed');
-        }
-    } catch (error) {
-        console.error('Error saving to Google Drive:', error);
-        alert('Failed to save to Google Drive. Please make sure you\'ve granted the necessary permissions.');
     }
 }
 
@@ -1388,7 +1349,7 @@ function updateDarkModeIcon(isDark) {
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', function() {
         restoreSidebarState();
-checkAuth();
+        checkAuth();
         setActiveSidebarIcon();
     });
 } else {
