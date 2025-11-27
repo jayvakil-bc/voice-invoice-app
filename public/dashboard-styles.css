@@ -257,11 +257,11 @@ body.sidebar-closed .main-content-wrapper {
 }
 
 .new-menu-dropdown.hidden {
-    display: none;
+    display: none !important;
 }
 
 .new-menu-dropdown:not(.hidden) {
-    display: block;
+    display: block !important;
 }
 
 .new-menu-item {

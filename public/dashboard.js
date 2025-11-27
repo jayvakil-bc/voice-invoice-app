@@ -1176,18 +1176,17 @@ function switchTab(tabName) {
 function toggleNewMenu(event) {
     if (event) {
         event.stopPropagation();
+        event.preventDefault();
     }
     const dropdown = document.getElementById('newMenuDropdown');
     if (dropdown) {
         const isHidden = dropdown.classList.contains('hidden');
+        console.log('[New Menu] Toggling, currently hidden:', isHidden);
         dropdown.classList.toggle('hidden');
-        
-        // If opening, prevent the document click listener from immediately closing it
-        if (isHidden) {
-            setTimeout(() => {
-                // Allow document click to close after a brief delay
-            }, 100);
-        }
+        console.log('[New Menu] After toggle, has hidden class:', dropdown.classList.contains('hidden'));
+        console.log('[New Menu] Computed display:', window.getComputedStyle(dropdown).display);
+    } else {
+        console.error('[New Menu] Dropdown element not found!');
     }
 }
 
