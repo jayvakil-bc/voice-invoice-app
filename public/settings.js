@@ -218,9 +218,9 @@ async function checkStripeStatus() {
         
         if (data.connected && data.chargesEnabled) {
             // Fully connected and can accept payments
-            statusText.textContent = '✅ Stripe Connected';
+            statusText.textContent = 'Stripe Connected';
             statusDetails.textContent = 'You can now accept payments from clients!';
-            statusIcon.textContent = '✅';
+            statusIcon.textContent = '✓';
             statusIcon.parentElement.style.background = '#d4edda';
             statusIcon.parentElement.style.borderLeft = '4px solid #28a745';
             
@@ -229,9 +229,9 @@ async function checkStripeStatus() {
             
         } else if (data.connected && !data.chargesEnabled) {
             // Connected but onboarding incomplete
-            statusText.textContent = '⚠️ Stripe Setup Incomplete';
+            statusText.textContent = 'Stripe Setup Incomplete';
             statusDetails.textContent = 'Please complete your Stripe onboarding to accept payments.';
-            statusIcon.textContent = '⚠️';
+            statusIcon.textContent = '!';
             statusIcon.parentElement.style.background = '#fff3cd';
             statusIcon.parentElement.style.borderLeft = '4px solid #ffc107';
             
@@ -241,9 +241,9 @@ async function checkStripeStatus() {
             
         } else {
             // Not connected
-            statusText.textContent = '❌ Stripe Not Connected';
+            statusText.textContent = 'Stripe Not Connected';
             statusDetails.textContent = 'Connect your Stripe account to receive payments from clients.';
-            statusIcon.textContent = '❌';
+            statusIcon.textContent = '✗';
             statusIcon.parentElement.style.background = '#f8d7da';
             statusIcon.parentElement.style.borderLeft = '4px solid #dc3545';
             
@@ -255,13 +255,13 @@ async function checkStripeStatus() {
         // Check for return from Stripe
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.get('stripe_setup') === 'success') {
-            alert('✅ Stripe account connected successfully! You can now create payment links.');
+            alert('Stripe account connected successfully! You can now create payment links.');
             // Clean up URL
             window.history.replaceState({}, document.title, '/settings');
             // Recheck status
             setTimeout(() => checkStripeStatus(), 1000);
         } else if (urlParams.get('stripe_refresh') === 'true') {
-            alert('⚠️ Stripe setup was interrupted. Please try again.');
+            alert('Stripe setup was interrupted. Please try again.');
             window.history.replaceState({}, document.title, '/settings');
         }
         
@@ -271,9 +271,9 @@ async function checkStripeStatus() {
         const statusDetails = document.getElementById('stripeStatusDetails');
         const statusIcon = document.getElementById('stripeStatusIcon');
         
-        if (statusText) statusText.textContent = '⚠️ Error checking Stripe status';
+        if (statusText) statusText.textContent = 'Error checking Stripe status';
         if (statusDetails) statusDetails.textContent = 'Please refresh the page';
-        if (statusIcon) statusIcon.textContent = '⚠️';
+        if (statusIcon) statusIcon.textContent = '!';
     }
 }
 
@@ -323,7 +323,7 @@ async function disconnectStripe() {
         const data = await response.json();
         
         if (data.success) {
-            alert('✅ Stripe account disconnected');
+            alert('Stripe account disconnected');
             checkStripeStatus();
         } else {
             throw new Error(data.error || 'Failed to disconnect Stripe');

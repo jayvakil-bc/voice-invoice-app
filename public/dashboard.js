@@ -88,8 +88,8 @@ async function loadInvoices() {
                         <button class="card-icon-btn" onclick="event.stopPropagation(); toggleCardMenu(this)" title="More options">⋯</button>
                         <div class="card-menu-dropdown">
                             <button class="card-menu-item" onclick="event.stopPropagation(); showSidePreview('invoice', '${invoice._id}', '${invoice.invoiceNumber}')">Preview</button>
-                            <button class="card-menu-item" onclick="event.stopPropagation(); sendInvoiceEmail('${invoice._id}', '${invoice.invoiceNumber}')">📧 Send via Email</button>
-                            <button class="card-menu-item" onclick="event.stopPropagation(); generatePaymentLink('${invoice._id}', '${invoice.invoiceNumber}')">💳 Generate Payment Link</button>
+                            <button class="card-menu-item" onclick="event.stopPropagation(); sendInvoiceEmail('${invoice._id}', '${invoice.invoiceNumber}')">Send via Email</button>
+                            <button class="card-menu-item" onclick="event.stopPropagation(); generatePaymentLink('${invoice._id}', '${invoice.invoiceNumber}')">Payment Link</button>
                             <button class="card-menu-item" onclick="event.stopPropagation(); editInvoice('${invoice._id}')">Edit</button>
                             <button class="card-menu-item" onclick="event.stopPropagation(); saveToGoogleDrive('${invoice._id}', '${invoice.invoiceNumber}')">Save to Drive</button>
                             <button class="card-menu-item" onclick="event.stopPropagation(); deleteInvoice('${invoice._id}')" style="color: #ef4444;">Delete</button>
@@ -242,7 +242,7 @@ function getCurrencySymbol(currency) {
 
 // Send invoice via email
 async function sendInvoiceEmail(id, invoiceNumber) {
-    const email = prompt(`📧 Send Invoice ${invoiceNumber} via email\n\nEnter recipient email address:`);
+    const email = prompt(`Send Invoice ${invoiceNumber} via email\n\nEnter recipient email address:`);
     
     if (!email) return;
     
@@ -271,12 +271,12 @@ async function sendInvoiceEmail(id, invoiceNumber) {
             throw new Error(result.error || 'Failed to send email');
         }
         
-        alert(`✅ Invoice sent successfully to ${email}!\n\nThe recipient will receive a professional email with the invoice PDF attached.`);
+        alert(`Invoice sent successfully to ${email}!\n\nThe recipient will receive a professional email with the invoice PDF attached.`);
         
     } catch (error) {
         console.error('[Email] Error:', error);
         if (error.message.includes('not configured')) {
-            alert('❌ Email not configured.\n\nPlease add SMTP settings to your .env file.\nSee: vibe-coder-bs/STRIPE_EMAIL_SETUP.md');
+            alert('Email not configured.\n\nPlease add SMTP settings to your .env file.\nSee: vibe-coder-bs/STRIPE_EMAIL_SETUP.md');
         } else {
             alert('Failed to send email: ' + error.message);
         }
@@ -285,7 +285,7 @@ async function sendInvoiceEmail(id, invoiceNumber) {
 
 // Generate Stripe payment link
 async function generatePaymentLink(id, invoiceNumber) {
-    if (!confirm(`💳 Generate Payment Link for ${invoiceNumber}?\n\nThis will create a Stripe payment link that you can share with your client.`)) {
+    if (!confirm(`Create Payment Link for ${invoiceNumber}?\n\nThis will create a Stripe payment link that you can share with your client.`)) {
         return;
     }
     
@@ -299,7 +299,7 @@ async function generatePaymentLink(id, invoiceNumber) {
         
         if (!response.ok) {
             if (result.needsStripeSetup) {
-                const goToSettings = confirm('❌ Stripe not connected.\n\nYou need to connect your Stripe account first to accept payments.\n\nGo to Settings now?');
+                const goToSettings = confirm('Stripe not connected.\n\nYou need to connect your Stripe account first to accept payments.\n\nGo to Settings now?');
                 if (goToSettings) {
                     window.location.href = '/settings';
                 }
@@ -311,7 +311,7 @@ async function generatePaymentLink(id, invoiceNumber) {
         // Copy to clipboard
         await navigator.clipboard.writeText(result.paymentLink);
         
-        alert(`✅ Payment link created and copied to clipboard!\n\nLink: ${result.paymentLink}\n\nShare this link with your client. They can pay with credit/debit card, and the money goes directly to your Stripe account.`);
+        alert(`Payment link created and copied to clipboard!\n\nLink: ${result.paymentLink}\n\nShare this link with your client. They can pay with credit/debit card, and the money goes directly to your Stripe account.`);
         
         // Reload to show updated invoice
         loadInvoices();
@@ -319,7 +319,7 @@ async function generatePaymentLink(id, invoiceNumber) {
     } catch (error) {
         console.error('[Payment] Error:', error);
         if (error.message.includes('not configured')) {
-            alert('❌ Stripe not configured.\n\nPlease add your Stripe credentials or connect your account in Settings.');
+            alert('Stripe not configured.\n\nPlease add your Stripe credentials or connect your account in Settings.');
         } else {
             alert('Failed to create payment link: ' + error.message);
         }
@@ -343,7 +343,7 @@ async function saveToGoogleDrive(id, invoiceNumber) {
         }
         
         console.log('[Drive] Success:', result);
-        alert(`✅ Saved to Google Drive!\n\nFile: ${result.drive.fileName}\n\nYou can view it in your Drive under the "Invoices" folder.`);
+        alert(`Saved to Google Drive!\n\nFile: ${result.drive.fileName}\n\nYou can view it in your Drive under the "Invoices" folder.`);
         
         // Optionally open Drive link
         if (result.drive.viewLink) {
@@ -976,7 +976,7 @@ async function saveContractToDrive(id, contractTitle) {
         }
         
         console.log('[Drive] Success:', result);
-        alert(`✅ Saved to Google Drive!\n\nFile: ${result.drive.fileName}\n\nYou can view it in your Drive under the "Contracts" folder.`);
+        alert(`Saved to Google Drive!\n\nFile: ${result.drive.fileName}\n\nYou can view it in your Drive under the "Contracts" folder.`);
         
         // Optionally open Drive link
         if (result.drive.viewLink) {
