@@ -1,15 +1,14 @@
 /* Dark Mode Styles */
 
 body.dark-mode {
-    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    background: #1A1B26;
     color: #e4e4e7;
 }
 
 /* Dashboard Header */
 body.dark-mode .dashboard-header {
-    background: linear-gradient(135deg, rgba(26, 26, 46, 0.98) 0%, rgba(30, 41, 59, 0.98) 100%);
-    border-bottom: 1px solid rgba(139, 92, 246, 0.2);
-    backdrop-filter: blur(10px);
+    background: #282A36;
+    border-bottom: none;
 }
 
 body.dark-mode .header-left h2 {
@@ -23,9 +22,8 @@ body.dark-mode .user-name {
 
 /* Sidebar */
 body.dark-mode .permanent-sidebar {
-    background: linear-gradient(180deg, rgba(22, 33, 62, 0.98) 0%, rgba(30, 41, 59, 0.98) 100%);
-    border-right: 1px solid rgba(139, 92, 246, 0.2);
-    backdrop-filter: blur(10px);
+    background: #282A36;
+    border-right: none;
 }
 
 body.dark-mode .sidebar-icon {
@@ -34,30 +32,27 @@ body.dark-mode .sidebar-icon {
 }
 
 body.dark-mode .sidebar-icon:hover {
-    background: rgba(139, 92, 246, 0.2);
-    color: #c4b5fd;
-    transform: scale(1.05);
+    background: rgba(255, 255, 255, 0.1);
+    color: #e4e4e7;
 }
 
 body.dark-mode .sidebar-icon.active {
-    background: linear-gradient(135deg, rgba(139, 92, 246, 0.3) 0%, rgba(99, 102, 241, 0.3) 100%);
-    color: #c4b5fd;
-    box-shadow: 0 0 20px rgba(139, 92, 246, 0.4);
+    background: rgba(255, 255, 255, 0.15);
+    color: #e4e4e7;
 }
 
 /* Cards */
 body.dark-mode .invoice-card,
 body.dark-mode .settings-card,
 body.dark-mode .contract-card {
-    background: linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(51, 65, 85, 0.9) 100%);
-    border: 1px solid rgba(139, 92, 246, 0.2);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    background: #282A36;
+    border: none;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 body.dark-mode .invoice-card:hover,
 body.dark-mode .contract-card:hover {
-    border-color: rgba(139, 92, 246, 0.5);
-    box-shadow: 0 12px 40px rgba(139, 92, 246, 0.3);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
     transform: translateY(-2px);
 }
 
@@ -95,22 +90,21 @@ body.dark-mode .btn-save:hover {
 }
 
 body.dark-mode .card-icon-btn {
-    background: rgba(139, 92, 246, 0.15);
-    color: #c4b5fd;
-    border: 1px solid rgba(139, 92, 246, 0.3);
+    background: rgba(255, 255, 255, 0.1);
+    color: #94a3b8;
+    border: none;
 }
 
 body.dark-mode .card-icon-btn:hover {
-    background: rgba(139, 92, 246, 0.25);
-    color: #e9d5ff;
-    border-color: rgba(139, 92, 246, 0.5);
+    background: rgba(255, 255, 255, 0.15);
+    color: #e4e4e7;
     transform: scale(1.05);
 }
 
 body.dark-mode .card-menu-dropdown {
-    background: rgba(30, 41, 59, 0.98);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+    background: #282A36;
+    border: none;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
 }
 
 body.dark-mode .card-menu-item {
@@ -118,8 +112,8 @@ body.dark-mode .card-menu-item {
 }
 
 body.dark-mode .card-menu-item:hover {
-    background: rgba(99, 102, 241, 0.1);
-    color: #818cf8;
+    background: rgba(255, 255, 255, 0.1);
+    color: #e4e4e7;
 }
 
 /* Status Badges */
@@ -249,7 +243,7 @@ body.dark-mode .form-hint {
 }
 
 body.dark-mode .saved-item {
-    background: rgba(30, 41, 59, 0.6);
+    background: rgba(255, 255, 255, 0.05);
 }
 
 body.dark-mode .saved-item strong {
@@ -262,12 +256,12 @@ body.dark-mode .saved-item span {
 
 /* Landing Page */
 body.dark-mode .landing-container {
-    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    background: #1A1B26;
 }
 
 body.dark-mode .login-box {
-    background: rgba(30, 41, 59, 0.8);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: #282A36;
+    border: none;
 }
 
 body.dark-mode .login-box h1 {
@@ -280,8 +274,8 @@ body.dark-mode .login-box p {
 
 /* Invoice/Contract Pages */
 body.dark-mode .voice-container {
-    background: rgba(30, 41, 59, 0.8);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: #282A36;
+    border: none;
 }
 
 body.dark-mode .voice-container h1,
@@ -348,4 +342,122 @@ body.dark-mode ::-webkit-scrollbar-thumb:hover {
 .sun-icon,
 .moon-icon {
     transition: opacity 0.3s ease;
+}
+
+/* Dashboard Sections */
+body.dark-mode .invoices-section,
+body.dark-mode .contracts-section {
+    background: #282A36;
+    border: none;
+}
+
+body.dark-mode .dashboard-content {
+    background: #1A1B26;
+}
+
+body.dark-mode .main-content-wrapper {
+    background: #1A1B26;
+}
+
+body.dark-mode .dashboard-grid-container {
+    background: transparent;
+}
+
+/* Tabs */
+body.dark-mode .dashboard-tabs {
+    background: transparent;
+}
+
+body.dark-mode .tab-btn {
+    color: #94a3b8;
+    background: transparent;
+}
+
+body.dark-mode .tab-btn.active {
+    background: #282A36;
+    color: #e4e4e7;
+}
+
+body.dark-mode .tab-count {
+    color: #94a3b8;
+}
+
+/* Sidebar Header Blend */
+body.dark-mode .sidebar-header-blend {
+    background: #282A36;
+    border: none;
+}
+
+body.dark-mode .sidebar-logo {
+    color: #e4e4e7;
+}
+
+/* Forms in Dark Mode */
+body.dark-mode input,
+body.dark-mode textarea,
+body.dark-mode select {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #e4e4e7;
+}
+
+body.dark-mode input:focus,
+body.dark-mode textarea:focus,
+body.dark-mode select:focus {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
+}
+
+/* Modals */
+body.dark-mode .modal-content {
+    background: #282A36;
+    border: none;
+}
+
+body.dark-mode .modal-header {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    color: #e4e4e7;
+}
+
+body.dark-mode .modal-body {
+    color: #e4e4e7;
+}
+
+/* Buttons */
+body.dark-mode .btn-primary,
+body.dark-mode .btn-save {
+    background: #4542FF;
+    box-shadow: 0 4px 15px rgba(69, 66, 255, 0.3);
+}
+
+body.dark-mode .btn-primary:hover,
+body.dark-mode .btn-save:hover {
+    background: #3734CC;
+    box-shadow: 0 6px 25px rgba(69, 66, 255, 0.4);
+}
+
+body.dark-mode .new-btn {
+    background: #4542FF;
+    box-shadow: 0 2px 8px rgba(69, 66, 255, 0.3);
+}
+
+body.dark-mode .new-btn:hover {
+    background: #3734CC;
+    box-shadow: 0 4px 12px rgba(69, 66, 255, 0.4);
+}
+
+body.dark-mode .new-menu-dropdown {
+    background: #282A36;
+    border: none;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+}
+
+body.dark-mode .new-menu-item {
+    color: #e4e4e7;
+}
+
+body.dark-mode .new-menu-item:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #e4e4e7;
 }

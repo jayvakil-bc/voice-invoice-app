@@ -11,8 +11,7 @@ async function checkAuth() {
         }
         
         const data = await response.json();
-        document.getElementById('userName').textContent = data.user.name;
-        document.getElementById('userAvatar').src = data.user.picture;
+        // User info is now in sidebar, no need to set it here
         
         // Initialize dark mode
         initDarkMode();
@@ -200,6 +199,10 @@ async function checkStripeStatus() {
             credentials: 'include'
         });
         
+        if (!response.ok) {
+            throw new Error('Failed to check Stripe status');
+        }
+        
         const data = await response.json();
         
         const statusText = document.getElementById('stripeStatusText');
@@ -208,11 +211,16 @@ async function checkStripeStatus() {
         const connectBtn = document.getElementById('connectStripeBtn');
         const disconnectBtn = document.getElementById('disconnectStripeBtn');
         
+        if (!statusText || !statusDetails || !statusIcon || !connectBtn || !disconnectBtn) {
+            console.error('[Stripe] Required elements not found');
+            return;
+        }
+        
         if (data.connected && data.chargesEnabled) {
             // Fully connected and can accept payments
-            statusText.textContent = '✅ Stripe Connected';
+            statusText.textContent = 'Stripe Connected';
             statusDetails.textContent = 'You can now accept payments from clients!';
-            statusIcon.textContent = '✅';
+            statusIcon.textContent = '✓';
             statusIcon.parentElement.style.background = '#d4edda';
             statusIcon.parentElement.style.borderLeft = '4px solid #28a745';
             
@@ -221,9 +229,9 @@ async function checkStripeStatus() {
             
         } else if (data.connected && !data.chargesEnabled) {
             // Connected but onboarding incomplete
-            statusText.textContent = '⚠️ Stripe Setup Incomplete';
+            statusText.textContent = 'Stripe Setup Incomplete';
             statusDetails.textContent = 'Please complete your Stripe onboarding to accept payments.';
-            statusIcon.textContent = '⚠️';
+            statusIcon.textContent = '!';
             statusIcon.parentElement.style.background = '#fff3cd';
             statusIcon.parentElement.style.borderLeft = '4px solid #ffc107';
             
@@ -233,9 +241,9 @@ async function checkStripeStatus() {
             
         } else {
             // Not connected
-            statusText.textContent = '❌ Stripe Not Connected';
+            statusText.textContent = 'Stripe Not Connected';
             statusDetails.textContent = 'Connect your Stripe account to receive payments from clients.';
-            statusIcon.textContent = '❌';
+            statusIcon.textContent = '✗';
             statusIcon.parentElement.style.background = '#f8d7da';
             statusIcon.parentElement.style.borderLeft = '4px solid #dc3545';
             
@@ -247,27 +255,33 @@ async function checkStripeStatus() {
         // Check for return from Stripe
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.get('stripe_setup') === 'success') {
-            alert('✅ Stripe account connected successfully! You can now create payment links.');
+            alert('Stripe account connected successfully! You can now create payment links.');
             // Clean up URL
             window.history.replaceState({}, document.title, '/settings');
             // Recheck status
             setTimeout(() => checkStripeStatus(), 1000);
         } else if (urlParams.get('stripe_refresh') === 'true') {
-            alert('⚠️ Stripe setup was interrupted. Please try again.');
+            alert('Stripe setup was interrupted. Please try again.');
             window.history.replaceState({}, document.title, '/settings');
         }
         
     } catch (error) {
         console.error('[Stripe] Error checking status:', error);
-        document.getElementById('stripeStatusText').textContent = '⚠️ Error checking Stripe status';
-        document.getElementById('stripeStatusDetails').textContent = 'Please refresh the page';
-        document.getElementById('stripeStatusIcon').textContent = '⚠️';
+        const statusText = document.getElementById('stripeStatusText');
+        const statusDetails = document.getElementById('stripeStatusDetails');
+        const statusIcon = document.getElementById('stripeStatusIcon');
+        
+        if (statusText) statusText.textContent = 'Error checking Stripe status';
+        if (statusDetails) statusDetails.textContent = 'Please refresh the page';
+        if (statusIcon) statusIcon.textContent = '!';
     }
 }
 
 // Connect Stripe account
 async function connectStripe() {
     const connectBtn = document.getElementById('connectStripeBtn');
+    if (!connectBtn) return;
+    
     connectBtn.disabled = true;
     connectBtn.textContent = 'Connecting...';
     
@@ -309,7 +323,7 @@ async function disconnectStripe() {
         const data = await response.json();
         
         if (data.success) {
-            alert('✅ Stripe account disconnected');
+            alert('Stripe account disconnected');
             checkStripeStatus();
         } else {
             throw new Error(data.error || 'Failed to disconnect Stripe');
@@ -321,17 +335,69 @@ async function disconnectStripe() {
     }
 }
 
-// Add event listeners
-document.getElementById('connectStripeBtn').addEventListener('click', connectStripe);
-document.getElementById('disconnectStripeBtn').addEventListener('click', disconnectStripe);
-
-// ========== DARK MODE ==========
+// Dark Mode Functions
 function initDarkMode() {
     const darkMode = localStorage.getItem('darkMode');
     if (darkMode === 'enabled') {
         document.body.classList.add('dark-mode');
+        updateDarkModeIcon(true);
+    }
+}
+
+function toggleDarkMode() {
+    document.body.classList.toggle('dark-mode');
+    const isDark = document.body.classList.contains('dark-mode');
+    
+    if (isDark) {
+        localStorage.setItem('darkMode', 'enabled');
+    } else {
+        localStorage.setItem('darkMode', 'disabled');
+    }
+    
+    updateDarkModeIcon(isDark);
+}
+
+function updateDarkModeIcon(isDark) {
+    const sunIcon = document.querySelector('.sun-icon');
+    const moonIcon = document.querySelector('.moon-icon');
+    
+    if (sunIcon && moonIcon) {
+        if (isDark) {
+            sunIcon.style.display = 'none';
+            moonIcon.style.display = 'block';
+        } else {
+            sunIcon.style.display = 'block';
+            moonIcon.style.display = 'none';
+        }
     }
 }
 
 // Initialize
 checkAuth();
+
+// Add event listeners for Stripe buttons
+// Note: These elements are created in the HTML, so they should exist when this script runs
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function() {
+        const connectBtn = document.getElementById('connectStripeBtn');
+        const disconnectBtn = document.getElementById('disconnectStripeBtn');
+        
+        if (connectBtn) {
+            connectBtn.addEventListener('click', connectStripe);
+        }
+        if (disconnectBtn) {
+            disconnectBtn.addEventListener('click', disconnectStripe);
+        }
+    });
+} else {
+    // DOM is already loaded
+    const connectBtn = document.getElementById('connectStripeBtn');
+    const disconnectBtn = document.getElementById('disconnectStripeBtn');
+    
+    if (connectBtn) {
+        connectBtn.addEventListener('click', connectStripe);
+    }
+    if (disconnectBtn) {
+        disconnectBtn.addEventListener('click', disconnectStripe);
+    }
+}

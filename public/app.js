@@ -58,12 +58,6 @@ const speechAvailable = initializeSpeechRecognition();
 let micBtn, status, loading, textInput, generateBtn, clearBtn, uploadAudioBtn, audioFileInput, transcribingLoader;
 
 window.addEventListener('DOMContentLoaded', () => {
-    // Initialize dark mode
-    const darkMode = localStorage.getItem('darkMode');
-    if (darkMode === 'enabled') {
-        document.body.classList.add('dark-mode');
-    }
-    
     micBtn = document.getElementById('micBtn');
     status = document.getElementById('status');
     loading = document.getElementById('loading');
