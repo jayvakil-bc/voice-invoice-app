@@ -535,6 +535,10 @@ body.sidebar-closed .main-content-wrapper {
     position: relative;
     display: flex;
     flex-direction: column;
+    aspect-ratio: 1 / 1;
+    width: 100%;
+    min-height: 280px;
+    justify-content: space-between;
 }
 
 .invoice-card:hover {
@@ -543,7 +547,8 @@ body.sidebar-closed .main-content-wrapper {
 }
 
 .invoice-card-header {
-    margin-bottom: 1.25rem;
+    margin-bottom: 1rem;
+    flex-shrink: 0;
 }
 
 .invoice-card-title {
@@ -559,8 +564,9 @@ body.sidebar-closed .main-content-wrapper {
     justify-content: flex-end;
     align-items: center;
     gap: 0.75rem;
-    margin-top: 0;
+    margin-top: auto;
     padding-top: 0;
+    flex-shrink: 0;
 }
 
 .card-menu {
@@ -630,7 +636,8 @@ body.sidebar-closed .main-content-wrapper {
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
-    margin-bottom: 1rem;
+    margin-bottom: 0.75rem;
+    min-height: 0;
 }
 
 .invoice-card-info-item {
@@ -662,7 +669,8 @@ body.sidebar-closed .main-content-wrapper {
     display: flex;
     flex-direction: column;
     align-items: flex-end;
-    margin-bottom: 1rem;
+    margin-bottom: 0.75rem;
+    flex-shrink: 0;
 }
 
 .invoice-card-amount {
