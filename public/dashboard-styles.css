@@ -480,8 +480,8 @@ body.sidebar-closed .main-content-wrapper {
 .dashboard-grid-container {
     display: grid;
     grid-template-columns: 1fr;
-    gap: 1.5rem;
-    margin-top: 1.5rem;
+    gap: 0;
+    margin-top: 0;
     position: relative;
 }
 
@@ -497,9 +497,11 @@ body.sidebar-closed .main-content-wrapper {
 #invoicesList,
 #contractsList {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 1rem;
     transition: all 0.3s ease;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .dashboard-grid-container.preview-active #invoicesList,
@@ -539,7 +541,10 @@ body.sidebar-closed .main-content-wrapper {
     aspect-ratio: 1 / 1;
     width: 100%;
     max-width: 100%;
+    min-width: 0;
+    min-height: 0;
     justify-content: space-between;
+    box-sizing: border-box;
 }
 
 .invoice-card:hover {
