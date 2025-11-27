@@ -533,6 +533,11 @@ function closePreviewModal() {
 // Show side preview panel
 async function showSidePreview(type, id, title) {
     try {
+        // Close all dropdown menus
+        document.querySelectorAll('.card-menu-dropdown').forEach(dropdown => {
+            dropdown.classList.remove('show');
+        });
+        
         const isInvoice = type === 'invoice';
         const previewPanel = isInvoice 
             ? document.getElementById('sidePreviewPanel')
