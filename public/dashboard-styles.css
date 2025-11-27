@@ -1,3 +1,4 @@
+
 /* Dashboard Specific Styles */
 :root {
     --primary-color: #4542FF;
@@ -252,23 +253,15 @@ body.sidebar-closed .main-content-wrapper {
     min-width: 180px;
     z-index: 1000;
     margin-top: 0.5rem;
-    display: block;
-    transform: translateY(-10px);
-    opacity: 0;
-    pointer-events: none;
-    transition: all 0.3s ease;
+    transition: opacity 0.3s ease, transform 0.3s ease;
 }
 
 .new-menu-dropdown.hidden {
-    transform: translateY(-10px);
-    opacity: 0;
-    pointer-events: none;
+    display: none;
 }
 
 .new-menu-dropdown:not(.hidden) {
-    transform: translateY(0);
-    opacity: 1;
-    pointer-events: all;
+    display: block;
 }
 
 .new-menu-item {
