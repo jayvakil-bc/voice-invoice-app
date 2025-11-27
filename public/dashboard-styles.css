@@ -92,7 +92,7 @@ body {
 }
 
 .permanent-sidebar.expanded {
-    width: 187.5px;
+    width: 195px;
 }
 
 .permanent-sidebar.closed .sidebar-logo {
@@ -175,7 +175,7 @@ body.sidebar-closed .floating-sidebar-toggle {
 }
 
 body.sidebar-expanded .main-content-wrapper {
-    margin-left: 187.5px;
+    margin-left: 195px;
 }
 
 body.sidebar-closed .main-content-wrapper {
