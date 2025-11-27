@@ -891,6 +891,8 @@ async function loadContracts() {
             const hasShareLink = contract.shareableLink && contract.shareableLink.token;
             const clientName = contract.parties?.client?.name || 'N/A';
             const truncatedClientName = clientName.length > 12 ? clientName.substring(0, 12) + '...' : clientName;
+            const providerName = contract.parties?.serviceProvider?.name || 'N/A';
+            const truncatedProviderName = providerName.length > 12 ? providerName.substring(0, 12) + '...' : providerName;
             
             return `
             <div class="invoice-card" data-contract-id="${contract._id}" onclick="showSidePreview('contract', '${contract._id}', '${contract.contractTitle}')" style="cursor: pointer;">
@@ -900,13 +902,16 @@ async function loadContracts() {
                 <div class="invoice-card-info">
                     <div class="invoice-card-info-item">
                         <span class="invoice-card-info-label">Provider</span>
-                        <span class="invoice-card-info-value">${contract.parties?.serviceProvider?.name || 'N/A'}</span>
+                        <span class="invoice-card-info-value">${truncatedProviderName}</span>
+                    </div>
+                    <div class="invoice-card-info-item">
+                        <span class="invoice-card-info-label">Status</span>
+                        <span class="invoice-card-info-value">${hasShareLink ? 'Shared' : 'Private'}</span>
                     </div>
                 </div>
                 <div class="invoice-card-divider"></div>
                 <div class="invoice-card-amount-section">
                     <div class="invoice-card-date">Effective: ${contract.effectiveDate ? new Date(contract.effectiveDate).toLocaleDateString() : 'N/A'}</div>
-                    ${hasShareLink ? `<div style="margin-top: 0.5rem; font-size: 0.85rem; color: var(--primary-color); text-align: right; opacity: 0.8;">Shared</div>` : ''}
                 </div>
                 <div class="invoice-card-divider"></div>
                 <div class="invoice-card-footer" onclick="event.stopPropagation()">
@@ -927,7 +932,7 @@ async function loadContracts() {
                     </div>
                 </div>
             </div>
-        `;
+            `;
         }).join('');
     } catch (error) {
         console.error('Error loading contracts:', error);
