@@ -34,13 +34,13 @@ async function loadInvoices() {
         
         const invoices = await response.json();
         const invoicesList = document.getElementById('invoicesList');
-        const invoiceCount = document.getElementById('invoiceCount');
         const tabCount = document.getElementById('tabCount');
         
-        invoiceCount.textContent = invoices.length;
+        // Store invoice count
+        window.invoiceCountValue = invoices.length;
         
         // Update tab count if invoices tab is active
-        if (tabCount && document.getElementById('invoicesTab').classList.contains('active')) {
+        if (tabCount && document.getElementById('invoicesTab') && document.getElementById('invoicesTab').classList.contains('active')) {
             tabCount.innerHTML = `Total: <span id="invoiceCount">${invoices.length}</span>`;
         }
         
@@ -858,21 +858,12 @@ async function loadContracts() {
             return;
         }
         
-        // Always update the contractCount element if it exists
-        if (contractCount) {
-        contractCount.textContent = contracts.length;
-        }
+        // Store contract count
+        window.contractCountValue = contracts.length;
         
         // Update tab count if contracts tab is active
         if (tabCount && document.getElementById('contractsTab') && document.getElementById('contractsTab').classList.contains('active')) {
             tabCount.innerHTML = `Total: <span id="contractCount">${contracts.length}</span>`;
-        } else if (tabCount) {
-            // Even if not active, ensure the count element exists for when switching tabs
-            const existingContractCount = document.getElementById('contractCount');
-            if (!existingContractCount && tabCount.querySelector('span')) {
-                // Store the count in a data attribute or ensure element exists
-                tabCount.setAttribute('data-contract-count', contracts.length);
-            }
         }
         
         if (contracts.length === 0) {
@@ -1174,31 +1165,20 @@ function switchTab(tabName) {
     if (tabName === 'invoices') {
         tabsContainer.classList.remove('tab-contracts');
         document.getElementById('invoicesTab').classList.add('active');
-        if (tabCount && invoiceCount) {
-            tabCount.innerHTML = `Total: <span id="invoiceCount">${invoiceCount.textContent}</span>`;
+        if (tabCount) {
+            const count = window.invoiceCountValue !== undefined ? window.invoiceCountValue : 0;
+            tabCount.innerHTML = `Total: <span id="invoiceCount">${count}</span>`;
         }
     } else if (tabName === 'contracts') {
         tabsContainer.classList.add('tab-contracts');
         document.getElementById('contractsTab').classList.add('active');
-        // Get the actual contract count from the contracts list or stored value
-        const contractsList = document.getElementById('contractsList');
-        let contractCountValue = '0';
-        
-        if (contractCount && contractCount.textContent) {
-            contractCountValue = contractCount.textContent;
-        } else if (tabCount && tabCount.getAttribute('data-contract-count')) {
-            contractCountValue = tabCount.getAttribute('data-contract-count');
-        } else if (contractsList) {
-            // Count the actual contract cards rendered
-            const contractCards = contractsList.querySelectorAll('.invoice-card[data-contract-id]');
-            contractCountValue = contractCards.length.toString();
-        }
-        
         if (tabCount) {
-            tabCount.innerHTML = `Total: <span id="contractCount">${contractCountValue}</span>`;
+            const count = window.contractCountValue !== undefined ? window.contractCountValue : 0;
+            tabCount.innerHTML = `Total: <span id="contractCount">${count}</span>`;
         }
         
         // Ensure contracts are loaded if not already
+        const contractsList = document.getElementById('contractsList');
         if (contractsList && contractsList.children.length === 0) {
             loadContracts();
         }
