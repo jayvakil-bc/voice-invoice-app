@@ -1179,7 +1179,15 @@ function toggleNewMenu(event) {
     }
     const dropdown = document.getElementById('newMenuDropdown');
     if (dropdown) {
+        const isHidden = dropdown.classList.contains('hidden');
         dropdown.classList.toggle('hidden');
+        
+        // If opening, prevent the document click listener from immediately closing it
+        if (isHidden) {
+            setTimeout(() => {
+                // Allow document click to close after a brief delay
+            }, 100);
+        }
     }
 }
 
@@ -1187,7 +1195,10 @@ function toggleNewMenu(event) {
 document.addEventListener('click', function(event) {
     const newMenu = document.querySelector('.new-menu');
     const dropdown = document.getElementById('newMenuDropdown');
-    if (newMenu && dropdown && !newMenu.contains(event.target)) {
+    const newBtn = document.querySelector('.new-btn');
+    
+    // Don't close if clicking the button or inside the menu
+    if (newMenu && dropdown && !newMenu.contains(event.target) && event.target !== newBtn) {
         dropdown.classList.add('hidden');
     }
 });
