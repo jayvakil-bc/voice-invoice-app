@@ -356,7 +356,7 @@ async function saveToGoogleDrive(id, invoiceNumber) {
     } catch (error) {
         console.error('[Drive] Error:', error);
         if (error.message.includes('not available')) {
-            alert('❌ Google Drive access not available.\n\nPlease re-login to grant Drive permissions.');
+            alert('Google Drive access not available.\n\nPlease re-login to grant Drive permissions.');
         } else {
             alert('Failed to save to Drive: ' + error.message);
         }
@@ -989,7 +989,7 @@ async function saveContractToDrive(id, contractTitle) {
     } catch (error) {
         console.error('[Drive] Error:', error);
         if (error.message.includes('not available')) {
-            alert('❌ Google Drive access not available.\n\nPlease re-login to grant Drive permissions.');
+            alert('Google Drive access not available.\n\nPlease re-login to grant Drive permissions.');
         } else {
             alert('Failed to save to Drive: ' + error.message);
         }
