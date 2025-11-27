@@ -257,14 +257,12 @@ body.sidebar-closed .main-content-wrapper {
     margin-top: 0;
     transition: opacity 0.3s ease, transform 0.3s ease;
     visibility: visible;
+    display: block;
 }
 
 .new-menu-dropdown.hidden {
     display: none !important;
-}
-
-.new-menu-dropdown:not(.hidden) {
-    display: block !important;
+    visibility: hidden !important;
 }
 
 .new-menu-item {

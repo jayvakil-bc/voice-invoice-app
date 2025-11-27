@@ -1176,17 +1176,23 @@ function switchTab(tabName) {
 function toggleNewMenu(event) {
     if (event) {
         event.stopPropagation();
-        event.preventDefault();
     }
     const dropdown = document.getElementById('newMenuDropdown');
-    if (dropdown) {
-        const isHidden = dropdown.classList.contains('hidden');
-        console.log('[New Menu] Toggling, currently hidden:', isHidden);
-        dropdown.classList.toggle('hidden');
-        console.log('[New Menu] After toggle, has hidden class:', dropdown.classList.contains('hidden'));
-        console.log('[New Menu] Computed display:', window.getComputedStyle(dropdown).display);
-    } else {
+    if (!dropdown) {
         console.error('[New Menu] Dropdown element not found!');
+        return;
+    }
+    
+    const isHidden = dropdown.classList.contains('hidden');
+    dropdown.classList.toggle('hidden');
+    
+    // Force display update
+    if (!dropdown.classList.contains('hidden')) {
+        dropdown.style.display = 'block';
+        dropdown.style.visibility = 'visible';
+    } else {
+        dropdown.style.display = 'none';
+        dropdown.style.visibility = 'hidden';
     }
 }
 
