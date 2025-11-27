@@ -17,9 +17,6 @@ async function checkAuth() {
             menuUserName.textContent = data.user.name;
         }
         
-        // Initialize dark mode
-        initDarkMode();
-        
         loadInvoices();
         loadContracts();
     } catch (error) {
@@ -1310,10 +1307,14 @@ function setActiveSidebarIcon() {
 
 // Dark Mode Functions
 function initDarkMode() {
-    const darkMode = localStorage.getItem('darkMode');
-    if (darkMode === 'enabled') {
-        document.body.classList.add('dark-mode');
-        updateDarkModeIcon(true);
+    try {
+        const darkMode = localStorage.getItem('darkMode');
+        if (darkMode === 'enabled' && document.body) {
+            document.body.classList.add('dark-mode');
+            updateDarkModeIcon(true);
+        }
+    } catch (error) {
+        console.error('[Dark Mode] Init error:', error);
     }
 }
 
@@ -1331,17 +1332,21 @@ function toggleDarkMode() {
 }
 
 function updateDarkModeIcon(isDark) {
-    const sunIcon = document.querySelector('.sun-icon');
-    const moonIcon = document.querySelector('.moon-icon');
-    
-    if (sunIcon && moonIcon) {
-        if (isDark) {
-            sunIcon.style.display = 'none';
-            moonIcon.style.display = 'block';
-        } else {
-            sunIcon.style.display = 'block';
-            moonIcon.style.display = 'none';
+    try {
+        const sunIcon = document.querySelector('.sun-icon');
+        const moonIcon = document.querySelector('.moon-icon');
+        
+        if (sunIcon && moonIcon) {
+            if (isDark) {
+                sunIcon.style.display = 'none';
+                moonIcon.style.display = 'block';
+            } else {
+                sunIcon.style.display = 'block';
+                moonIcon.style.display = 'none';
+            }
         }
+    } catch (error) {
+        console.error('[Dark Mode] Icon update error:', error);
     }
 }
 
@@ -1349,12 +1354,14 @@ function updateDarkModeIcon(isDark) {
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', function() {
         restoreSidebarState();
+        initDarkMode();
         checkAuth();
         setActiveSidebarIcon();
     });
 } else {
     // DOM is already loaded
     restoreSidebarState();
+    initDarkMode();
     checkAuth();
     setActiveSidebarIcon();
 }
