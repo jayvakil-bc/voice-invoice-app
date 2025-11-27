@@ -11,6 +11,9 @@ const configurePassport = require('./config/passport');
 const { errorHandler, notFoundHandler } = require('./middleware/errorHandler');
 const { requireAuth } = require('./middleware/auth');
 const routes = require('./routes');
+const { startRecurringInvoiceCron } = require('./utils/recurringService');
+const { testEmailConfig } = require('./utils/emailService');
+const { testStripeConfig } = require('./utils/paymentService');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -77,11 +80,17 @@ app.get('/settings', requireAuth, (req, res) => {
     res.sendFile('settings.html', { root: 'public' });
 });
 
+app.get('/onboarding', requireAuth, (req, res) => {
+    res.sendFile('onboarding.html', { root: 'public' });
+});
+
 // API routes
 app.use(routes.authRoutes);
 app.use(routes.transcriptionRoutes);
 app.use(routes.invoiceRoutes);
 app.use(routes.contractRoutes);
+app.use('/api/analytics', routes.analyticsRoutes);
+app.use('/api/stripe', routes.stripeRoutes);
 
 // Business context compatibility route
 app.get('/api/business-context', requireAuth, async (req, res) => {
@@ -128,6 +137,14 @@ app.put('/api/business-context', requireAuth, async (req, res) => {
 app.use(notFoundHandler);
 app.use(errorHandler);
 
+// ========== START SERVICES ==========
+// Start recurring invoice cron job
+startRecurringInvoiceCron();
+
+// Test service configurations
+testEmailConfig();
+testStripeConfig();
+
 // ========== START SERVER ==========
 app.listen(PORT, () => {
     console.log(`
@@ -143,6 +160,8 @@ app.listen(PORT, () => {
 ✅ Transcription routes ready
 ✅ Invoice routes ready  
 ✅ Contract routes ready
+✅ Analytics routes ready
+✅ Stripe routes ready
 
 📁 Clean Architecture:
    - Models in /models

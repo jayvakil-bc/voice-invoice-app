@@ -186,40 +186,5 @@ function logout() {
     window.location.href = '/auth/logout';
 }
 
-// Toggle Sidebar
-function toggleSidebar() {
-    const sidebar = document.getElementById('sidebar');
-    const body = document.body;
-    
-    if (sidebar.classList.contains('closed')) {
-        sidebar.classList.remove('closed');
-        sidebar.classList.add('open');
-        body.classList.remove('sidebar-closed');
-    } else {
-        sidebar.classList.remove('open');
-        sidebar.classList.add('closed');
-        body.classList.add('sidebar-closed');
-    }
-}
-
-// Set active sidebar icon based on current page
-function setActiveSidebarIcon() {
-    const currentPath = window.location.pathname;
-    const icons = document.querySelectorAll('.sidebar-icon');
-    
-    icons.forEach(icon => {
-        icon.classList.remove('active');
-    });
-    
-    if (currentPath === '/dashboard' || currentPath === '/') {
-        const dashboardIcon = document.querySelector('.sidebar-icon[title="Dashboard"]');
-        if (dashboardIcon) dashboardIcon.classList.add('active');
-    } else if (currentPath === '/settings') {
-        const settingsIcon = document.querySelector('.sidebar-icon[title="Settings"]');
-        if (settingsIcon) settingsIcon.classList.add('active');
-    }
-}
-
 // Initialize
 checkAuth();
-setActiveSidebarIcon();

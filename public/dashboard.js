@@ -35,8 +35,14 @@ async function loadInvoices() {
         const invoices = await response.json();
         const invoicesList = document.getElementById('invoicesList');
         const invoiceCount = document.getElementById('invoiceCount');
+        const tabCount = document.getElementById('tabCount');
         
         invoiceCount.textContent = invoices.length;
+        
+        // Update tab count if invoices tab is active
+        if (tabCount && document.getElementById('invoicesTab').classList.contains('active')) {
+            tabCount.innerHTML = `Total: <span id="invoiceCount">${invoices.length}</span>`;
+        }
         
         if (invoices.length === 0) {
             invoicesList.innerHTML = `
@@ -63,11 +69,11 @@ async function loadInvoices() {
                     <div class="invoice-card-info-item">
                         <span class="invoice-card-info-label">Number</span>
                         <span class="invoice-card-info-value">${invoice.invoiceNumber}</span>
-                    </div>
+                </div>
                     <div class="invoice-card-info-item">
                         <span class="invoice-card-info-label">Service</span>
                         <span class="invoice-card-info-value">${invoice.serviceName || 'N/A'}</span>
-                    </div>
+            </div>
                 </div>
                 <div class="invoice-card-divider"></div>
                 <div class="invoice-card-amount-section">
@@ -745,23 +751,6 @@ function logout() {
     window.location.href = '/auth/logout';
 }
 
-// Tab switching
-function switchTab(tabName) {
-    // Remove active class from all tabs and content
-    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-    document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-    
-    // Add active class to selected tab
-    event.target.classList.add('active');
-    
-    // Show corresponding content
-    if (tabName === 'invoices') {
-        document.getElementById('invoicesTab').classList.add('active');
-    } else if (tabName === 'contracts') {
-        document.getElementById('contractsTab').classList.add('active');
-    }
-}
-
 // Load contracts
 async function loadContracts() {
     try {
@@ -772,8 +761,21 @@ async function loadContracts() {
         const contracts = await response.json();
         const contractsList = document.getElementById('contractsList');
         const contractCount = document.getElementById('contractCount');
+        const tabCount = document.getElementById('tabCount');
         
+        if (!contractsList) {
+            console.error('contractsList element not found');
+            return;
+        }
+        
+        if (contractCount) {
         contractCount.textContent = contracts.length;
+        }
+        
+        // Update tab count if contracts tab is active
+        if (tabCount && document.getElementById('contractsTab') && document.getElementById('contractsTab').classList.contains('active')) {
+            tabCount.innerHTML = `Total: <span id="contractCount">${contracts.length}</span>`;
+        }
         
         if (contracts.length === 0) {
             contractsList.innerHTML = `
@@ -805,7 +807,7 @@ async function loadContracts() {
                 </div>
                 <div class="invoice-card-divider"></div>
                 <div class="invoice-card-amount-section">
-                    <div class="invoice-card-date">Effective: ${new Date(contract.effectiveDate).toLocaleDateString()}</div>
+                    <div class="invoice-card-date">Effective: ${contract.effectiveDate ? new Date(contract.effectiveDate).toLocaleDateString() : 'N/A'}</div>
                     ${hasShareLink ? `<div style="margin-top: 0.5rem; font-size: 0.85rem; color: var(--primary-color); text-align: right; opacity: 0.8;">Shared</div>` : ''}
                 </div>
                 <div class="invoice-card-divider"></div>
@@ -814,7 +816,7 @@ async function loadContracts() {
                     <div class="card-menu">
                         <button class="card-icon-btn" onclick="event.stopPropagation(); toggleCardMenu(this)" title="More options">⋯</button>
                         <div class="card-menu-dropdown">
-                            ${hasShareLink ? `
+                    ${hasShareLink ? `
                                 <button class="card-menu-item" onclick="event.stopPropagation(); copyContractLink('${contract.shareableLink.token}')">Copy Link</button>
                             ` : `
                                 <button class="card-menu-item" onclick="event.stopPropagation(); shareContractFromDashboard('${contract._id}')">Share</button>
@@ -825,10 +827,14 @@ async function loadContracts() {
                     </div>
                 </div>
             </div>
-            `;
+        `;
         }).join('');
     } catch (error) {
         console.error('Error loading contracts:', error);
+        const contractsList = document.getElementById('contractsList');
+        if (contractsList) {
+            contractsList.innerHTML = `<div style="padding: 2rem; text-align: center; color: #ef4444;">Error loading contracts. Please refresh the page.</div>`;
+        }
     }
 }
 
@@ -1010,6 +1016,9 @@ document.addEventListener('click', function(event) {
 // Tab switching
 function switchTab(tabName) {
     const tabsContainer = document.querySelector('.dashboard-tabs');
+    const tabCount = document.getElementById('tabCount');
+    const invoiceCount = document.getElementById('invoiceCount');
+    const contractCount = document.getElementById('contractCount');
     
     // Remove active class from all tabs and content
     document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
@@ -1018,13 +1027,19 @@ function switchTab(tabName) {
     // Add active class to selected tab
     event.target.classList.add('active');
     
-    // Update sliding capsule position
+    // Update sliding capsule position and count
     if (tabName === 'invoices') {
         tabsContainer.classList.remove('tab-contracts');
         document.getElementById('invoicesTab').classList.add('active');
+        if (tabCount && invoiceCount) {
+            tabCount.innerHTML = `Total: <span id="invoiceCount">${invoiceCount.textContent}</span>`;
+        }
     } else if (tabName === 'contracts') {
         tabsContainer.classList.add('tab-contracts');
         document.getElementById('contractsTab').classList.add('active');
+        if (tabCount && contractCount) {
+            tabCount.innerHTML = `Total: <span id="contractCount">${contractCount.textContent}</span>`;
+        }
     }
 }
 
@@ -1105,15 +1120,81 @@ function toggleSidebar() {
     const sidebar = document.getElementById('sidebar');
     const body = document.body;
     
+    // If sidebar is completely hidden (closed), show it collapsed
     if (sidebar.classList.contains('closed')) {
         sidebar.classList.remove('closed');
-        sidebar.classList.add('open');
+        sidebar.classList.add('collapsed');
         body.classList.remove('sidebar-closed');
-    } else {
-        sidebar.classList.remove('open');
+        localStorage.setItem('sidebarState', 'collapsed');
+    } 
+    // If sidebar is collapsed, expand it
+    else if (sidebar.classList.contains('collapsed')) {
+        sidebar.classList.remove('collapsed');
+        sidebar.classList.add('expanded');
+        body.classList.add('sidebar-expanded');
+        body.classList.remove('sidebar-closed');
+        localStorage.setItem('sidebarState', 'expanded');
+    } 
+    // If sidebar is expanded, collapse it
+    else if (sidebar.classList.contains('expanded')) {
+        sidebar.classList.remove('expanded');
+        sidebar.classList.add('collapsed');
+        body.classList.remove('sidebar-expanded');
+        localStorage.setItem('sidebarState', 'collapsed');
+    }
+    // Default: start collapsed
+    else {
+        sidebar.classList.add('collapsed');
+        localStorage.setItem('sidebarState', 'collapsed');
+    }
+}
+
+// Restore sidebar state from localStorage
+function restoreSidebarState() {
+    const sidebar = document.getElementById('sidebar');
+    const body = document.body;
+    
+    if (!sidebar) return;
+    
+    const savedState = localStorage.getItem('sidebarState') || 'collapsed';
+    
+    // Disable transitions during restore to prevent animation
+    sidebar.style.transition = 'none';
+    const sidebarLogo = sidebar.querySelector('.sidebar-logo');
+    if (sidebarLogo) {
+        sidebarLogo.style.transition = 'none';
+    }
+    const mainContentWrapper = document.querySelector('.main-content-wrapper');
+    if (mainContentWrapper) {
+        mainContentWrapper.style.transition = 'none';
+    }
+    
+    // Remove all state classes
+    sidebar.classList.remove('closed', 'collapsed', 'expanded');
+    body.classList.remove('sidebar-closed', 'sidebar-expanded');
+    
+    // Apply saved state
+    if (savedState === 'closed') {
         sidebar.classList.add('closed');
         body.classList.add('sidebar-closed');
+    } else if (savedState === 'expanded') {
+        sidebar.classList.add('expanded');
+        body.classList.add('sidebar-expanded');
+    } else {
+        // Default to collapsed
+        sidebar.classList.add('collapsed');
     }
+    
+    // Re-enable transitions after a short delay
+    setTimeout(() => {
+        sidebar.style.transition = '';
+        if (sidebarLogo) {
+            sidebarLogo.style.transition = '';
+        }
+        if (mainContentWrapper) {
+            mainContentWrapper.style.transition = '';
+        }
+    }, 50);
 }
 
 // Set active sidebar icon based on current page
@@ -1134,6 +1215,16 @@ function setActiveSidebarIcon() {
     }
 }
 
-// Initialize
+// Initialize when DOM is ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function() {
+        restoreSidebarState();
 checkAuth();
-setActiveSidebarIcon();
+        setActiveSidebarIcon();
+    });
+} else {
+    // DOM is already loaded
+    restoreSidebarState();
+    checkAuth();
+    setActiveSidebarIcon();
+}

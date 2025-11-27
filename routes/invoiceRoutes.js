@@ -158,6 +158,14 @@ CRITICAL RULES:
 router.delete('/api/invoices/:id', invoiceController.deleteInvoice);
 router.get('/api/invoices/:id/pdf', invoiceController.generateInvoicePDF);
 
+// Tier 1 features - Email, Payment, Recurring, Drive
+router.post('/api/invoices/:id/send-email', requireAuth, invoiceController.sendInvoiceWithEmail);
+router.post('/api/invoices/:id/payment-link', requireAuth, invoiceController.createInvoicePaymentLink);
+router.put('/api/invoices/:id/payment-status', requireAuth, invoiceController.updatePaymentStatus);
+router.post('/api/invoices/:id/recurring/setup', requireAuth, invoiceController.setupRecurring);
+router.delete('/api/invoices/:id/recurring/cancel', requireAuth, invoiceController.cancelRecurring);
+router.post('/api/invoices/:id/save-to-drive', requireAuth, invoiceController.saveToGoogleDrive);
+
 // Compatibility alias for frontend
 router.get('/api/invoices', requireAuth, async (req, res) => {
     try {
