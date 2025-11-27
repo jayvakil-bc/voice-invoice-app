@@ -1173,16 +1173,21 @@ function switchTab(tabName) {
 }
 
 // Toggle New menu dropdown
-function toggleNewMenu() {
+function toggleNewMenu(event) {
+    if (event) {
+        event.stopPropagation();
+    }
     const dropdown = document.getElementById('newMenuDropdown');
-    dropdown.classList.toggle('hidden');
+    if (dropdown) {
+        dropdown.classList.toggle('hidden');
+    }
 }
 
 // Close New menu when clicking outside
 document.addEventListener('click', function(event) {
     const newMenu = document.querySelector('.new-menu');
     const dropdown = document.getElementById('newMenuDropdown');
-    if (newMenu && !newMenu.contains(event.target)) {
+    if (newMenu && dropdown && !newMenu.contains(event.target)) {
         dropdown.classList.add('hidden');
     }
 });
