@@ -4,6 +4,9 @@ const { getOpenAIClient } = require('../utils/openai');
 const { learnFromContract } = require('../utils/aiLearning');
 const { getContractGenerationPrompt } = require('../utils/contractPrompts');
 const PDFDocument = require('pdfkit');
+const path = require('path');
+const fs = require('fs');
+const { saveContractToDrive, hasDriveAccess } = require('../utils/driveService');
 
 const generateContract = async (req, res) => {
     try {
@@ -588,6 +591,126 @@ const generateContractPDF = async (req, res) => {
     }
 };
 
+// Save contract to Google Drive
+const saveToGoogleDrive = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const user = req.user;
+
+        // Check if user has Drive access
+        if (!hasDriveAccess(user)) {
+            return res.status(403).json({ 
+                error: 'Google Drive access not available. Please re-login to grant permissions.' 
+            });
+        }
+
+        const contract = await Contract.findById(id);
+        if (!contract) {
+            return res.status(404).json({ error: 'Contract not found' });
+        }
+
+        // Generate PDF to temp file
+        const tempDir = path.join(__dirname, '../uploads/temp');
+        if (!fs.existsSync(tempDir)) {
+            fs.mkdirSync(tempDir, { recursive: true });
+        }
+        
+        const contractTitle = (contract.contractTitle || contract.title || 'Contract').replace(/[^a-z0-9]/gi, '_');
+        const pdfPath = path.join(tempDir, `contract-${contractTitle}-${Date.now()}.pdf`);
+        const writeStream = fs.createWriteStream(pdfPath);
+        
+        const doc = new PDFDocument({ margin: 50, size: 'A4' });
+        doc.pipe(writeStream);
+
+        // Generate PDF (simplified version for Drive upload)
+        const brandColor = '#4542FF';
+        const darkGray = '#333333';
+        const lightGray = '#999999';
+        
+        doc.rect(0, 0, 612, 100).fill(brandColor);
+        doc.fontSize(28).font('Helvetica-Bold').fillColor('white').text('SERVICE CONTRACT', 50, 35);
+        
+        let yPos = 130;
+        doc.fontSize(18).font('Helvetica-Bold').fillColor(darkGray).text(contract.contractTitle || contract.title || 'Service Agreement', 50, yPos);
+        yPos += 40;
+        
+        // Parties
+        doc.fontSize(12).font('Helvetica-Bold').fillColor(brandColor).text('SERVICE PROVIDER', 50, yPos);
+        yPos += 20;
+        doc.fontSize(10).font('Helvetica').fillColor(darkGray)
+           .text(contract.parties?.serviceProvider?.name || 'N/A', 50, yPos);
+        yPos += 15;
+        doc.fontSize(9).fillColor(lightGray)
+           .text(contract.parties?.serviceProvider?.address || '', 50, yPos);
+        yPos += 15;
+        doc.text(contract.parties?.serviceProvider?.email || '', 50, yPos);
+        yPos += 30;
+        
+        doc.fontSize(12).font('Helvetica-Bold').fillColor(brandColor).text('CLIENT', 50, yPos);
+        yPos += 20;
+        doc.fontSize(10).font('Helvetica').fillColor(darkGray)
+           .text(contract.parties?.client?.name || 'N/A', 50, yPos);
+        yPos += 15;
+        doc.fontSize(9).fillColor(lightGray)
+           .text(contract.parties?.client?.address || '', 50, yPos);
+        yPos += 15;
+        doc.text(contract.parties?.client?.email || '', 50, yPos);
+        yPos += 40;
+        
+        // Sections
+        if (contract.sections && contract.sections.length > 0) {
+            contract.sections.forEach(section => {
+                if (yPos > 680) {
+                    doc.addPage();
+                    yPos = 50;
+                }
+                
+                doc.fontSize(12).font('Helvetica-Bold').fillColor(brandColor)
+                   .text(section.title, 50, yPos);
+                yPos += 20;
+                
+                doc.fontSize(10).font('Helvetica').fillColor(darkGray)
+                   .text(section.content, 50, yPos, { width: 512, align: 'justify' });
+                yPos += doc.heightOfString(section.content, { width: 512 }) + 20;
+            });
+        }
+        
+        doc.fontSize(8).fillColor('#999999')
+           .text(`Contract Status: ${contract.status || 'draft'}`, 50, 750, { width: 512, align: 'center' });
+        
+        doc.end();
+
+        // Wait for PDF to finish writing
+        await new Promise((resolve, reject) => {
+            writeStream.on('finish', resolve);
+            writeStream.on('error', reject);
+        });
+
+        // Upload to Drive
+        const driveResult = await saveContractToDrive(user, contract, pdfPath);
+
+        // Cleanup temp file
+        setTimeout(() => {
+            try {
+                if (fs.existsSync(pdfPath)) {
+                    fs.unlinkSync(pdfPath);
+                }
+            } catch (err) {
+                console.error('Error cleaning up temp PDF:', err);
+            }
+        }, 5000);
+
+        res.json({
+            success: true,
+            drive: driveResult
+        });
+
+    } catch (error) {
+        console.error('[Contract] Drive save error:', error);
+        res.status(500).json({ error: error.message || 'Failed to save to Google Drive' });
+    }
+};
+
 module.exports = {
     generateContract,
     getContractsByUser,
@@ -599,5 +722,6 @@ module.exports = {
     generateShareableLink,
     getSharedContract,
     signSharedContract,
-    generateContractPDF
+    generateContractPDF,
+    saveToGoogleDrive
 };

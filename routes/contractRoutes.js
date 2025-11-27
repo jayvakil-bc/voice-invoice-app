@@ -25,6 +25,9 @@ router.post('/api/contracts/shared/:token/sign', contractController.signSharedCo
 // PDF routes
 router.get('/api/contracts/:id/pdf', contractController.generateContractPDF);
 
+// Google Drive integration
+router.post('/api/contracts/:id/save-to-drive', requireAuth, contractController.saveToGoogleDrive);
+
 // Frontend view route
 router.get('/contract/view/:token', (req, res) => {
     res.sendFile('contract-view.html', { root: 'public' });

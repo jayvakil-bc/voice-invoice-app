@@ -1,0 +1,351 @@
+/* Dark Mode Styles */
+
+body.dark-mode {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    color: #e4e4e7;
+}
+
+/* Dashboard Header */
+body.dark-mode .dashboard-header {
+    background: linear-gradient(135deg, rgba(26, 26, 46, 0.98) 0%, rgba(30, 41, 59, 0.98) 100%);
+    border-bottom: 1px solid rgba(139, 92, 246, 0.2);
+    backdrop-filter: blur(10px);
+}
+
+body.dark-mode .header-left h2 {
+    color: #f1f5f9;
+    font-weight: 700;
+}
+
+body.dark-mode .user-name {
+    color: #e4e4e7;
+}
+
+/* Sidebar */
+body.dark-mode .permanent-sidebar {
+    background: linear-gradient(180deg, rgba(22, 33, 62, 0.98) 0%, rgba(30, 41, 59, 0.98) 100%);
+    border-right: 1px solid rgba(139, 92, 246, 0.2);
+    backdrop-filter: blur(10px);
+}
+
+body.dark-mode .sidebar-icon {
+    color: #94a3b8;
+    transition: all 0.3s ease;
+}
+
+body.dark-mode .sidebar-icon:hover {
+    background: rgba(139, 92, 246, 0.2);
+    color: #c4b5fd;
+    transform: scale(1.05);
+}
+
+body.dark-mode .sidebar-icon.active {
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.3) 0%, rgba(99, 102, 241, 0.3) 100%);
+    color: #c4b5fd;
+    box-shadow: 0 0 20px rgba(139, 92, 246, 0.4);
+}
+
+/* Cards */
+body.dark-mode .invoice-card,
+body.dark-mode .settings-card,
+body.dark-mode .contract-card {
+    background: linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(51, 65, 85, 0.9) 100%);
+    border: 1px solid rgba(139, 92, 246, 0.2);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+body.dark-mode .invoice-card:hover,
+body.dark-mode .contract-card:hover {
+    border-color: rgba(139, 92, 246, 0.5);
+    box-shadow: 0 12px 40px rgba(139, 92, 246, 0.3);
+    transform: translateY(-2px);
+}
+
+body.dark-mode .invoice-card-title,
+body.dark-mode .contract-card-title {
+    color: #f1f5f9;
+    font-weight: 600;
+}
+
+body.dark-mode .invoice-card-subtitle,
+body.dark-mode .contract-card-subtitle,
+body.dark-mode .invoice-card-date,
+body.dark-mode .contract-card-date {
+    color: #cbd5e1;
+}
+
+body.dark-mode .invoice-card-amount {
+    color: #34d399;
+    font-weight: 700;
+    text-shadow: 0 0 10px rgba(52, 211, 153, 0.3);
+}
+
+/* Buttons */
+body.dark-mode .btn-primary,
+body.dark-mode .btn-save {
+    background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+    box-shadow: 0 4px 20px rgba(139, 92, 246, 0.4);
+}
+
+body.dark-mode .btn-primary:hover,
+body.dark-mode .btn-save:hover {
+    background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%);
+    box-shadow: 0 6px 30px rgba(139, 92, 246, 0.6);
+    transform: translateY(-2px);
+}
+
+body.dark-mode .card-icon-btn {
+    background: rgba(139, 92, 246, 0.15);
+    color: #c4b5fd;
+    border: 1px solid rgba(139, 92, 246, 0.3);
+}
+
+body.dark-mode .card-icon-btn:hover {
+    background: rgba(139, 92, 246, 0.25);
+    color: #e9d5ff;
+    border-color: rgba(139, 92, 246, 0.5);
+    transform: scale(1.05);
+}
+
+body.dark-mode .card-menu-dropdown {
+    background: rgba(30, 41, 59, 0.98);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+}
+
+body.dark-mode .card-menu-item {
+    color: #e4e4e7;
+}
+
+body.dark-mode .card-menu-item:hover {
+    background: rgba(99, 102, 241, 0.1);
+    color: #818cf8;
+}
+
+/* Status Badges */
+body.dark-mode .status-badge {
+    background: rgba(59, 130, 246, 0.2);
+    color: #60a5fa;
+    border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+body.dark-mode .status-badge.status-paid {
+    background: rgba(16, 185, 129, 0.2);
+    color: #34d399;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+body.dark-mode .status-badge.status-pending {
+    background: rgba(251, 191, 36, 0.2);
+    color: #fbbf24;
+    border: 1px solid rgba(251, 191, 36, 0.3);
+}
+
+body.dark-mode .status-badge.status-overdue {
+    background: rgba(239, 68, 68, 0.2);
+    color: #f87171;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+/* Forms */
+body.dark-mode input,
+body.dark-mode textarea,
+body.dark-mode select {
+    background: rgba(30, 41, 59, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #e4e4e7;
+}
+
+body.dark-mode input:focus,
+body.dark-mode textarea:focus,
+body.dark-mode select:focus {
+    background: rgba(30, 41, 59, 0.8);
+    border-color: #818cf8;
+    box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.1);
+}
+
+body.dark-mode input::placeholder,
+body.dark-mode textarea::placeholder {
+    color: #64748b;
+}
+
+body.dark-mode label {
+    color: #cbd5e1;
+}
+
+/* Modals */
+body.dark-mode .modal-content {
+    background: rgba(22, 33, 62, 0.98);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+body.dark-mode .modal-header {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+}
+
+body.dark-mode .modal-body {
+    color: #e4e4e7;
+}
+
+body.dark-mode .close-modal {
+    color: #94a3b8;
+}
+
+body.dark-mode .close-modal:hover {
+    color: #ffffff;
+}
+
+/* Tabs */
+body.dark-mode .tabs {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+body.dark-mode .tab {
+    color: #94a3b8;
+}
+
+body.dark-mode .tab:hover {
+    color: #e4e4e7;
+}
+
+body.dark-mode .tab.active {
+    color: #818cf8;
+    border-bottom: 2px solid #818cf8;
+}
+
+/* Empty State */
+body.dark-mode .empty-state {
+    color: #64748b;
+}
+
+body.dark-mode .empty-state svg {
+    opacity: 0.3;
+}
+
+/* Success Messages */
+body.dark-mode .success-message {
+    background: rgba(16, 185, 129, 0.2);
+    color: #34d399;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+/* Settings Page */
+body.dark-mode .settings-container {
+    color: #e4e4e7;
+}
+
+body.dark-mode .settings-container h1 {
+    color: #ffffff;
+}
+
+body.dark-mode .settings-card h2 {
+    color: #ffffff;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+body.dark-mode .form-hint {
+    color: #64748b;
+}
+
+body.dark-mode .saved-item {
+    background: rgba(30, 41, 59, 0.6);
+}
+
+body.dark-mode .saved-item strong {
+    color: #e4e4e7;
+}
+
+body.dark-mode .saved-item span {
+    color: #94a3b8;
+}
+
+/* Landing Page */
+body.dark-mode .landing-container {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+}
+
+body.dark-mode .login-box {
+    background: rgba(30, 41, 59, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+body.dark-mode .login-box h1 {
+    color: #ffffff;
+}
+
+body.dark-mode .login-box p {
+    color: #94a3b8;
+}
+
+/* Invoice/Contract Pages */
+body.dark-mode .voice-container {
+    background: rgba(30, 41, 59, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+body.dark-mode .voice-container h1,
+body.dark-mode .voice-container h2 {
+    color: #ffffff;
+}
+
+body.dark-mode .instruction-text {
+    color: #94a3b8;
+}
+
+/* Mic Button - Keep gradient but adjust for dark mode */
+body.dark-mode .mic-btn {
+    background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+    box-shadow: 0 10px 40px rgba(139, 92, 246, 0.3);
+}
+
+body.dark-mode .mic-btn:hover {
+    box-shadow: 0 15px 50px rgba(139, 92, 246, 0.4);
+}
+
+/* Stripe Status Cards */
+body.dark-mode #stripeStatus > div {
+    background: rgba(30, 41, 59, 0.6) !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+body.dark-mode #stripeStatusText {
+    color: #e4e4e7;
+}
+
+body.dark-mode #stripeStatusDetails {
+    color: #94a3b8;
+}
+
+/* Scrollbar */
+body.dark-mode ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+body.dark-mode ::-webkit-scrollbar-track {
+    background: rgba(30, 41, 59, 0.3);
+}
+
+body.dark-mode ::-webkit-scrollbar-thumb {
+    background: rgba(99, 102, 241, 0.5);
+    border-radius: 5px;
+}
+
+body.dark-mode ::-webkit-scrollbar-thumb:hover {
+    background: rgba(99, 102, 241, 0.7);
+}
+
+/* Dark mode toggle animation */
+#darkModeToggle {
+    transition: transform 0.3s ease;
+}
+
+#darkModeToggle:hover {
+    transform: rotate(180deg);
+}
+
+.sun-icon,
+.moon-icon {
+    transition: opacity 0.3s ease;
+}
