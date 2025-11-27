@@ -286,9 +286,9 @@ async function sendInvoiceEmail(id, invoiceNumber) {
 // Generate Stripe payment link
 async function generatePaymentLink(id, invoiceNumber) {
     if (!confirm(`Create Payment Link for ${invoiceNumber}?\n\nThis will create a Stripe payment link that you can share with your client.`)) {
-        return;
-    }
-    
+            return;
+        }
+        
     try {
         const response = await fetch(`/api/invoices/${id}/payment-link`, {
             method: 'POST',
@@ -860,7 +860,7 @@ async function loadContracts() {
         
         // Always update the contractCount element if it exists
         if (contractCount) {
-            contractCount.textContent = contracts.length;
+        contractCount.textContent = contracts.length;
         }
         
         // Update tab count if contracts tab is active
@@ -911,6 +911,7 @@ async function loadContracts() {
                 </div>
                 <div class="invoice-card-divider"></div>
                 <div class="invoice-card-amount-section">
+                    <div class="invoice-card-amount" style="visibility: hidden; height: 1.1rem; margin-bottom: 0.25rem;">—</div>
                     <div class="invoice-card-date">Effective: ${contract.effectiveDate ? new Date(contract.effectiveDate).toLocaleDateString() : 'N/A'}</div>
                 </div>
                 <div class="invoice-card-divider"></div>
@@ -932,7 +933,7 @@ async function loadContracts() {
                     </div>
                 </div>
             </div>
-            `;
+        `;
         }).join('');
     } catch (error) {
         console.error('Error loading contracts:', error);
@@ -1447,7 +1448,7 @@ if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', function() {
         restoreSidebarState();
         initDarkMode();
-        checkAuth();
+checkAuth();
         setActiveSidebarIcon();
     });
 } else {
