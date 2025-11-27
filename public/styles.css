@@ -218,15 +218,15 @@ h1 {
 /* Purple when clicked/recording */
 .mic-button:active,
 .mic-button.clicked {
-    background: #a78bfa;
-    border-color: #8b5cf6;
+    background: #4542FF;
+    border-color: #3734CC;
     animation: none;
     transform: scale(0.98);
 }
 
 .mic-button.recording {
-    background: #a78bfa;
-    border-color: #8b5cf6;
+    background: #4542FF;
+    border-color: #3734CC;
 }
 
 .mic-button.recording .mic-icon,
@@ -236,8 +236,8 @@ h1 {
 }
 
 .mic-button:hover:not(:active):not(.clicked):not(.recording) {
-    border-color: #a78bfa;
-    box-shadow: 0 8px 30px rgba(167, 139, 250, 0.3), 0 0 0 4px rgba(167, 139, 250, 0.1);
+    border-color: #4542FF;
+    box-shadow: 0 8px 30px rgba(69, 66, 255, 0.3), 0 0 0 4px rgba(69, 66, 255, 0.1);
 }
 
 .status {
@@ -359,17 +359,17 @@ h1 {
 
 .action-btn:hover {
     background: #ffffff;
-    border-color: #a78bfa;
-    color: #a78bfa;
-    box-shadow: 0 4px 12px rgba(167, 139, 250, 0.3), 0 0 0 4px rgba(167, 139, 250, 0.1);
+    border-color: #4542FF;
+    color: #4542FF;
+    box-shadow: 0 4px 12px rgba(69, 66, 255, 0.3), 0 0 0 4px rgba(69, 66, 255, 0.1);
     transform: translateY(-2px);
 }
 
 .action-btn.generate-btn:hover {
-    background: #a78bfa;
+    background: #4542FF;
     color: #ffffff;
-    border-color: #8b5cf6;
-    box-shadow: 0 4px 12px rgba(167, 139, 250, 0.4), 0 0 0 4px rgba(167, 139, 250, 0.15);
+    border-color: #3734CC;
+    box-shadow: 0 4px 12px rgba(69, 66, 255, 0.4), 0 0 0 4px rgba(69, 66, 255, 0.15);
 }
 
 .action-btn svg {
