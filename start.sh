@@ -1,42 +1,14 @@
 #!/bin/bash
+# Start the server
 
-# Load nvm
-export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+cd "$(dirname "$0")"
 
-echo "🚀 Starting Voice Invoice Backend..."
-
-# Install dependencies if needed
-if [ ! -d "node_modules" ]; then
-    echo "📦 Installing dependencies..."
-    npm install
-fi
-
-# Create logs directory if it doesn't exist
-mkdir -p logs
-
-# Start backend
-node server.js > logs/server.log 2>&1 &
-SERVER_PID=$!
-
-sleep 2
-
-# Check if it's running
-if ps -p $SERVER_PID > /dev/null; then
-    echo "✅ Backend started (PID: $SERVER_PID)"
-    echo ""
-    echo "======================================"
-    echo "🎉 Voice Invoice App Running!"
-    echo "======================================"
-    echo ""
-    echo "🌐 Server: http://localhost:3000"
-    echo "📊 Dashboard: http://localhost:3000/dashboard"
-    echo "💚 Health: http://localhost:3000/api/health"
-    echo ""
-    echo "======================================"
-    echo ""
-    echo "To stop: ./stop.sh"
-else
-    echo "❌ Failed to start. Check logs/server.log"
+# Check if server is already running
+if lsof -ti:3000 > /dev/null 2>&1; then
+    echo "❌ Server is already running on port 3000"
+    echo "   Use 'npm run stop' or './stop.sh' to stop it first"
     exit 1
 fi
+
+echo "🚀 Starting server..."
+npm start

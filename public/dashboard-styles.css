@@ -47,14 +47,15 @@ body {
     display: flex;
     align-items: center;
     gap: 1rem;
-    padding: 0.75rem 0.75rem;
-    min-height: 64px;
+    padding: 0.75rem;
+    height: 64px;
     border-top-left-radius: 12px;
     border-top-right-radius: 0;
     background: #f5f5f5;
     border: none;
     overflow: hidden;
     white-space: nowrap;
+    box-sizing: border-box;
 }
 
 .sidebar-logo {
@@ -185,7 +186,7 @@ body.sidebar-closed .main-content-wrapper {
 
 .dashboard-header {
     background: #f5f5f5;
-    padding: 0.75rem 0;
+    padding: 0;
     box-shadow: none;
     position: sticky;
     top: 0;
@@ -195,13 +196,14 @@ body.sidebar-closed .main-content-wrapper {
     justify-content: flex-end;
     align-items: center;
     width: 100%;
-    min-height: 64px;
+    height: 64px;
     border-top-right-radius: 12px;
     border-top-left-radius: 0;
     overflow: visible;
     max-width: 1200px;
     margin: 0 auto;
-    padding-right: 2rem;
+    padding-right: 1.5rem;
+    box-sizing: border-box;
 }
 
 .dashboard-header .header-content {
@@ -312,7 +314,7 @@ body.sidebar-closed .main-content-wrapper {
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
-    align-items: flex-start;
+    align-items: center;
     width: 100%;
     flex: 1;
     padding: 1rem 0.75rem;
@@ -328,7 +330,7 @@ body.sidebar-closed .main-content-wrapper {
     min-height: 48px;
     display: flex;
     align-items: center;
-    justify-content: flex-start;
+    justify-content: center;
     gap: 0.75rem;
     color: #6b7280;
     cursor: pointer;
@@ -338,6 +340,11 @@ body.sidebar-closed .main-content-wrapper {
     background: transparent;
     border: none;
     padding: 0.75rem;
+}
+
+.permanent-sidebar.expanded .sidebar-icon {
+    justify-content: flex-start;
+    padding-left: 0.75rem;
 }
 
 .permanent-sidebar.collapsed .sidebar-icon {
@@ -354,6 +361,30 @@ body.sidebar-closed .main-content-wrapper {
     background: var(--light-purple);
     border: none;
     color: var(--primary-color);
+    width: 72.25%;
+    min-height: 40.8px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+    box-sizing: border-box;
+}
+
+.permanent-sidebar.expanded .sidebar-icon.active {
+    margin-left: 0;
+    margin-right: auto;
+    justify-content: flex-start;
+    width: 85%;
+    min-width: fit-content;
+}
+
+.permanent-sidebar.collapsed .sidebar-icon.active {
+    width: 34.68px;
+    min-height: 40.8px;
+    margin: 0 auto;
+    justify-content: center;
+    padding: 0.75rem;
 }
 
 .permanent-sidebar .sidebar-icon svg {
@@ -372,8 +403,9 @@ body.sidebar-closed .main-content-wrapper {
     white-space: nowrap;
     opacity: 0;
     width: 0;
-    overflow: hidden;
+    overflow: visible;
     transition: opacity 0.3s ease, width 0.3s ease;
+    flex-shrink: 0;
 }
 
 .permanent-sidebar.expanded .sidebar-label {
@@ -393,10 +425,11 @@ body.sidebar-closed .main-content-wrapper {
 .dashboard-content {
     max-width: 1200px;
     margin: 2rem auto;
-    padding: 0 2rem 4rem 2rem;
+    padding: 0 0 4rem 0;
     width: 100%;
     border-radius: 12px;
     overflow: hidden;
+    box-sizing: border-box;
 }
 
 .actions {
@@ -443,14 +476,10 @@ body.sidebar-closed .main-content-wrapper {
     background: #ffffff;
     border-radius: 12px;
     padding: 1.5rem;
-    padding-top: 1.5rem;
     box-shadow: none;
     border: none;
-    margin-top: 0;
-    margin-left: 0;
-    margin-right: 0;
+    margin: 0;
     position: relative;
-    border-top: none;
     width: 100%;
     box-sizing: border-box;
 }
@@ -571,8 +600,13 @@ body.sidebar-closed .main-content-wrapper {
     align-items: center;
     gap: 0.75rem;
     margin-top: auto;
-    padding-top: 0;
     flex-shrink: 0;
+    background: #f3f4f6;
+    padding: 0.75rem;
+    margin-left: -1rem;
+    margin-right: -1rem;
+    margin-bottom: -1rem;
+    border-radius: 0 0 12px 12px;
 }
 
 .card-menu {
@@ -689,8 +723,7 @@ body.sidebar-closed .main-content-wrapper {
 
 .invoice-card-date {
     font-size: 0.7225rem;
-    color: var(--dark-grey);
-    opacity: 0.6;
+    color: #6b7280;
     text-align: right;
 }
 
@@ -1195,41 +1228,206 @@ body.sidebar-closed .main-content-wrapper {
     }
 }
 
+/* Calendar Toggle Section */
+.calendar-toggle-section {
+    margin: 0 auto 1.5rem auto;
+    padding: 0 1.5rem;
+    max-width: 1200px;
+    width: 100%;
+    box-sizing: border-box;
+    position: relative;
+}
+
+.calendar-toggle-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: #f3f4f6;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    color: var(--text-color);
+    font-size: 0.85rem;
+    font-weight: 400;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.calendar-toggle-btn:hover {
+    background: #e5e7eb;
+}
+
+.calendar-toggle-btn svg {
+    width: 18px;
+    height: 18px;
+    stroke: currentColor;
+}
+
+.calendar-dropdown {
+    position: absolute;
+    top: calc(100% + 0.5rem);
+    left: 1.5rem;
+    width: calc((100% - 3rem - 3rem) / 4);
+    max-width: calc((1200px - 3rem - 48px) / 4);
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 1rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    z-index: 100;
+    aspect-ratio: 1 / 1;
+    box-sizing: border-box;
+}
+
+.calendar-dropdown.hidden {
+    display: none;
+}
+
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 0.5rem;
+}
+
+.calendar-day-header {
+    text-align: center;
+    font-size: 0.75rem;
+    color: var(--dark-grey);
+    font-weight: 400;
+    padding: 0.5rem 0;
+}
+
+.calendar-day {
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+    color: var(--text-color);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.calendar-day:hover {
+    background: #f3f4f6;
+}
+
+.calendar-day.today {
+    background: var(--primary-color);
+    color: white;
+    font-weight: 500;
+}
+
+.calendar-day.other-month {
+    color: #d1d5db;
+}
+
 /* Dashboard Tabs Wrapper */
 .dashboard-tabs-wrapper {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 1.5rem;
-    margin-left: 0;
-    margin-right: 0;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 0;
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+    padding-top: 0;
     gap: 1.5rem;
     width: 100%;
+    max-width: 1200px;
+    box-sizing: border-box;
+}
+
+.dashboard-search-container {
+    position: relative;
+    flex: 1;
+    max-width: 400px;
+    margin: 0;
+    min-width: 200px;
+}
+
+.dashboard-search-input {
+    width: 100%;
+    padding: 0.75rem 1rem 0.75rem 2.5rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    font-size: 0.9rem;
+    background: white;
+    color: var(--text-color);
+    transition: all 0.3s ease;
+    box-sizing: border-box;
+}
+
+.dashboard-search-input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(69, 66, 255, 0.1);
+}
+
+.dashboard-search-input::placeholder {
+    color: #9ca3af;
+}
+
+.dashboard-search-icon {
+    position: absolute;
+    left: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 18px;
+    height: 18px;
+    color: #9ca3af;
+    pointer-events: none;
 }
 
 /* Dashboard Tabs - Sliding Capsule */
 .dashboard-tabs {
     display: inline-flex;
     gap: 0;
-    margin-left: 0;
+    margin: 0;
     background: #f3f4f6;
     padding: 0.25rem;
     position: relative;
     z-index: 1;
     border-radius: 12px;
     align-items: center;
+    flex-shrink: 0;
+    width: calc((100% - 3rem) / 4);
+    max-width: calc((1200px - 3rem - 48px) / 4);
 }
 
 .tab-count {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0;
+    flex-shrink: 0;
+    min-width: 100px;
+    justify-content: flex-end;
+    margin-left: auto;
+}
+
+.tab-count-label {
     color: var(--dark-grey);
     font-weight: 400;
     font-size: 0.935rem;
-    margin: 0;
     white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.tab-count-number {
+    color: var(--dark-grey);
+    font-weight: 500;
+    font-size: 0.935rem;
+    white-space: nowrap;
+    min-width: 30px;
+    text-align: left;
 }
 
 .tab-btn {
-    padding: 0.75rem 2rem;
+    padding: 0.75rem 1rem;
     background: transparent;
     border: none;
     font-size: 0.85rem;
@@ -1241,6 +1439,9 @@ body.sidebar-closed .main-content-wrapper {
     position: relative;
     z-index: 2;
     white-space: nowrap;
+    flex: 1;
+    text-align: center;
+    box-sizing: border-box;
 }
 
 .tab-btn:hover {
@@ -1296,14 +1497,10 @@ body.sidebar-closed .main-content-wrapper {
     background: #ffffff;
     border-radius: 12px;
     padding: 1.5rem;
-    padding-top: 1.5rem;
     box-shadow: none;
     border: none;
-    margin-top: 0;
-    margin-left: 0;
-    margin-right: 0;
+    margin: 0;
     position: relative;
-    border-top: none;
     width: 100%;
     box-sizing: border-box;
 }

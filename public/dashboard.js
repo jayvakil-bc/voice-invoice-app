@@ -36,12 +36,16 @@ async function loadInvoices() {
         const invoicesList = document.getElementById('invoicesList');
         const tabCount = document.getElementById('tabCount');
         
+        // Store all invoices for search
+        allInvoices = invoices;
+        
         // Store invoice count
         window.invoiceCountValue = invoices.length;
         
         // Update tab count if invoices tab is active
-        if (tabCount && document.getElementById('invoicesTab') && document.getElementById('invoicesTab').classList.contains('active')) {
-            tabCount.innerHTML = `Total: <span id="invoiceCount">${invoices.length}</span>`;
+        const tabCountNumber = document.getElementById('tabCountNumber');
+        if (tabCount && tabCountNumber && document.getElementById('invoicesTab') && document.getElementById('invoicesTab').classList.contains('active')) {
+            tabCountNumber.textContent = invoices.length;
         }
         
         if (invoices.length === 0) {
@@ -425,51 +429,56 @@ async function previewInvoice(id, invoiceNumber) {
         currentPreviewId = id;
         currentPreviewInvoiceNumber = invoiceNumber;
         
-        // Populate preview fields
-        document.getElementById('preview_invoiceNumber').value = invoice.invoiceNumber || '';
-        document.getElementById('preview_date').value = invoice.date || '';
-        document.getElementById('preview_dueDate').value = invoice.dueDate || '';
+        // Populate preview fields (static display)
+        document.getElementById('preview_invoiceNumber').textContent = invoice.invoiceNumber || '-';
+        document.getElementById('preview_date').textContent = invoice.date || '-';
+        document.getElementById('preview_dueDate').textContent = invoice.dueDate || '-';
         
         // From fields
-        document.getElementById('preview_from_name').value = invoice.from?.name || '';
-        document.getElementById('preview_from_address').value = invoice.from?.address || '';
-        document.getElementById('preview_from_phone').value = invoice.from?.phone || '';
-        document.getElementById('preview_from_email').value = invoice.from?.email || '';
+        document.getElementById('preview_from_name').textContent = invoice.from?.name || '-';
+        document.getElementById('preview_from_address').textContent = invoice.from?.address || '-';
+        document.getElementById('preview_from_phone').textContent = invoice.from?.phone || '-';
+        document.getElementById('preview_from_email').textContent = invoice.from?.email || '-';
         
         // To fields
-        document.getElementById('preview_to_name').value = invoice.to?.name || '';
-        document.getElementById('preview_to_address').value = invoice.to?.address || '';
-        document.getElementById('preview_to_phone').value = invoice.to?.phone || '';
-        document.getElementById('preview_to_email').value = invoice.to?.email || '';
+        document.getElementById('preview_to_name').textContent = invoice.to?.name || '-';
+        document.getElementById('preview_to_address').textContent = invoice.to?.address || '-';
+        document.getElementById('preview_to_phone').textContent = invoice.to?.phone || '-';
+        document.getElementById('preview_to_email').textContent = invoice.to?.email || '-';
         
         // Items
-        const itemsList = document.getElementById('preview_items_list');
-        itemsList.innerHTML = '';
+        const itemsTbody = document.getElementById('preview_items_tbody');
+        itemsTbody.innerHTML = '';
         if (invoice.items && invoice.items.length > 0) {
             invoice.items.forEach((item, index) => {
-                const itemDiv = document.createElement('div');
-                itemDiv.className = 'preview-item';
-                itemDiv.innerHTML = `
-                    <input type="text" value="${item.description || ''}" placeholder="Description" data-item="${index}" data-field="description">
-                    <input type="number" value="${item.quantity || 1}" placeholder="Qty" data-item="${index}" data-field="quantity" min="1" step="1">
-                    <input type="number" value="${item.rate || 0}" placeholder="Rate" data-item="${index}" data-field="rate" min="0" step="0.01">
-                    <input type="number" value="${item.amount || 0}" placeholder="Amount" data-item="${index}" data-field="amount" min="0" step="0.01" readonly style="background: #f5f5f5;">
-                    <button class="btn-remove-item" onclick="removePreviewItem(${index})">×</button>
+                const row = document.createElement('tr');
+                row.style.borderBottom = '1px solid #e5e7eb';
+                row.innerHTML = `
+                    <td style="padding: 0.75rem; color: #1f2937;">${item.description || '-'}</td>
+                    <td style="padding: 0.75rem; text-align: center; color: #4b5563;">${item.quantity || 1}</td>
+                    <td style="padding: 0.75rem; text-align: right; color: #4b5563;">$${(item.rate || 0).toFixed(2)}</td>
+                    <td style="padding: 0.75rem; text-align: right; color: #1f2937; font-weight: 500;">$${(item.amount || 0).toFixed(2)}</td>
                 `;
-                itemsList.appendChild(itemDiv);
+                itemsTbody.appendChild(row);
             });
+        } else {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td colspan="4" style="padding: 1rem; text-align: center; color: #9ca3af;">No items</td>
+            `;
+            itemsTbody.appendChild(row);
         }
         
         // Totals
-        document.getElementById('preview_subtotal').value = invoice.subtotal || 0;
-        document.getElementById('preview_tax').value = invoice.tax || 0;
-        document.getElementById('preview_total').value = invoice.total || 0;
+        const subtotal = invoice.subtotal || 0;
+        const tax = invoice.tax || 0;
+        const total = invoice.total || 0;
+        document.getElementById('preview_subtotal_display').textContent = `$${subtotal.toFixed(2)}`;
+        document.getElementById('preview_tax_display').textContent = `$${tax.toFixed(2)}`;
+        document.getElementById('preview_total_display').textContent = `$${total.toFixed(2)}`;
         
         // Notes
-        document.getElementById('preview_notes').value = invoice.notes || '';
-        
-        // Add event listeners for real-time calculations
-        addPreviewCalculationListeners();
+        document.getElementById('preview_notes').textContent = invoice.notes || '-';
         
         // Show modal
         document.getElementById('previewModal').classList.remove('hidden');
@@ -807,10 +816,7 @@ async function savePreviewChanges() {
 async function downloadFromPreview() {
     if (!currentPreviewId || !currentPreviewInvoiceNumber) return;
     
-    // Save changes first
-    await savePreviewChanges();
-    
-    // Then download
+    // Download directly (static preview, no changes to save)
     await downloadInvoice(currentPreviewId, currentPreviewInvoiceNumber);
     
     // Close modal
@@ -863,12 +869,16 @@ async function loadContracts() {
             return;
         }
         
+        // Store all contracts for search
+        allContracts = contracts;
+        
         // Store contract count
         window.contractCountValue = contracts.length;
         
         // Update tab count if contracts tab is active
-        if (tabCount && document.getElementById('contractsTab') && document.getElementById('contractsTab').classList.contains('active')) {
-            tabCount.innerHTML = `Total: <span id="contractCount">${contracts.length}</span>`;
+        const tabCountNumber = document.getElementById('tabCountNumber');
+        if (tabCount && tabCountNumber && document.getElementById('contractsTab') && document.getElementById('contractsTab').classList.contains('active')) {
+            tabCountNumber.textContent = contracts.length;
         }
         
         if (contracts.length === 0) {
@@ -1153,6 +1163,196 @@ document.addEventListener('click', function(event) {
 });
 
 // Tab switching
+// Search functionality
+let allInvoices = [];
+let allContracts = [];
+let currentSearchQuery = '';
+
+function handleDashboardSearch(query) {
+    currentSearchQuery = query.toLowerCase().trim();
+    filterAndDisplayItems();
+}
+
+function filterAndDisplayItems() {
+    const invoicesList = document.getElementById('invoicesList');
+    const contractsList = document.getElementById('contractsList');
+    const invoicesTab = document.getElementById('invoicesTab');
+    const contractsTab = document.getElementById('contractsTab');
+    
+    if (currentSearchQuery === '') {
+        // Show all items - reload from original data
+        if (invoicesList && invoicesTab && invoicesTab.classList.contains('active')) {
+            loadInvoices();
+        }
+        if (contractsList && contractsTab && contractsTab.classList.contains('active')) {
+            loadContracts();
+        }
+    } else {
+        // Filter invoices
+        if (invoicesList && invoicesTab && invoicesTab.classList.contains('active')) {
+            const filteredInvoices = allInvoices.filter(invoice => {
+                const searchFields = [
+                    invoice.invoiceNumber || '',
+                    invoice.to?.name || '',
+                    invoice.to?.email || '',
+                    invoice.from?.name || '',
+                    invoice.items?.map(item => item.description || '').join(' ') || '',
+                    invoice.notes || ''
+                ].join(' ').toLowerCase();
+                return searchFields.includes(currentSearchQuery);
+            });
+            
+            if (filteredInvoices.length === 0) {
+                invoicesList.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon"></div>
+                        <h3>No invoices found</h3>
+                        <p>Try a different search term</p>
+                    </div>
+                `;
+            } else {
+                invoicesList.innerHTML = filteredInvoices.map(invoice => {
+                    const clientName = invoice.to?.name || 'N/A';
+                    const truncatedClientName = clientName.length > 12 ? clientName.substring(0, 12) + '...' : clientName;
+                    const currencySymbol = getCurrencySymbol(invoice.currency || 'USD');
+                    
+                    return `
+                    <div class="invoice-card" data-invoice-id="${invoice._id}" onclick="showSidePreview('invoice', '${invoice._id}', '${invoice.invoiceNumber}')" style="cursor: pointer;">
+                        <div class="invoice-card-header">
+                            <h3 class="invoice-card-title">${truncatedClientName}</h3>
+                        </div>
+                        <div class="invoice-card-info">
+                            <div class="invoice-card-info-item">
+                                <span class="invoice-card-info-label">Number</span>
+                                <span class="invoice-card-info-value">${invoice.invoiceNumber}</span>
+                        </div>
+                            <div class="invoice-card-info-item">
+                                <span class="invoice-card-info-label">Service</span>
+                                <span class="invoice-card-info-value">${invoice.serviceName || 'N/A'}</span>
+            </div>
+                        </div>
+                        <div class="invoice-card-divider"></div>
+                        <div class="invoice-card-amount-section">
+                            <div class="invoice-card-amount">${currencySymbol}${invoice.total?.toFixed(2) || '0.00'}</div>
+                            <div class="invoice-card-date">Due: ${new Date(invoice.dueDate).toLocaleDateString()}</div>
+                        </div>
+                        <div class="invoice-card-divider"></div>
+                        <div class="invoice-card-footer" onclick="event.stopPropagation()">
+                            <button class="card-icon-btn" onclick="event.stopPropagation(); downloadInvoice('${invoice._id}', '${invoice.invoiceNumber}')" title="Download">↓</button>
+                            <div class="card-menu">
+                                <button class="card-icon-btn" onclick="event.stopPropagation(); toggleCardMenu(this)" title="More options">⋯</button>
+                                <div class="card-menu-dropdown">
+                                    <button class="card-menu-item" onclick="event.stopPropagation(); showSidePreview('invoice', '${invoice._id}', '${invoice.invoiceNumber}')">Preview</button>
+                                    <button class="card-menu-item" onclick="event.stopPropagation(); sendInvoiceEmail('${invoice._id}', '${invoice.invoiceNumber}')">Send via Email</button>
+                                    <button class="card-menu-item" onclick="event.stopPropagation(); generatePaymentLink('${invoice._id}', '${invoice.invoiceNumber}')">Payment Link</button>
+                                    <button class="card-menu-item" onclick="event.stopPropagation(); editInvoice('${invoice._id}')">Edit</button>
+                                    <button class="card-menu-item" onclick="event.stopPropagation(); saveToGoogleDrive('${invoice._id}', '${invoice.invoiceNumber}')">Save to Drive</button>
+                                    <button class="card-menu-item" onclick="event.stopPropagation(); deleteInvoice('${invoice._id}')" style="color: #ef4444;">Delete</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    `;
+                }).join('');
+            }
+        }
+        
+        // Filter contracts
+        if (contractsList && contractsTab && contractsTab.classList.contains('active')) {
+            const filteredContracts = allContracts.filter(contract => {
+                const searchFields = [
+                    contract.contractTitle || contract.title || '',
+                    contract.parties?.client?.name || contract.party1?.name || '',
+                    contract.parties?.serviceProvider?.name || contract.party2?.name || '',
+                    contract.terms || ''
+                ].join(' ').toLowerCase();
+                return searchFields.includes(currentSearchQuery);
+            });
+            
+            if (filteredContracts.length === 0) {
+                contractsList.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon"></div>
+                        <h3>No contracts found</h3>
+                        <p>Try a different search term</p>
+                    </div>
+                `;
+            } else {
+                contractsList.innerHTML = filteredContracts.map(contract => {
+                    const hasShareLink = contract.shareableLink && contract.shareableLink.token;
+                    const clientName = contract.parties?.client?.name || 'N/A';
+                    const truncatedClientName = clientName.length > 12 ? clientName.substring(0, 12) + '...' : clientName;
+                    const providerName = contract.parties?.serviceProvider?.name || 'N/A';
+                    const truncatedProviderName = providerName.length > 12 ? providerName.substring(0, 12) + '...' : providerName;
+                    
+                    return `
+                    <div class="invoice-card" data-contract-id="${contract._id}" onclick="showSidePreview('contract', '${contract._id}', '${contract.contractTitle}')" style="cursor: pointer;">
+                        <div class="invoice-card-header">
+                            <h3 class="invoice-card-title">${truncatedClientName}</h3>
+                        </div>
+                        <div class="invoice-card-info">
+                            <div class="invoice-card-info-item">
+                                <span class="invoice-card-info-label">Provider</span>
+                                <span class="invoice-card-info-value">${truncatedProviderName}</span>
+                            </div>
+                            <div class="invoice-card-info-item">
+                                <span class="invoice-card-info-label">Status</span>
+                                <span class="invoice-card-info-value">${hasShareLink ? 'Shared' : 'Private'}</span>
+                            </div>
+                        </div>
+                        <div class="invoice-card-divider"></div>
+                        <div class="invoice-card-amount-section">
+                            <div class="invoice-card-amount" style="visibility: hidden; height: 1.1rem; margin-bottom: 0.25rem;">—</div>
+                            <div class="invoice-card-date">Effective: ${contract.effectiveDate ? new Date(contract.effectiveDate).toLocaleDateString() : 'N/A'}</div>
+                        </div>
+                        <div class="invoice-card-divider"></div>
+                        <div class="invoice-card-footer" onclick="event.stopPropagation()">
+                            <button class="card-icon-btn" onclick="event.stopPropagation(); downloadContract('${contract._id}', '${contract.contractTitle}')" title="Download">↓</button>
+                            <div class="card-menu">
+                                <button class="card-icon-btn" onclick="event.stopPropagation(); toggleCardMenu(this)" title="More options">⋯</button>
+                                <div class="card-menu-dropdown">
+                                    <button class="card-menu-item" onclick="event.stopPropagation(); showSidePreview('contract', '${contract._id}', '${contract.contractTitle}')">Preview</button>
+                                    <button class="card-menu-item" onclick="event.stopPropagation(); saveContractToDrive('${contract._id}', '${contract.contractTitle}')">Save to Drive</button>
+                        ${hasShareLink ? `
+                                    <button class="card-menu-item" onclick="event.stopPropagation(); copyContractLink('${contract.shareableLink.token}')">Copy Link</button>
+                                ` : `
+                                    <button class="card-menu-item" onclick="event.stopPropagation(); shareContractFromDashboard('${contract._id}')">Share</button>
+                                `}
+                                <button class="card-menu-item" onclick="event.stopPropagation(); editContract('${contract._id}')">Edit</button>
+                                <button class="card-menu-item" onclick="event.stopPropagation(); deleteContract('${contract._id}')" style="color: #ef4444;">Delete</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    `;
+                }).join('');
+            }
+        }
+    }
+    
+    // Update counts
+    updateTabCounts();
+}
+
+
+function updateTabCounts() {
+    const tabCountNumber = document.getElementById('tabCountNumber');
+    const invoicesTab = document.getElementById('invoicesTab');
+    const contractsTab = document.getElementById('contractsTab');
+    const invoicesList = document.getElementById('invoicesList');
+    const contractsList = document.getElementById('contractsList');
+    
+    if (!tabCountNumber) return;
+    
+    if (invoicesTab && invoicesTab.classList.contains('active')) {
+        const count = currentSearchQuery === '' ? allInvoices.length : (invoicesList ? invoicesList.children.length : 0);
+        tabCountNumber.textContent = count;
+    } else if (contractsTab && contractsTab.classList.contains('active')) {
+        const count = currentSearchQuery === '' ? allContracts.length : (contractsList ? contractsList.children.length : 0);
+        tabCountNumber.textContent = count;
+    }
+}
+
 function switchTab(tabName) {
     const tabsContainer = document.querySelector('.dashboard-tabs');
     const tabCount = document.getElementById('tabCount');
@@ -1170,23 +1370,22 @@ function switchTab(tabName) {
     if (tabName === 'invoices') {
         tabsContainer.classList.remove('tab-contracts');
         document.getElementById('invoicesTab').classList.add('active');
-        if (tabCount) {
-            const count = window.invoiceCountValue !== undefined ? window.invoiceCountValue : 0;
-            tabCount.innerHTML = `Total: <span id="invoiceCount">${count}</span>`;
-        }
+        updateTabCounts();
     } else if (tabName === 'contracts') {
         tabsContainer.classList.add('tab-contracts');
         document.getElementById('contractsTab').classList.add('active');
-        if (tabCount) {
-            const count = window.contractCountValue !== undefined ? window.contractCountValue : 0;
-            tabCount.innerHTML = `Total: <span id="contractCount">${count}</span>`;
-        }
+        updateTabCounts();
         
         // Ensure contracts are loaded if not already
         const contractsList = document.getElementById('contractsList');
         if (contractsList && contractsList.children.length === 0) {
             loadContracts();
         }
+    }
+    
+    // Re-apply search filter when switching tabs
+    if (currentSearchQuery) {
+        filterAndDisplayItems();
     }
 }
 
@@ -1378,8 +1577,8 @@ function setActiveSidebarIcon() {
         const dashboardIcon = document.querySelector('.sidebar-icon[title="Dashboard"]');
         if (dashboardIcon) dashboardIcon.classList.add('active');
     } else if (currentPath === '/settings') {
-        const settingsIcon = document.querySelector('.sidebar-icon[title="Settings"]');
-        if (settingsIcon) settingsIcon.classList.add('active');
+        const profileIcon = document.querySelector('.sidebar-icon[title="Profile"]');
+        if (profileIcon) profileIcon.classList.add('active');
     }
 }
 
@@ -1436,6 +1635,72 @@ if (document.readyState === 'loading') {
 checkAuth();
         setActiveSidebarIcon();
     });
+
+// Toggle Calendar
+function toggleCalendar() {
+    const dropdown = document.getElementById('calendarDropdown');
+    const toggleText = document.getElementById('calendarToggleText');
+    
+    if (!dropdown || !toggleText) return;
+    
+    if (dropdown.classList.contains('hidden')) {
+        dropdown.classList.remove('hidden');
+        toggleText.textContent = 'Hide Calendar';
+        initCalendar();
+    } else {
+        dropdown.classList.add('hidden');
+        toggleText.textContent = 'Show Calendar';
+    }
+}
+
+// Initialize Calendar
+function initCalendar() {
+    const calendarGrid = document.getElementById('calendarDropdown')?.querySelector('.calendar-grid');
+    if (!calendarGrid) return;
+    
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = today.getMonth();
+    
+    // Get first day of month and number of days
+    const firstDay = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const daysInPrevMonth = new Date(year, month, 0).getDate();
+    
+    // Clear existing days (except headers)
+    const headers = calendarGrid.querySelectorAll('.calendar-day-header');
+    const existingDays = calendarGrid.querySelectorAll('.calendar-day');
+    existingDays.forEach(day => day.remove());
+    
+    // Add previous month's trailing days
+    for (let i = firstDay - 1; i >= 0; i--) {
+        const day = document.createElement('div');
+        day.className = 'calendar-day other-month';
+        day.textContent = daysInPrevMonth - i;
+        calendarGrid.appendChild(day);
+    }
+    
+    // Add current month's days
+    for (let i = 1; i <= daysInMonth; i++) {
+        const day = document.createElement('div');
+        day.className = 'calendar-day';
+        if (i === today.getDate()) {
+            day.classList.add('today');
+        }
+        day.textContent = i;
+        calendarGrid.appendChild(day);
+    }
+    
+    // Add next month's leading days to fill the grid
+    const totalCells = headers.length + firstDay + daysInMonth;
+    const remainingCells = 42 - totalCells; // 6 rows × 7 days = 42
+    for (let i = 1; i <= remainingCells; i++) {
+        const day = document.createElement('div');
+        day.className = 'calendar-day other-month';
+        day.textContent = i;
+        calendarGrid.appendChild(day);
+    }
+}
 } else {
     // DOM is already loaded
     restoreSidebarState();

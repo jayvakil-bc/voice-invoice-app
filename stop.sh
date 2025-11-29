@@ -1,13 +1,24 @@
 #!/bin/bash
+# Stop the server
 
-echo "🛑 Stopping backend..."
+cd "$(dirname "$0")"
 
-# Find and kill the server process
-pkill -f "node.*server.js" 2>/dev/null
+# Find and kill process on port 3000
+PID=$(lsof -ti:3000 2>/dev/null)
 
-# Also kill any node processes running the server
-ps aux | grep "[s]erver.js" | awk '{print $2}' | xargs kill -9 2>/dev/null
+if [ -z "$PID" ]; then
+    echo "ℹ️  No server running on port 3000"
+    exit 0
+fi
 
+echo "🛑 Stopping server (PID: $PID)..."
+kill -9 $PID 2>/dev/null
+
+# Wait a moment and verify
 sleep 1
-
-echo "✅ Backend stopped"
+if lsof -ti:3000 > /dev/null 2>&1; then
+    echo "❌ Failed to stop server"
+    exit 1
+else
+    echo "✅ Server stopped successfully"
+fi
