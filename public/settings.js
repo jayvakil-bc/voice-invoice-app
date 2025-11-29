@@ -40,6 +40,8 @@ async function loadBusinessInfo() {
             document.getElementById('address').value = info.businessAddress || '';
             document.getElementById('phone').value = info.businessPhone || '';
             document.getElementById('email').value = info.businessEmail || '';
+            document.getElementById('website').value = info.website || '';
+            document.getElementById('taxId').value = info.taxId || '';
         }
         
         // Note: We're keeping currency/payment terms for backward compatibility
@@ -149,15 +151,67 @@ async function removeService(index) {
 }
 
 // Save business settings
-document.getElementById('businessForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
+function setupBusinessForm() {
+    const form = document.getElementById('businessForm');
+    if (!form) {
+        console.error('Business form not found');
+        // Retry after a short delay if form not found
+        setTimeout(setupBusinessForm, 100);
+        return;
+    }
+    
+    const submitButton = form.querySelector('button[type="submit"]');
+    if (!submitButton) {
+        console.error('Submit button not found');
+        return;
+    }
+    
+    const originalText = submitButton.textContent;
+    let isSaved = false;
+    
+    // Function to reset button when form is edited
+    function resetButtonOnEdit() {
+        if (isSaved) {
+            submitButton.disabled = false;
+            submitButton.textContent = originalText;
+            isSaved = false;
+        }
+    }
+    
+    // Add event listeners to all form inputs to detect changes
+    const formInputs = form.querySelectorAll('input, textarea');
+    formInputs.forEach(input => {
+        input.addEventListener('input', resetButtonOnEdit);
+        input.addEventListener('change', resetButtonOnEdit);
+    });
+    
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        console.log('Form submitted');
+        
+        submitButton.disabled = true;
+        submitButton.textContent = 'Saved';
+        isSaved = true;
     
     const businessInfo = {
         businessName: document.getElementById('companyName').value.trim(),
         businessAddress: document.getElementById('address').value.trim(),
         businessPhone: document.getElementById('phone').value.trim(),
-        businessEmail: document.getElementById('email').value.trim()
-    };
+            businessEmail: document.getElementById('email').value.trim(),
+            website: document.getElementById('website').value.trim() || null,
+            taxId: document.getElementById('taxId').value.trim() || null
+        };
+        
+        console.log('Saving business info:', businessInfo);
+        
+        // Validate required fields
+        if (!businessInfo.businessName || !businessInfo.businessAddress || !businessInfo.businessEmail || !businessInfo.businessPhone) {
+            alert('Please fill in all required fields (Company Name, Address, Email, and Phone)');
+            submitButton.disabled = false;
+            submitButton.textContent = originalText;
+            isSaved = false;
+            return;
+        }
     
     try {
         const response = await fetch('/api/user/business-info', {
@@ -168,22 +222,44 @@ document.getElementById('businessForm').addEventListener('submit', async (e) => 
             credentials: 'include',
             body: JSON.stringify(businessInfo)
         });
+            
+            console.log('Response status:', response.status);
         
         if (response.ok) {
+                const data = await response.json();
+                console.log('Save successful:', data);
+                
             const successMsg = document.getElementById('successMessage');
+                if (successMsg) {
             successMsg.classList.add('show');
             setTimeout(() => {
                 successMsg.classList.remove('show');
             }, 3000);
+                }
+                // Reload business info to ensure UI is in sync
+                loadBusinessInfo();
+                
+                // Button stays as "Saved" and disabled until user makes changes
+                // The resetButtonOnEdit function will handle reverting it
         } else {
             const error = await response.json();
+                console.error('Save failed:', error);
             alert(error.error || 'Failed to save settings');
+                submitButton.disabled = false;
+                submitButton.textContent = originalText;
+                isSaved = false;
         }
     } catch (error) {
         console.error('Error saving settings:', error);
-        alert('Failed to save settings');
+            alert('Failed to save settings. Please try again.');
+            submitButton.disabled = false;
+            submitButton.textContent = originalText;
+            isSaved = false;
     }
 });
+    
+    console.log('Business form setup complete');
+}
 
 // Logout
 function logout() {
@@ -372,8 +448,18 @@ function updateDarkModeIcon(isDark) {
     }
 }
 
-// Initialize
+// Initialize when DOM is ready
+function initialize() {
 checkAuth();
+    setupBusinessForm();
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initialize);
+} else {
+    // DOM is already loaded
+    initialize();
+}
 
 // Add event listeners for Stripe buttons
 // Note: These elements are created in the HTML, so they should exist when this script runs

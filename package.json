@@ -5,7 +5,10 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "nodemon server.js"
+    "dev": "nodemon server.js",
+    "stop": "bash -c 'PID=$(lsof -ti:3000 2>/dev/null); if [ -z \"$PID\" ]; then echo \"No server running on port 3000\"; else kill -9 $PID 2>/dev/null && echo \"Server stopped\"; fi'",
+    "restart": "npm run stop && sleep 1 && npm start",
+    "run": "bash -c 'PID=$(lsof -ti:3000 2>/dev/null); if [ ! -z \"$PID\" ]; then kill -9 $PID 2>/dev/null; sleep 1; fi; node server.js'"
   },
   "dependencies": {
     "axios": "^1.13.2",
